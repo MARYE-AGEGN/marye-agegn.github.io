@@ -1,0 +1,121 @@
+:root {
+  /* ==========================================================================
+     COLOR SYSTEM — Scientific & Clinical Palette
+     Character: Restrained, precise, calm, high-contrast, WCAG AAA compliant.
+     ========================================================================== */
+
+  /* Backgrounds */
+  --color-bg: #0b0f17;                /* Deep graphite/charcoal canvas */
+  --color-bg-subtle: #0f1624;         /* Alternating section background */
+  --color-surface: #131b2a;           /* Neutral clinical card/container surface */
+  --color-surface-elevated: #182337;  /* Hover / elevated card state */
+
+  /* Borders & Dividers */
+  --color-border: #1e293b;            /* Primary structural boundary (1px precision) */
+  --color-border-subtle: #182335;     /* Subtle separator lines */
+  --color-border-strong: #334155;     /* Interactive boundary / input border */
+
+  /* Typography / Text Colors */
+  --color-text-primary: #f8fafc;      /* 95% luminance off-white for optimum clarity */
+  --color-text-secondary: #94a3b8;    /* Muted slate for long-form reading comfort */
+  --color-text-muted: #64748b;        /* Subtle timestamps, metadata, and fine print */
+
+  /* Functional Accent — Precision Clinical Teal/Cyan */
+  /* Purposeful, restrained: used strictly for active states, link targets, and status */
+  --color-accent: #0284c7;            /* Standard link & active accent */
+  --color-accent-light: #38bdf8;      /* Bright telemetry cyan for badges & highlights */
+  --color-accent-hover: #0369a1;      /* Hover state for interactive accent items */
+  --color-accent-subtle: rgba(14, 165, 233, 0.08); /* Background tint for accent chips */
+  --color-accent-border: rgba(56, 189, 248, 0.25); /* Border for accent badges */
+
+  /* Focus Indicator for Accessible Keyboard Navigation */
+  --color-focus: #38bdf8;
+  --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-focus);
+
+  /* Status Colors */
+  --color-status-progress: #38bdf8;
+  --color-status-progress-bg: rgba(56, 189, 248, 0.1);
+  --color-status-progress-border: rgba(56, 189, 248, 0.25);
+
+  --color-status-complete: #34d399;
+  --color-status-complete-bg: rgba(52, 211, 153, 0.1);
+  --color-status-complete-border: rgba(52, 211, 153, 0.25);
+
+  /* ==========================================================================
+     TYPOGRAPHY SYSTEM
+     Font families, responsive scales, line heights, and weights.
+     ========================================================================== */
+
+  --font-family-base: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Font Sizes */
+  --font-size-xs: 0.75rem;    /* 12px - Metadata, badges, step labels */
+  --font-size-sm: 0.875rem;   /* 14px - Captions, sub-text, secondary details */
+  --font-size-base: 1rem;     /* 16px - Body text default */
+  --font-size-md: 1.125rem;   /* 18px - Lead paragraph, card subtitles */
+  --font-size-lg: 1.25rem;    /* 20px - Section subheadings (h3) */
+  --font-size-xl: 1.5rem;     /* 24px - Section headings (h2) */
+  --font-size-2xl: 1.875rem;  /* 30px - Major feature headings */
+  --font-size-3xl: 2.25rem;   /* 36px - Hero title baseline */
+  --font-size-4xl: 3rem;      /* 48px - Large desktop display title */
+
+  /* Line Heights */
+  --line-height-tight: 1.2;
+  --line-height-heading: 1.3;
+  --line-height-base: 1.65;
+  --line-height-relaxed: 1.75;
+
+  /* Letter Spacing */
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.05em;
+
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ==========================================================================
+     SPACING & LAYOUT SYSTEM
+     Strict 8pt scale for mathematical visual consistency.
+     ========================================================================== */
+
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+  --space-24: 6rem;     /* 96px */
+
+  /* Container & Content Dimensions */
+  --container-max-width: 1120px;
+  --content-text-max-width: 720px;    /* 65-75 characters per line for reading comfort */
+  --header-height: 72px;
+  --header-height-mobile: 64px;
+
+  /* Border Radii */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;      /* Architectural default for cards */
+  --radius-lg: 12px;
+  --radius-full: 9999px; /* Status pills & round badges */
+
+  /* ==========================================================================
+     MOTION & TRANSITIONS
+     Restrained, purpose-driven micro-interactions.
+     ========================================================================== */
+
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-all: all var(--duration-fast) var(--ease-standard);
+  --transition-color: color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+}
