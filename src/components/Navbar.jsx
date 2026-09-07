@@ -1,10 +1,38 @@
 import React, { useState, useEffect, useRef } from 'react';
 
+const dropdownGroups = {
+  education: {
+    label: 'Education',
+    items: [
+      { id: 'education', label: 'Education' },
+      { id: 'publications', label: 'Publications' },
+      { id: 'research', label: 'Research' },
+      { id: 'projects', label: 'Projects' },
+    ],
+  },
+  media: {
+    label: 'Media',
+    items: [
+      { id: 'media', label: 'Media' },
+      { id: 'blog', label: 'Blog & Notes' },
+      { id: 'documents', label: 'Documents & CV' },
+    ],
+  },
+  contact: {
+    label: 'Contact',
+    items: [
+      { id: 'contact', label: 'Contact' },
+    ],
+  },
+};
+
 export function Navbar({ navigation, personal, onOpenSearch, onOpenCollaboration, currentRoute = '' }) {
   const [activeSection, setActiveSection] = useState('home');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null);
   const toggleBtnRef = useRef(null);
   const mobileMenuRef = useRef(null);
+  const dropdownRefs = useRef({});
 
   const isMainPage = !currentRoute || currentRoute === 'home';
 
@@ -12,8 +40,8 @@ export function Navbar({ navigation, personal, onOpenSearch, onOpenCollaboration
   useEffect(() => {
     if (!isMainPage) return;
 
-    const sectionIds = navigation.map((item) => item.id);
-    const observedElements = sectionIds
+    const allSectionIds = ['home', ...Object.values(dropdownGroups).flatMap(g => g.items.map(i => i.id)), ...navigation.filter(item => !['home'].concat(Object.values(dropdownGroups).flatMap(g => g.items.map(i => i.id))).includes(item.id)).map(item => item.id)];
+    const observedElements = allSectionIds
       .map((id) => document.getElementById(id))
       .filter(Boolean);
 
@@ -71,6 +99,22 @@ export function Navbar({ navigation, personal, onOpenSearch, onOpenCollaboration
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isMobileMenuOpen]);
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      Object.keys(dropdownRefs.current).forEach((key) => {
+        if (dropdownRefs.current[key] && !dropdownRefs.current[key].contains(event.target)) {
+          setOpenDropdown(null);
+        }
+      });
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const toggleDropdown = (key) => {
+    setOpenDropdown(openDropdown === key ? null : key);
+  };
+
   const handleNavClick = (e, targetId) => {
     setIsMobileMenuOpen(false);
 
@@ -108,20 +152,97 @@ export function Navbar({ navigation, personal, onOpenSearch, onOpenCollaboration
 
         {/* Desktop Navigation */}
         <nav className="nav-desktop" aria-label="Main Desktop Navigation">
-          {navigation.map((item) => {
-            const isActive = isMainPage && activeSection === item.id;
-            return (
-              <a
-                key={item.id}
-                href={`#${item.id}`}
-                onClick={(e) => handleNavClick(e, item.id)}
-                className={`nav-item-link ${isActive ? 'active' : ''}`}
-                aria-current={isActive ? 'page' : undefined}
+          <a
+            href="#home"
+            onClick={(e) => handleNavClick(e, 'home')}
+            className={`nav-item-link ${isMainPage && activeSection === 'home' ? 'active' : ''}`}
+          >
+            Home
+          </a>
+          <a
+            href="#about"
+            onClick={(e) => handleNavClick(e, 'about')}
+            className={`nav-item-link ${isMainPage && activeSection === 'about' ? 'active' : ''}`}
+          >
+            About
+          </a>
+          <a
+            href="#experience"
+            onClick={(e) => handleNavClick(e, 'experience')}
+            className={`nav-item-link ${isMainPage && activeSection === 'experience' ? 'active' : ''}`}
+          >
+            Experience
+          </a>
+
+          {Object.entries(dropdownGroups).map(([key, group]) => (
+            <div
+              key={key}
+              className="nav-dropdown"
+              ref={(el) => (dropdownRefs.current[key] = el)}
+            >
+              <button
+                type="button"
+                className={`nav-dropdown-trigger nav-item-link ${group.items.some(item => isMainPage && activeSection === item.id) ? 'active' : ''}`}
+                onClick={() => toggleDropdown(key)}
+                aria-expanded={openDropdown === key}
+                aria-haspopup="true"
               >
-                {item.label}
-              </a>
-            );
-          })}
+                {group.label}
+                <svg
+                  className={`nav-dropdown-arrow ${openDropdown === key ? 'open' : ''}`}
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              {openDropdown === key && (
+                <div className="nav-dropdown-menu">
+                  {group.items.map((item) => (
+                    <a
+                      key={item.id}
+                      href={`#${item.id}`}
+                      onClick={(e) => {
+                        handleNavClick(e, item.id);
+                        setOpenDropdown(null);
+                      }}
+                      className={`nav-dropdown-item ${isMainPage && activeSection === item.id ? 'active' : ''}`}
+                    >
+                      {item.label}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+
+          <a
+            href="#vision"
+            onClick={(e) => handleNavClick(e, 'vision')}
+            className={`nav-item-link ${isMainPage && activeSection === 'vision' ? 'active' : ''}`}
+          >
+            Vision
+          </a>
+          <a
+            href="#skills"
+            onClick={(e) => handleNavClick(e, 'skills')}
+            className={`nav-item-link ${isMainPage && activeSection === 'skills' ? 'active' : ''}`}
+          >
+            Skills
+          </a>
+          <button
+            type="button"
+            className={`nav-item-link nav-contact-btn ${isMainPage && activeSection === 'contact' ? 'active' : ''}`}
+            onClick={() => {
+              handleNavClick({ preventDefault: () => {} }, 'contact');
+              onOpenCollaboration();
+            }}
+          >
+            Contact & Collab
+          </button>
         </nav>
 
         {/* Action Controls: Search & Collaboration Modal */}
@@ -215,32 +336,107 @@ export function Navbar({ navigation, personal, onOpenSearch, onOpenCollaboration
           </div>
 
           <ul className="mobile-nav-list">
-            {navigation.map((item) => {
-              const isActive = isMainPage && activeSection === item.id;
-              return (
-                <li key={item.id}>
-                  <a
-                    href={`#${item.id}`}
-                    onClick={(e) => handleNavClick(e, item.id)}
-                    className={`mobile-nav-item-link ${isActive ? 'active' : ''}`}
-                    aria-current={isActive ? 'page' : undefined}
+            <li>
+              <a
+                href="#home"
+                onClick={(e) => handleNavClick(e, 'home')}
+                className={`mobile-nav-item-link ${isMainPage && activeSection === 'home' ? 'active' : ''}`}
+              >
+                <span>Home</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#about"
+                onClick={(e) => handleNavClick(e, 'about')}
+                className={`mobile-nav-item-link ${isMainPage && activeSection === 'about' ? 'active' : ''}`}
+              >
+                <span>About</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#experience"
+                onClick={(e) => handleNavClick(e, 'experience')}
+                className={`mobile-nav-item-link ${isMainPage && activeSection === 'experience' ? 'active' : ''}`}
+              >
+                <span>Experience</span>
+              </a>
+            </li>
+
+            {Object.entries(dropdownGroups).map(([key, group]) => (
+              <li key={key} className="mobile-nav-dropdown">
+                <button
+                  type="button"
+                  className="mobile-nav-dropdown-trigger"
+                  onClick={() => toggleDropdown(key)}
+                  aria-expanded={openDropdown === key}
+                >
+                  <span>{group.label}</span>
+                  <svg
+                    className={`mobile-nav-dropdown-arrow ${openDropdown === key ? 'open' : ''}`}
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    aria-hidden="true"
                   >
-                    <span>{item.label}</span>
-                    {isActive && (
-                      <span
-                        style={{
-                          fontSize: 'var(--font-size-xs)',
-                          color: 'var(--color-accent-light)',
-                          fontFamily: 'var(--font-family-mono)',
-                        }}
-                      >
-                        Current
-                      </span>
-                    )}
-                  </a>
-                </li>
-              );
-            })}
+                    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                {openDropdown === key && (
+                  <ul className="mobile-nav-dropdown-menu">
+                    {group.items.map((item) => (
+                      <li key={item.id}>
+                        <a
+                          href={`#${item.id}`}
+                          onClick={(e) => {
+                            handleNavClick(e, item.id);
+                            setIsMobileMenuOpen(false);
+                            setOpenDropdown(null);
+                          }}
+                          className={`mobile-nav-item-link mobile-nav-item-nested ${isMainPage && activeSection === item.id ? 'active' : ''}`}
+                        >
+                          <span>{item.label}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+
+            <li>
+              <a
+                href="#vision"
+                onClick={(e) => handleNavClick(e, 'vision')}
+                className={`mobile-nav-item-link ${isMainPage && activeSection === 'vision' ? 'active' : ''}`}
+              >
+                <span>Vision</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#skills"
+                onClick={(e) => handleNavClick(e, 'skills')}
+                className={`mobile-nav-item-link ${isMainPage && activeSection === 'skills' ? 'active' : ''}`}
+              >
+                <span>Skills</span>
+              </a>
+            </li>
+            <li>
+              <button
+                type="button"
+                className={`mobile-nav-item-link ${isMainPage && activeSection === 'contact' ? 'active' : ''}`}
+                onClick={() => {
+                  handleNavClick({ preventDefault: () => {} }, 'contact');
+                  onOpenCollaboration();
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                <span>Contact & Collab</span>
+              </button>
+            </li>
           </ul>
 
           <div className="mobile-drawer-footer p-4 border-t border-slate space-y-3">
