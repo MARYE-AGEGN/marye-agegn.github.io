@@ -1885,13 +1885,16 @@ a:hover {
   visibility: hidden;
   transform: translateX(-50%) translateY(-8px);
   transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
 }
 
 .nav-dropdown:hover .nav-dropdown-menu,
-.nav-dropdown-menu:hover {
+.nav-dropdown-menu:hover,
+.nav-dropdown-menu.show {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
 }
 
 .nav-dropdown-item {
@@ -1915,13 +1918,6 @@ a:hover {
 .nav-dropdown-item.active {
   color: var(--color-accent-light);
   background-color: var(--color-accent-subtle);
-}
-
-.nav-contact-btn {
-  background: none;
-  border: none;
-  font-family: inherit;
-  cursor: pointer;
 }
 
 /* Mobile Nav Dropdown */
@@ -1964,6 +1960,17 @@ a:hover {
   list-style: none;
   padding: 0 0 0 var(--space-4);
   margin: 0;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition: max-height 0.3s ease, opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.mobile-nav-dropdown-menu.show {
+  max-height: 500px;
+  opacity: 1;
+  visibility: visible;
 }
 
 .mobile-nav-item-nested {

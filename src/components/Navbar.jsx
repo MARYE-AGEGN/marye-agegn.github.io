@@ -18,12 +18,6 @@ const dropdownGroups = {
       { id: 'documents', label: 'Documents & CV' },
     ],
   },
-  contact: {
-    label: 'Contact',
-    items: [
-      { id: 'contact', label: 'Contact' },
-    ],
-  },
 };
 
 export function Navbar({ navigation, personal, onOpenSearch, onOpenCollaboration, currentRoute = '' }) {
@@ -199,23 +193,23 @@ export function Navbar({ navigation, personal, onOpenSearch, onOpenCollaboration
                   <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
-              {openDropdown === key && (
-                <div className="nav-dropdown-menu">
-                  {group.items.map((item) => (
-                    <a
-                      key={item.id}
-                      href={`#${item.id}`}
-                      onClick={(e) => {
-                        handleNavClick(e, item.id);
-                        setOpenDropdown(null);
-                      }}
-                      className={`nav-dropdown-item ${isMainPage && activeSection === item.id ? 'active' : ''}`}
-                    >
-                      {item.label}
-                    </a>
-                  ))}
-                </div>
-              )}
+              <div
+                className={`nav-dropdown-menu ${openDropdown === key ? 'show' : ''}`}
+              >
+                {group.items.map((item) => (
+                  <a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    onClick={(e) => {
+                      handleNavClick(e, item.id);
+                      setOpenDropdown(null);
+                    }}
+                    className={`nav-dropdown-item ${isMainPage && activeSection === item.id ? 'active' : ''}`}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
             </div>
           ))}
 
@@ -233,16 +227,13 @@ export function Navbar({ navigation, personal, onOpenSearch, onOpenCollaboration
           >
             Skills
           </a>
-          <button
-            type="button"
-            className={`nav-item-link nav-contact-btn ${isMainPage && activeSection === 'contact' ? 'active' : ''}`}
-            onClick={() => {
-              handleNavClick({ preventDefault: () => {} }, 'contact');
-              onOpenCollaboration();
-            }}
+          <a
+            href="#contact"
+            onClick={(e) => handleNavClick(e, 'contact')}
+            className={`nav-item-link ${isMainPage && activeSection === 'contact' ? 'active' : ''}`}
           >
-            Contact & Collab
-          </button>
+            Contact
+          </a>
         </nav>
 
         {/* Action Controls: Search & Collaboration Modal */}
@@ -384,25 +375,23 @@ export function Navbar({ navigation, personal, onOpenSearch, onOpenCollaboration
                     <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
-                {openDropdown === key && (
-                  <ul className="mobile-nav-dropdown-menu">
-                    {group.items.map((item) => (
-                      <li key={item.id}>
-                        <a
-                          href={`#${item.id}`}
-                          onClick={(e) => {
-                            handleNavClick(e, item.id);
-                            setIsMobileMenuOpen(false);
-                            setOpenDropdown(null);
-                          }}
-                          className={`mobile-nav-item-link mobile-nav-item-nested ${isMainPage && activeSection === item.id ? 'active' : ''}`}
-                        >
-                          <span>{item.label}</span>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <ul className={`mobile-nav-dropdown-menu ${openDropdown === key ? 'show' : ''}`}>
+                  {group.items.map((item) => (
+                    <li key={item.id}>
+                      <a
+                        href={`#${item.id}`}
+                        onClick={(e) => {
+                          handleNavClick(e, item.id);
+                          setIsMobileMenuOpen(false);
+                          setOpenDropdown(null);
+                        }}
+                        className={`mobile-nav-item-link mobile-nav-item-nested ${isMainPage && activeSection === item.id ? 'active' : ''}`}
+                      >
+                        <span>{item.label}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
               </li>
             ))}
 
@@ -425,17 +414,17 @@ export function Navbar({ navigation, personal, onOpenSearch, onOpenCollaboration
               </a>
             </li>
             <li>
-              <button
-                type="button"
-                className={`mobile-nav-item-link ${isMainPage && activeSection === 'contact' ? 'active' : ''}`}
-                onClick={() => {
-                  handleNavClick({ preventDefault: () => {} }, 'contact');
-                  onOpenCollaboration();
+              <a
+                href="#contact"
+                onClick={(e) => {
+                  handleNavClick(e, 'contact');
                   setIsMobileMenuOpen(false);
                 }}
+                className={`mobile-nav-item-link ${isMainPage && activeSection === 'contact' ? 'active' : ''}`}
+                aria-current={isMainPage && activeSection === 'contact' ? 'page' : undefined}
               >
-                <span>Contact & Collab</span>
-              </button>
+                <span>Contact</span>
+              </a>
             </li>
           </ul>
 
