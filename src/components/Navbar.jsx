@@ -1,13 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-export function Navbar({ navigation, personal }) {
+export function Navbar({ navigation, personal, onOpenSearch, onOpenCollaboration, currentRoute = '' }) {
   const [activeSection, setActiveSection] = useState('home');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const toggleBtnRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
+  const isMainPage = !currentRoute || currentRoute === 'home';
+
   // Active section tracking via IntersectionObserver
   useEffect(() => {
+    if (!isMainPage) return;
+
     const sectionIds = navigation.map((item) => item.id);
     const observedElements = sectionIds
       .map((id) => document.getElementById(id))
@@ -17,10 +21,8 @@ export function Navbar({ navigation, personal }) {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // Find visible entries
         const visibleEntries = entries.filter((entry) => entry.isIntersecting);
         if (visibleEntries.length > 0) {
-          // Sort by intersection ratio or boundingClientRect top
           visibleEntries.sort((a, b) => {
             return Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top);
           });
@@ -39,7 +41,7 @@ export function Navbar({ navigation, personal }) {
     return () => {
       observer.disconnect();
     };
-  }, [navigation]);
+  }, [navigation, isMainPage]);
 
   // Handle body scroll locking when mobile drawer is open
   useEffect(() => {
@@ -70,17 +72,21 @@ export function Navbar({ navigation, personal }) {
   }, [isMobileMenuOpen]);
 
   const handleNavClick = (e, targetId) => {
-    e.preventDefault();
     setIsMobileMenuOpen(false);
+
+    if (!isMainPage) {
+      // If we are on /admin or another route, navigate back to main with hash
+      window.location.hash = `#${targetId}`;
+      return;
+    }
 
     const targetElement = document.getElementById(targetId);
     if (targetElement) {
+      e.preventDefault();
       targetElement.scrollIntoView({ behavior: 'smooth' });
-      // Update history without page jump
       if (window.history.pushState) {
         window.history.pushState(null, '', `#${targetId}`);
       }
-      // Accessible focus management
       targetElement.setAttribute('tabindex', '-1');
       targetElement.focus({ preventScroll: true });
     }
@@ -103,7 +109,7 @@ export function Navbar({ navigation, personal }) {
         {/* Desktop Navigation */}
         <nav className="nav-desktop" aria-label="Main Desktop Navigation">
           {navigation.map((item) => {
-            const isActive = activeSection === item.id;
+            const isActive = isMainPage && activeSection === item.id;
             return (
               <a
                 key={item.id}
@@ -118,6 +124,28 @@ export function Navbar({ navigation, personal }) {
           })}
         </nav>
 
+        {/* Action Controls: Search & Collaboration Modal */}
+        <div className="nav-actions-desktop flex items-center gap-3">
+          <button
+            type="button"
+            className="nav-search-btn"
+            onClick={onOpenSearch}
+            title="Global Search (Ctrl+K)"
+            aria-label="Open search dialog"
+          >
+            <span>🔍</span>
+            <span className="search-hotkey">Ctrl K</span>
+          </button>
+
+          <button
+            type="button"
+            className="btn btn-secondary btn-xs nav-collab-btn"
+            onClick={onOpenCollaboration}
+          >
+            Collaborate 🤝
+          </button>
+        </div>
+
         {/* Mobile Navigation Toggle Button */}
         <button
           ref={toggleBtnRef}
@@ -129,7 +157,6 @@ export function Navbar({ navigation, personal }) {
           onClick={() => setIsMobileMenuOpen((prev) => !prev)}
         >
           {isMobileMenuOpen ? (
-            /* Close Icon */
             <svg
               width="22"
               height="22"
@@ -145,7 +172,6 @@ export function Navbar({ navigation, personal }) {
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           ) : (
-            /* Hamburger Icon */
             <svg
               width="22"
               height="22"
@@ -175,9 +201,22 @@ export function Navbar({ navigation, personal }) {
           aria-modal="true"
           aria-label="Mobile Navigation Menu"
         >
+          <div className="mobile-drawer-top flex justify-between items-center p-4 border-b border-slate">
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm w-full flex items-center justify-center gap-2"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                onOpenSearch();
+              }}
+            >
+              <span>🔍 Search Everything (Ctrl+K)</span>
+            </button>
+          </div>
+
           <ul className="mobile-nav-list">
             {navigation.map((item) => {
-              const isActive = activeSection === item.id;
+              const isActive = isMainPage && activeSection === item.id;
               return (
                 <li key={item.id}>
                   <a
@@ -204,8 +243,28 @@ export function Navbar({ navigation, personal }) {
             })}
           </ul>
 
-          <div style={{ marginTop: 'auto', paddingTop: 'var(--space-6)', borderTop: '1px solid var(--color-border-subtle)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-            <p>{personal.name} &bull; {personal.currentInstitution}</p>
+          <div className="mobile-drawer-footer p-4 border-t border-slate space-y-3">
+            <button
+              type="button"
+              className="btn btn-primary btn-sm w-full"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                onOpenCollaboration();
+              }}
+            >
+              Initiate Collaboration Proposal 🤝
+            </button>
+
+            <div className="flex justify-between items-center text-xs text-muted pt-2">
+              <span>{personal.name}</span>
+              <a
+                href="#admin"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-cyan underline"
+              >
+                Admin CMS ⚙️
+              </a>
+            </div>
           </div>
         </div>
       )}
@@ -214,3 +273,4 @@ export function Navbar({ navigation, personal }) {
 }
 
 export default Navbar;
+

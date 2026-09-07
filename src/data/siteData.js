@@ -108,6 +108,10 @@ export const siteData = {
     { id: 'experience', label: 'Experience' },
     { id: 'education', label: 'Education' },
     { id: 'publications', label: 'Publications' },
+    { id: 'blog', label: 'Blog & Notes' },
+    { id: 'documents', label: 'Documents & CV' },
+    { id: 'media', label: 'Media' },
+    { id: 'vision', label: 'Future Vision' },
     { id: 'skills', label: 'Skills' },
     { id: 'contact', label: 'Contact' },
   ],
@@ -721,6 +725,204 @@ export const siteData = {
     },
     privacyNotice:
       'Privacy Notice: In accordance with standard academic and privacy practices, residential addresses, date of birth, personal phone numbers, and messaging apps (e.g. WhatsApp) are intentionally omitted.',
+  },
+
+  // --------------------------------------------------------------------------
+  // DYNAMIC CONTENT BASELINE (Used by contentStore when offline or unconfigured)
+  // --------------------------------------------------------------------------
+  posts: [
+    {
+      id: 'post-1',
+      title: 'Bridging Frontline Clinical Engineering and Wearable Sensor AI',
+      slug: 'bridging-clinical-engineering-and-wearable-ai',
+      excerpt:
+        'Why machine learning models for health monitoring often fail in hospital practice, and how direct clinical engineering experience provides a vital reality-check for computational biomedical research.',
+      content: `### The Disconnect Between Laboratory AI and Clinical Reality
+
+In computational biomedical engineering, algorithms are frequently trained and evaluated on sanitized, curated benchmark datasets. While predictive accuracy on test splits may appear impressive in scholarly papers, deploying these models in real clinical environments reveals a stark reality: sensors shift, hospital staff face severe cognitive workload, power infrastructure fluctuates, and clinicians instinctively distrust black-box predictions that offer no physiological rationale.
+
+### Lessons from Three Years in Hospital Wards
+
+Having spent three years as a frontline biomedical engineer, zonal officer, and technical manager in Ethiopia, I witnessed firsthand why sophisticated medical technology is abandoned in hospital storerooms. When a medical device fails in a decentralized facility, the barrier is rarely a lack of computational theory—it is a lack of usability, maintenance feasibility, calibration resilience, and transparent failure modes.
+
+### Toward Explainable and Frugal Health Technology
+
+As I undertake graduate research in explainable deep learning at Anna University, my priority is not merely achieving an incremental bump in accuracy metrics. My goal is to build algorithms that respect frontline constraints: minimal sensor setups (such as a single lumbar IMU), transparent feature attribution grounded in biomechanics, and computational efficiency suitable for resource-constrained clinics.`,
+      cover_image: null,
+      category: 'Clinical Engineering',
+      tags: ['Clinical Engineering', 'Healthcare Technology', 'Explainable AI', 'Wearable Sensors'],
+      reading_time: '5 min read',
+      status: 'published',
+      created_at: '2025-08-15T10:00:00Z',
+      published_at: '2025-08-15T10:00:00Z',
+    },
+    {
+      id: 'post-2',
+      title: 'Why Lower-Back IMU Sensing Matters: Minimizing Burden in Ambulatory Gait Analysis',
+      slug: 'why-lower-back-imu-sensing-matters',
+      excerpt:
+        'Multi-sensor body suits and optical gait labs provide rich kinematics but fail in daily life. Examining the engineering and biomechanical rationale for single-lumbar sensor analysis.',
+      content: `### The Practical Trade-Offs in Mobility Monitoring
+
+Gold-standard clinical gait assessment relies on multi-camera optoelectronic motion capture and instrumented pressure walkways. While indispensable for laboratory biomechanics, these modalities are capital-intensive, require dedicated spatial real estate, and cannot assess a patient moving naturally in their home or community.
+
+### Why the L4–L5 Anatomical Position?
+
+Placing an Inertial Measurement Unit (IMU) on the lower back near the body center of mass (approximating the L4–L5 lumbar vertebrae) provides an optimal trade-off:
+1. **Single-point biomechanical coupling:** Captures both linear trunk accelerations (vertical, mediolateral, anterior-posterior) and angular rotational velocities (pitch, roll, yaw) with high signal fidelity.
+2. **Minimal user burden:** A single belt-mounted or adherent sensor significantly improves participant compliance compared to multi-sensor setups across ankles, shins, thighs, and chest.
+3. **Dual-task sensitivity:** Subtle deviations in trunk stability and stride regularity under cognitive loading are reflected directly in lumbar acceleration patterns.
+
+### Computational Challenges
+
+Because all kinematic data is concentrated in a single multi-channel stream, standard heuristic algorithms often struggle with turn transitions and step asymmetries. This is precisely where advanced representation learning and explainability frameworks become essential—extracting latent movement signatures while validating them against physiological ground truth.`,
+      cover_image: null,
+      category: 'Wearable Sensors',
+      tags: ['Wearable Sensors', 'Gait Analysis', 'Biomechanics', 'Signal Processing'],
+      reading_time: '6 min read',
+      status: 'published',
+      created_at: '2025-09-02T14:30:00Z',
+      published_at: '2025-09-02T14:30:00Z',
+    },
+  ],
+
+  researchUpdates: [
+    {
+      id: 'ru-1',
+      title: 'Master of Engineering Studies Commenced at Anna University (CEG)',
+      summary:
+        'Formalized graduate enrollment in Biomedical Engineering at Anna University, establishing computational research focus in biomedical signal processing, machine learning, and human movement analysis.',
+      category: 'Milestone',
+      status: 'published',
+      visibility: 'public',
+      created_at: '2025-07-18T09:00:00Z',
+      published_at: '2025-07-18T09:00:00Z',
+    },
+    {
+      id: 'ru-2',
+      title: 'DUO Gait Dataset Preprocessing & Baseline Pipeline Benchmarking',
+      summary:
+        'Initiated exploratory signal conditioning, drift removal, and stride segmentation protocols on continuous lumbar IMU recordings comparing single-task and dual-task cognitive walking trials.',
+      category: 'Experiment',
+      status: 'published',
+      visibility: 'public',
+      created_at: '2025-08-28T11:00:00Z',
+      published_at: '2025-08-28T11:00:00Z',
+    },
+    {
+      id: 'ru-3',
+      title: 'Literature Review Synthesis: Explainable AI in Inertial Biomechanics',
+      summary:
+        'Completed comprehensive literature review mapping feature attribution methods (SHAP, Integrated Gradients, attention weights) to kinematic gait variables in continuous time-series.',
+      category: 'Milestone',
+      status: 'published',
+      visibility: 'public',
+      created_at: '2025-09-05T16:00:00Z',
+      published_at: '2025-09-05T16:00:00Z',
+    },
+  ],
+
+  documents: [
+    {
+      id: 'doc-1',
+      title: 'Academic Curriculum Vitae — Marye Agegn',
+      description:
+        'Comprehensive curriculum vitae detailing clinical engineering certifications, hospital technology management appointments, undergraduate capstone distinction, and graduate research trajectory.',
+      category: 'CV',
+      file_url: './assets/documents/Marye_Agegn_Academic_CV.pdf',
+      file_type: 'PDF',
+      file_size: '240 KB',
+      version: 'v2.1',
+      is_current_cv: true,
+      last_updated: 'August 2025',
+      status: 'published',
+      created_at: '2025-08-20T10:00:00Z',
+    },
+    {
+      id: 'doc-2',
+      title: 'Undergraduate Capstone Summary — Low-Cost rTMS System',
+      description:
+        'Technical summary of the Bachelor of Science capstone thesis on capacitor-discharge pulse power circuitry and magnetic coil modeling for psychiatric care in low-resource clinics (Grade A).',
+      category: 'Report',
+      file_url: './assets/documents/rTMS_Capstone_Summary_Marye_Agegn.pdf',
+      file_type: 'PDF',
+      file_size: '380 KB',
+      version: 'v1.0',
+      is_current_cv: false,
+      last_updated: 'July 2021',
+      status: 'published',
+      created_at: '2021-07-15T12:00:00Z',
+    },
+  ],
+
+  media: [
+    {
+      id: 'media-1',
+      title: 'Repetitive Transcranial Magnetic Stimulation: Circuit Topology & Electromagnetic Field Modeling',
+      description:
+        'Technical presentation illustrating the high-voltage pulse discharge circuitry, safety interlocks, and comparative coil geometries engineered for resource-constrained clinical settings.',
+      media_type: 'video',
+      embed_url: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ', // Demonstration placeholder embed
+      category: 'Presentation',
+      status: 'published',
+      created_at: '2025-06-10T14:00:00Z',
+    },
+    {
+      id: 'media-2',
+      title: 'Frontline Clinical Engineering: Challenges of Hospital Equipment Uptime in Developing Regions',
+      description:
+        'Audio seminar reviewing practical procurement assessments, electrical safety considerations, and preventive maintenance strategies across regional Ethiopian hospitals.',
+      media_type: 'audio',
+      embed_url: 'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1', // Demonstration audio embed
+      category: 'Seminar',
+      status: 'published',
+      created_at: '2025-07-02T10:00:00Z',
+    },
+  ],
+
+  vision: {
+    title: 'Future Vision & Innovation',
+    subtitle: 'Connecting Clinical Practice, Research, and Healthcare Technology Entrepreneurship',
+    leadStatement:
+      'My long-term ambition is to bridge the translation gap between computational biomedical research and frontline healthcare delivery. Rather than allowing innovations to remain isolated as academic demonstrations, I am working toward building accessible, interpretable, and scalable technologies that serve real clinical needs—especially in resource-constrained healthcare environments.',
+    trajectoryFormula: 'Clinical Engineering → Biomedical Research → Wearable Sensing → Explainable AI → Translational Healthcare Technology',
+    bhnInitiative: {
+      name: 'Biomedical Horizon Network (BHN)',
+      status: 'Entrepreneurial Vision & Ecosystem Initiative Under Development',
+      badge: 'Conceptual Project',
+      summary:
+        'A developing healthcare engineering ecosystem designed to bridge hospitals, biomedical engineers, researchers, and technology manufacturers to solve critical medical equipment uptime and technology adoption challenges in emerging markets.',
+      coreProblem:
+        'In many developing healthcare environments, millions of dollars of critical diagnostic and life-support equipment sit idle due to fragmented procurement, absent local maintenance capacity, erratic supply chains, and lack of specialized technical training.',
+      pillars: [
+        {
+          number: '01',
+          title: 'Lifecycle Healthcare Technology Management',
+          description:
+            'Establishing structured preventive maintenance contracts, calibrated testing protocols, and electrical safety standards (IEC 60601) to maximize hospital device uptime.',
+        },
+        {
+          number: '02',
+          title: 'Evidence-Based Procurement Advisory',
+          description:
+            'Providing independent pre-procurement technical specification drafting and tender evaluation to ensure medical devices match local clinical infrastructure and electrical power reliability.',
+        },
+        {
+          number: '03',
+          title: 'Frugal Innovation & Collaborative Prototyping',
+          description:
+            'Bridging academic researchers and clinical engineers to design, adapt, and validate low-cost, open-hardware medical technologies engineered for resource-limited environments.',
+        },
+        {
+          number: '04',
+          title: 'Technical Capacity Building & Training',
+          description:
+            'Empowering hospital technicians, clinical engineers, and healthcare workers with hands-on training in equipment safety, daily calibration, and diagnostic troubleshooting.',
+        },
+      ],
+      disclaimer:
+        'Notice: The Biomedical Horizon Network (BHN) is an entrepreneurial vision and collaborative concept currently under developmental planning. It is presented as an intentional future trajectory rather than an established commercial enterprise.',
+    },
   },
 };
 

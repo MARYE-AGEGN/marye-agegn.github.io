@@ -90,9 +90,15 @@ export function Footer({ personal, contact }) {
           <p>
             &copy; {currentYear} {personal.name}. All rights reserved.
           </p>
-          <p>
-            Academic &amp; Research Portfolio &bull; Configured for GitHub Pages &amp; Vercel deployment.
-          </p>
+          <div className="footer-meta-links flex gap-4 text-xs">
+            <a href="#admin" className="text-cyan underline">
+              Admin Portal ⚙️
+            </a>
+            <span>•</span>
+            <span>Dynamic Research Platform</span>
+            <span>•</span>
+            <span>Hosted via GitHub Pages</span>
+          </div>
         </div>
       </div>
     </footer>
