@@ -28,7 +28,13 @@ export class ConsultationStore {
     }
     let token = sessionStorage.getItem(SESSION_TOKEN_KEY);
     if (!token) {
-      token = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+      if (typeof window.crypto !== 'undefined' && window.crypto.getRandomValues) {
+        const buffer = new Uint8Array(24);
+        window.crypto.getRandomValues(buffer);
+        token = 'sess_' + Array.from(buffer, (b) => b.toString(16).padStart(2, '0')).join('');
+      } else {
+        token = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+      }
       sessionStorage.setItem(SESSION_TOKEN_KEY, token);
     }
     return token;
@@ -64,11 +70,12 @@ export class ConsultationStore {
 
     if (isSupabaseConfigured && supabase) {
       try {
-        const { data, error } = await supabase
+        const query = supabase
           .from('consultation_threads')
           .insert([threadPayload])
-          .select()
-          .single();
+          .select();
+        if (typeof query.setHeader === 'function') query.setHeader('x-session-token', sessionToken);
+        const { data, error } = await query.single();
 
         if (!error && data) {
           if (typeof sessionStorage !== 'undefined') {
@@ -191,10 +198,12 @@ export class ConsultationStore {
       currentThreadId = created.thread?.id;
     } else if (isSupabaseConfigured && supabase) {
       try {
-        await supabase
+        const query = supabase
           .from('consultation_threads')
           .update(updatePayload)
           .eq('id', currentThreadId);
+        if (typeof query.setHeader === 'function') query.setHeader('x-session-token', sessionToken);
+        await query;
       } catch (err) {
         console.warn('Supabase escalateToMarye update error:', err);
       }
@@ -203,7 +212,7 @@ export class ConsultationStore {
     // Also record an audit action
     if (isSupabaseConfigured && supabase && currentThreadId) {
       try {
-        await supabase.from('consultation_actions').insert([
+        const actionQuery = supabase.from('consultation_actions').insert([
           {
             thread_id: currentThreadId,
             action_type: 'escalation_to_admin',
@@ -212,6 +221,8 @@ export class ConsultationStore {
             created_at: new Date().toISOString(),
           },
         ]);
+        if (typeof actionQuery.setHeader === 'function') actionQuery.setHeader('x-session-token', sessionToken);
+        await actionQuery;
       } catch (e) {
         // Optional audit
       }
@@ -225,14 +236,16 @@ export class ConsultationStore {
    */
   static async checkAdminResponse(threadId) {
     if (!threadId) return null;
+    const sessionToken = this.getSessionToken();
 
     if (isSupabaseConfigured && supabase) {
       try {
-        const { data, error } = await supabase
+        const query = supabase
           .from('consultation_threads')
           .select('id, status, admin_response, admin_responded_at')
-          .eq('id', threadId)
-          .single();
+          .eq('id', threadId);
+        if (typeof query.setHeader === 'function') query.setHeader('x-session-token', sessionToken);
+        const { data, error } = await query.single();
 
         if (!error && data && data.admin_response) {
           return {

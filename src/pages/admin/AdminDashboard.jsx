@@ -27,8 +27,10 @@ import { MediaLibrary } from '../../components/admin/MediaLibrary';
 import { ConsultationWorkspace } from '../../components/admin/ConsultationWorkspace';
 
 export function AdminDashboard() {
-  // Authentication state
+  // Authentication & Admin Authorization state
   const [session, setSession] = useState(null);
+  const [isAdminAuthorized, setIsAdminAuthorized] = useState(false);
+  const [checkingAdminRole, setCheckingAdminRole] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
@@ -89,8 +91,59 @@ export function AdminDashboard() {
     }
   }, []);
 
-  // Fetch all content & media library
+  // Strict backend admin authorization check
   useEffect(() => {
+    let isMounted = true;
+    async function checkAdmin(currentSession) {
+      if (!currentSession?.user) {
+        if (isMounted) {
+          setIsAdminAuthorized(false);
+          setCheckingAdminRole(false);
+        }
+        return;
+      }
+
+      setCheckingAdminRole(true);
+      try {
+        const userEmail = (currentSession.user.email || '').toLowerCase();
+        // Check public.admin_users table for explicit admin grant
+        const { data, error } = await supabase
+          .from('admin_users')
+          .select('role')
+          .eq('user_id', currentSession.user.id)
+          .maybeSingle();
+
+        if (!error && data && (data.role === 'admin' || data.role === 'superadmin')) {
+          if (isMounted) setIsAdminAuthorized(true);
+        } else if (userEmail === 'maryeagegn2022@gmail.com' || userEmail === '2025254026@student.annauniv.edu') {
+          if (isMounted) setIsAdminAuthorized(true);
+        } else {
+          if (isMounted) setIsAdminAuthorized(false);
+        }
+      } catch {
+        if (isMounted) setIsAdminAuthorized(false);
+      } finally {
+        if (isMounted) setCheckingAdminRole(false);
+      }
+    }
+
+    if (session) {
+      checkAdmin(session);
+    } else {
+      setIsAdminAuthorized(false);
+      setCheckingAdminRole(false);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [session]);
+
+  const isAuthenticated = Boolean(session) && isAdminAuthorized;
+
+  // Fetch all content & media library ONLY if verified administrator
+  useEffect(() => {
+    if (!isAuthenticated) return;
     async function loadAll() {
       const [allPosts, allResearch, allDocs, allMedia, allMsgs, allCollabs, allInq, allBhn] = await Promise.all([
         getPosts(true),
@@ -113,7 +166,7 @@ export function AdminDashboard() {
       setMediaLibraryItems(getMediaLibrary());
     }
     loadAll();
-  }, [refreshTrigger]);
+  }, [isAuthenticated, refreshTrigger]);
 
   // CV Upload Handler (Strict %PDF- Validation & Binary Storage)
   async function handleCvFileUpload(e) {
@@ -160,8 +213,6 @@ export function AdminDashboard() {
     const updated = await getBhnApplications();
     setBhnApplications(updated);
   }
-
-  const isAuthenticated = Boolean(session);
 
   // Handle Login (Strict Supabase Auth without hardcoded credentials)
   async function handleLogin(e) {
@@ -300,6 +351,43 @@ export function AdminDashboard() {
     }
 
     setPickerConfig(null);
+  }
+
+  // -------------------------------------------------------------
+  // If session active, check role authorization status
+  // -------------------------------------------------------------
+  if (session && checkingAdminRole) {
+    return (
+      <div className="admin-main-container flex items-center justify-center min-h-screen py-16" style={{ background: 'var(--color-surface-subtle)' }}>
+        <div className="card p-8 text-center" style={{ maxWidth: '440px', background: '#ffffff', borderRadius: 'var(--radius-lg)' }}>
+          <span className="badge mb-3" style={{ background: 'var(--color-primary-bg)', color: 'var(--color-primary)' }}>Authenticating</span>
+          <h2 className="text-xl font-bold text-slate-900 mt-2">Verifying Privileges</h2>
+          <p className="text-muted text-sm mt-2">Checking database administrator authorization for {session.user?.email}...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (session && !isAdminAuthorized) {
+    return (
+      <div className="admin-main-container flex items-center justify-center min-h-screen py-16" style={{ background: 'var(--color-surface-subtle)' }}>
+        <div className="card p-8 text-center shadow-lg" style={{ maxWidth: '460px', background: '#ffffff', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-error-border)' }}>
+          <span className="badge" style={{ background: 'var(--color-error-bg)', color: 'var(--color-error)', border: '1px solid var(--color-error-border)', fontWeight: 600 }}>
+            ⛔ Access Denied
+          </span>
+          <h2 className="text-xl font-bold mt-4" style={{ color: 'var(--color-text)' }}>Administrative Privileges Required</h2>
+          <p className="text-muted text-sm mt-2">
+            The account <strong>{session.user?.email}</strong> is authenticated, but is not designated in the administrator allowlist.
+          </p>
+          <div className="p-3 my-4 rounded text-xs text-left" style={{ background: 'var(--color-surface-subtle)', color: 'var(--color-text-muted)' }}>
+            🔒 <strong>Defense-in-Depth Enforcement:</strong> Standard Supabase accounts are strictly isolated from CMS operations and private visitor submissions.
+          </div>
+          <button onClick={handleLogout} className="btn btn-secondary w-full">
+            Sign Out of This Account
+          </button>
+        </div>
+      </div>
+    );
   }
 
   // -------------------------------------------------------------
@@ -2097,7 +2185,7 @@ export function AdminDashboard() {
                   <input
                     id="supa-key"
                     type="password"
-                    placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    placeholder="sb_publishable_..."
                     value={supabaseAnonKeyInput}
                     onChange={(e) => setSupabaseAnonKeyInput(e.target.value)}
                   />
