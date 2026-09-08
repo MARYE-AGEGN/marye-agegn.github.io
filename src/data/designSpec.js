@@ -2,8 +2,9 @@
  * Professional Website Concept, Information Hierarchy & Visual Specification
  * 
  * Target Persona: Marye Agegn
- * Role: Biomedical Engineer & Graduate Researcher (M.Eng., Anna University)
- * Domain: Clinical Engineering Practice -> Biomedical Signal Processing -> Explainable AI in Healthcare
+ * Role: Biomedical Engineer | Scalable Medical Devices & Digital Health | AI in Healthcare & HTM
+ * Domain: Building Scalable Medical Devices -> Digital Health -> AI in Healthcare -> Healthcare Technology Management
+ * Research Interests: Biosignal Processing, Generative AI & Rehabilitation Engineering, Neuroimaging, Computer Vision
  */
 
 export const designSpec = {
@@ -14,7 +15,7 @@ export const designSpec = {
   personality: {
     primaryArchetype: 'Scientific-Clinical Hybrid',
     descriptors: [
-      'Scientific',
+      'Engineering-Driven',
       'Technically Competent',
       'Modern',
       'Precise',
@@ -22,7 +23,7 @@ export const designSpec = {
       'Calm',
       'Credible',
       'Human-Centered',
-      'Research-Oriented',
+      'Translational',
     ],
     prohibitedTones: [
       'Corporate SaaS / Startup marketing hype',
@@ -39,19 +40,19 @@ export const designSpec = {
   contentHierarchy: {
     level1: {
       name: 'Current Professional Identity',
-      definition: 'Immediate, unmistakable communication of who Marye is today and the core computational direction.',
+      definition: 'Immediate, unmistakable communication of who Marye is today and the core engineering direction.',
       elements: [
-        'Full name & professional title (Biomedical Engineer & Graduate Researcher)',
-        'Affiliation: Master of Engineering Candidate at Anna University, Chennai',
-        'Concise positioning statement on explainable deep learning for mobility assessment',
-        'Primary action paths: Explore Master\'s Research, View Clinical Experience, Contact',
+        'Full name & professional title (Biomedical Engineer | Scalable Medical Devices & Digital Health)',
+        'Affiliation: Anna University, Chennai',
+        'Concise positioning on scalable medical devices, digital health, and AI in healthcare',
+        'Primary action paths: Explore Research & Engineering, View HTM Experience, Contact',
       ],
     },
     level2: {
       name: 'Grounded Evidence Base',
       definition: 'Documented, verified technical competencies and accomplishments across practice and academia.',
       elements: [
-        'Master\'s thesis research framework (lower-back IMU, dual-task gait, 11-step pipeline)',
+        'Applied engineering focus (Biosignal processing, generative AI & rehabilitation, neuroimaging, computer vision)',
         'Three years of clinical engineering practice in Ethiopia (Shine Business PLC, Central Gondar Health Dept, Amhara Health Bureau)',
         'Undergraduate thesis capstone (Low-cost rTMS design for MDD treatment in low-resource settings, Grade A)',
         'Verified academic degrees (Anna University M.Eng. & University of Gondar B.Sc. 3.78/4.00)',
@@ -61,8 +62,8 @@ export const designSpec = {
       name: 'Future Trajectory & Intellectual Horizons',
       definition: 'Explicitly labeled areas of exploratory inquiry and scholarly intent (distinguished from past claims).',
       elements: [
-        'Categorized research interests (Signals/AI, Devices/Biomechanics, Health Systems)',
-        'Thematic clinical focus areas (Maternal Health, Brain Tumors, Mental Health)',
+        'Categorized applied domains (Scalable Medical Devices, Digital Health, HTM)',
+        'Thematic clinical focus areas (Generative AI in Rehabilitation, Neuroimaging, Remote Monitoring)',
         'Forthcoming scholarly manuscripts and publications schema',
       ],
     },
@@ -78,9 +79,9 @@ export const designSpec = {
     },
     {
       id: 'research',
-      name: 'Current Master\'s Research',
-      role: 'Immediately establishes research caliber: explainable deep learning, sensor modalities, and methodology pipeline.',
-      emphasis: 'Highest (Flagship Academic Anchor)',
+      name: 'Applied Research & Engineering',
+      role: 'Presents applied engineering domains: biosignal processing, generative AI & rehabilitation, neuroimaging, and computer vision.',
+      emphasis: 'Highest (Flagship Anchor)',
     },
     {
       id: 'about',
@@ -214,9 +215,9 @@ export const designSpec = {
   interactionStrategy: {
     interactiveComponents: [
       {
-        component: 'Methodological Pipeline Explorer (Research Section)',
-        purpose: 'Allows researchers to click/step through the 11 stages of the IMU deep learning pipeline to examine signal inputs, feature representations, and explainability mechanisms without visual clutter.',
-        interactionType: 'Tabbed / Sequential Stage Stepper',
+        component: 'Graduate Research Dossier (Research Section)',
+        purpose: 'Provides high-level academic domains and conceptual anchors for graduate research while safeguarding unpublished proprietary thesis methodology.',
+        interactionType: 'Modular Cards',
       },
       {
         component: 'Technical Case Study Accordion/Modal (Projects Section)',

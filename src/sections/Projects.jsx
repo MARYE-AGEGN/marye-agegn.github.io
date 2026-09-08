@@ -290,9 +290,9 @@ export function Projects({ projects }) {
             Future Research &amp; Engineering Dossiers
           </h4>
           <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', lineHeight: '1.6', margin: 0, maxWidth: '820px' }}>
-            As current graduate research milestones at Anna University (including the Explainable Deep Learning IMU Framework)
-            and future collaborative investigations reach formal milestone completions, dedicated engineering case studies
-            will populate this section across <span style={{ color: 'var(--color-accent-light)' }}>Biomedical Signal Processing</span>, <span style={{ color: 'var(--color-accent-light)' }}>Biomechanics</span>, <span style={{ color: 'var(--color-accent-light)' }}>Artificial Intelligence</span>, and <span style={{ color: 'var(--color-accent-light)' }}>Healthcare Technology</span> following this exact technical schema.
+            As current engineering and applied research milestones at Anna University (including Scalable Medical Devices, Digital Health Telemetry, and Biosignal Processing frameworks)
+            and collaborative initiatives reach formal milestones, dedicated engineering case studies
+            will populate this section across <span style={{ color: 'var(--color-accent-light)' }}>Scalable Medical Devices</span>, <span style={{ color: 'var(--color-accent-light)' }}>Digital Health</span>, <span style={{ color: 'var(--color-accent-light)' }}>Biosignal Processing</span>, <span style={{ color: 'var(--color-accent-light)' }}>Generative AI &amp; Rehabilitation</span>, and <span style={{ color: 'var(--color-accent-light)' }}>Computer Vision</span> following this exact technical schema.
           </p>
         </aside>
       </div>

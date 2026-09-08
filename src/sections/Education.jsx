@@ -5,8 +5,7 @@ import { siteData } from '../data/siteData';
  * Education Section Component
  *
  * Editorial presentation connecting academic training directly to ongoing
- * graduate research directions in biomedical signal processing, deep learning,
- * and biomechanics.
+ * graduate research directions in biosignal processing, generative AI, neuroimaging, and computer vision.
  *
  * Adheres strictly to verified data:
  * - Master of Engineering (Anna University, started July 2025, current)
@@ -31,8 +30,8 @@ export function Education({ education }) {
           <span className="section-status-badge">Academic Foundations &amp; Research Directions</span>
           <h2 id="education-title" className="section-title">Education</h2>
           <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-base)', maxWidth: '820px', margin: 0 }}>
-            Formal engineering education establishing the continuum from physical medical instrumentation
-            and physiological systems to computational modeling and explainable healthcare AI.
+            Formal engineering education establishing the continuum from physical medical device instrumentation
+            and physiological systems to biosignal processing, generative AI, neuroimaging, and computer vision.
           </p>
         </header>
 

@@ -140,8 +140,15 @@ export function Navbar({ navigation, personal, onOpenSearch, onOpenCollaboration
           className="brand-link"
           aria-label={`${personal.name} - Return to top of page`}
         >
-          <span className="brand-name">{personal.name}</span>
-          <span className="brand-title">Biomedical Engineer &amp; Researcher</span>
+          <img
+            src="./assets/images/marye-agegn-brand-banner.jpg"
+            alt="Marye Agegn Brand Emblem"
+            className="brand-emblem-icon"
+          />
+          <div className="brand-text-block">
+            <span className="brand-name">{personal.name}</span>
+            <span className="brand-title">Biomedical Engineer &amp; Researcher</span>
+          </div>
         </a>
 
         {/* Desktop Navigation */}

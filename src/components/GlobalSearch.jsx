@@ -37,13 +37,14 @@ export function GlobalSearch({ isOpen, onClose }) {
       });
 
       // 3. Research
-      if (siteData.research?.currentMasterResearch) {
+      const resData = siteData.research?.graduateResearchFocus || siteData.research?.currentMasterResearch;
+      if (resData) {
         index.push({
           type: 'Research',
-          title: siteData.research.currentMasterResearch.title,
-          snippet: siteData.research.currentMasterResearch.conceptualFocus || '',
+          title: resData.title,
+          snippet: resData.conceptualFocus || '',
           url: '#research',
-          category: 'Master Thesis',
+          category: 'Graduate Research',
         });
       }
 
@@ -142,7 +143,7 @@ export function GlobalSearch({ isOpen, onClose }) {
         <div className="search-results-list">
           {query.trim() === '' ? (
             <div className="search-hint-box text-center py-6 text-muted">
-              <p>Type keywords like <em>"IMU"</em>, <em>"rTMS"</em>, <em>"gait"</em>, <em>"CV"</em>, <em>"clinical"</em>, or <em>"maintenance"</em>.</p>
+              <p>Type keywords like <em>"Biomedical"</em>, <em>"rTMS"</em>, <em>"Signal"</em>, <em>"CV"</em>, <em>"Clinical"</em>, or <em>"Maintenance"</em>.</p>
               <p className="text-xs mt-2">Shortcut: Press <code>Ctrl+K</code> or <code>Cmd+K</code> anytime.</p>
             </div>
           ) : results.length === 0 ? (

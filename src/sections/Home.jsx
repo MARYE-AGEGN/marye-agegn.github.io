@@ -41,34 +41,56 @@ export function Home({ home, personal }) {
             1. HERO / EXECUTIVE POSITIONING
             ================================================================== */}
         <header className="hero-header">
-          <div className="hero-status-pill">
-            <span className="hero-status-dot" aria-hidden="true" />
-            <span>{heroData.statusBadge}</span>
-          </div>
+          <div className="hero-grid">
+            <div className="hero-content">
+              <div className="hero-status-pill">
+                <span className="hero-status-dot" aria-hidden="true" />
+                <span>{heroData.statusBadge}</span>
+              </div>
 
-          <h1 id="hero-title" className="hero-name">
-            {heroData.name}
-          </h1>
+              <h1 id="hero-title" className="hero-name">
+                {heroData.name}
+              </h1>
 
-          <p className="hero-headline">
-            {heroData.headline}
-          </p>
+              <p className="hero-headline">
+                {heroData.headline}
+              </p>
 
-          <p className="hero-positioning">
-            {heroData.positioning}
-          </p>
+              <p className="hero-positioning">
+                {heroData.positioning}
+              </p>
 
-          <div className="hero-actions" role="group" aria-label="Primary actions">
-            {heroData.actions.map((action, idx) => (
-              <a
-                key={idx}
-                href={action.href}
-                onClick={(e) => handleSmoothScroll(e, action.href)}
-                className={`btn ${action.isPrimary ? 'btn-primary' : 'btn-secondary'}`}
-              >
-                {action.label}
-              </a>
-            ))}
+              <div className="hero-actions" role="group" aria-label="Primary actions">
+                {heroData.actions.map((action, idx) => (
+                  <a
+                    key={idx}
+                    href={action.href}
+                    onClick={(e) => handleSmoothScroll(e, action.href)}
+                    className={`btn ${action.isPrimary ? 'btn-primary' : 'btn-secondary'}`}
+                  >
+                    {action.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <div className="hero-portrait-col">
+              <div className="hero-portrait-frame">
+                <img
+                  src="./assets/images/marye-agegn-profile.jpg"
+                  alt="Marye Agegn — Biomedical Engineer & Graduate Researcher"
+                  className="hero-portrait-img"
+                  loading="eager"
+                />
+                <div className="hero-portrait-badge">
+                  <span className="hero-badge-icon" aria-hidden="true">🎓</span>
+                  <div>
+                    <div className="hero-badge-title">Marye Agegn</div>
+                    <div className="hero-badge-sub">M.Eng. Biomedical Engineering • Anna University</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </header>
 
@@ -110,9 +132,9 @@ export function Home({ home, personal }) {
         {spotlight && (
           <div className="spotlight-section" aria-labelledby="spotlight-title">
             <div className="section-header" style={{ marginBottom: 'var(--space-6)' }}>
-              <span className="section-status-badge">Flagship Research</span>
+              <span className="section-status-badge">Graduate Research</span>
               <h2 id="spotlight-title" style={{ fontSize: 'var(--font-size-xl)' }}>
-                Active Master&apos;s Thesis Direction
+                Graduate Academic Focus
               </h2>
             </div>
 
@@ -134,16 +156,25 @@ export function Home({ home, personal }) {
                 {spotlight.summary}
               </p>
 
-              <div className="spotlight-specs">
-                <div className="spotlight-spec-item">
-                  <span className="spotlight-spec-label">Sensor Modality</span>
-                  <span className="spotlight-spec-val">{spotlight.sensorModality}</span>
+              {spotlight.focusAreas ? (
+                <div className="spotlight-specs" style={{ gridTemplateColumns: '1fr' }}>
+                  <div className="spotlight-spec-item">
+                    <span className="spotlight-spec-label">Core Research Domains</span>
+                    <span className="spotlight-spec-val">{spotlight.focusAreas}</span>
+                  </div>
                 </div>
-                <div className="spotlight-spec-item">
-                  <span className="spotlight-spec-label">Evaluation Protocol</span>
-                  <span className="spotlight-spec-val">{spotlight.protocol}</span>
+              ) : spotlight.sensorModality ? (
+                <div className="spotlight-specs">
+                  <div className="spotlight-spec-item">
+                    <span className="spotlight-spec-label">Sensor Modality</span>
+                    <span className="spotlight-spec-val">{spotlight.sensorModality}</span>
+                  </div>
+                  <div className="spotlight-spec-item">
+                    <span className="spotlight-spec-label">Evaluation Protocol</span>
+                    <span className="spotlight-spec-val">{spotlight.protocol || spotlight.evaluationProtocol}</span>
+                  </div>
                 </div>
-              </div>
+              ) : null}
 
               <footer className="spotlight-footer">
                 <p className="spotlight-disclaimer">

@@ -352,21 +352,50 @@ export async function submitContactMessage(messageData) {
 }
 
 export async function submitCollaborationRequest(collabData) {
+  const safeCollabData = {
+    name: collabData.name,
+    email: collabData.email,
+    organization: collabData.organization,
+    title: collabData.title || '',
+    phone: collabData.phone || '',
+    area_of_interest: collabData.area_of_interest,
+    collaboration_type: collabData.collaboration_type,
+    urgency_level: collabData.urgency_level || '',
+    website: collabData.website || '',
+    linkedin: collabData.linkedin || '',
+    orcid: collabData.orcid || '',
+    message: collabData.message,
+  };
+
   if (isSupabaseConfigured && supabase) {
     try {
+      let attachmentStoragePath = null;
+
+      if (collabData.proposal_file && collabData.proposal_file.data) {
+        const fileName = `${Date.now()}_${collabData.proposal_file.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('collaboration-attachments')
+          .upload(fileName, collabData.proposal_file.data, {
+            contentType: collabData.proposal_file.type,
+          });
+
+        if (uploadError) {
+          console.error('Supabase file upload error:', uploadError);
+        } else {
+          attachmentStoragePath = uploadData?.path || fileName;
+        }
+      }
+
       const { error } = await supabase.from('collaboration_requests').insert([
         {
-          name: collabData.name,
-          email: collabData.email,
-          organization: collabData.organization,
-          area_of_interest: collabData.area_of_interest,
-          collaboration_type: collabData.collaboration_type,
-          website: collabData.website || '',
-          message: collabData.message,
+          ...safeCollabData,
+          proposal_file_name: collabData.proposal_file?.name || null,
+          proposal_file_size: collabData.proposal_file?.size || null,
+          proposal_file_path: attachmentStoragePath,
           created_at: new Date().toISOString(),
         },
       ]);
-      if (!error) return { success: true };
+      if (!error) return { success: true, attachmentPath: attachmentStoragePath };
     } catch (err) {
       console.error('Supabase collaboration submission error:', err);
     }
@@ -375,7 +404,9 @@ export async function submitCollaborationRequest(collabData) {
   const existing = JSON.parse(localStorage.getItem('marye_inbound_collabs') || '[]');
   existing.unshift({
     id: `collab-${Date.now()}`,
-    ...collabData,
+    ...safeCollabData,
+    proposal_file_name: collabData.proposal_file?.name || null,
+    proposal_file_size: collabData.proposal_file?.size || null,
     created_at: new Date().toISOString(),
   });
   localStorage.setItem('marye_inbound_collabs', JSON.stringify(existing));

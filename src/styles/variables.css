@@ -1,49 +1,74 @@
 :root {
   /* ==========================================================================
-     COLOR SYSTEM — Scientific & Clinical Palette
-     Character: Restrained, precise, calm, high-contrast, WCAG AAA compliant.
+     GLOBAL LIGHT UI SYSTEM — Academic & Clinical Research Platform
+     Character: Clean, professional, high-contrast, editorial clarity.
+     Strict WCAG 2.1 AAA compliance for contrast on light backgrounds.
      ========================================================================== */
 
-  /* Backgrounds */
-  --color-bg: #0b0f17;                /* Deep graphite/charcoal canvas */
-  --color-bg-subtle: #0f1624;         /* Alternating section background */
-  --color-surface: #131b2a;           /* Neutral clinical card/container surface */
-  --color-surface-elevated: #182337;  /* Hover / elevated card state */
+  /* Canvas & Surface Colors */
+  --color-background: #ffffff;          /* Pure white default canvas */
+  --color-surface: #ffffff;             /* Primary card and panel surface */
+  --color-surface-subtle: #f8fafc;      /* Light gray alternating section background (slate 50) */
+  --color-surface-muted: #f1f5f9;       /* Input fill, table header, muted chips (slate 100) */
+  --color-surface-elevated: #ffffff;    /* Elevated modals and menus */
 
-  /* Borders & Dividers */
-  --color-border: #1e293b;            /* Primary structural boundary (1px precision) */
-  --color-border-subtle: #182335;     /* Subtle separator lines */
-  --color-border-strong: #334155;     /* Interactive boundary / input border */
+  /* Structural Boundaries & Borders */
+  --color-border: #e2e8f0;              /* Standard 1px divider and card boundary (slate 200) */
+  --color-border-subtle: #f1f5f9;       /* Subtle separator lines (slate 100) */
+  --color-border-strong: #cbd5e1;       /* Input border, active container border (slate 300) */
 
   /* Typography / Text Colors */
-  --color-text-primary: #f8fafc;      /* 95% luminance off-white for optimum clarity */
-  --color-text-secondary: #94a3b8;    /* Muted slate for long-form reading comfort */
-  --color-text-muted: #64748b;        /* Subtle timestamps, metadata, and fine print */
+  --color-text: #0f172a;                /* Near-black / dark charcoal slate 900 for headings & primary text */
+  --color-text-secondary: #475569;      /* Balanced neutral slate 600 for body reading text */
+  --color-text-muted: #64748b;          /* Refined slate 500 for timestamps, labels, fine print */
 
-  /* Functional Accent — Precision Clinical Teal/Cyan */
-  /* Purposeful, restrained: used strictly for active states, link targets, and status */
-  --color-accent: #0284c7;            /* Standard link & active accent */
-  --color-accent-light: #38bdf8;      /* Bright telemetry cyan for badges & highlights */
-  --color-accent-hover: #0369a1;      /* Hover state for interactive accent items */
-  --color-accent-subtle: rgba(14, 165, 233, 0.08); /* Background tint for accent chips */
-  --color-accent-border: rgba(56, 189, 248, 0.25); /* Border for accent badges */
+  /* Professional Clinical Accent (Sky / Teal) */
+  --color-accent: #0284c7;              /* Primary interactive accent (sky 600) */
+  --color-accent-hover: #0369a1;        /* Darker hover state (sky 700) */
+  --color-accent-subtle: #f0f9ff;       /* Very light sky tint for badges and chips (sky 50) */
+  --color-accent-border: #bae6fd;       /* Subtle border for accent badges (sky 200) */
 
-  /* Focus Indicator for Accessible Keyboard Navigation */
-  --color-focus: #38bdf8;
-  --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-focus);
+  /* Accessible Focus Indicator */
+  --color-focus: #0284c7;
+  --focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px rgba(2, 132, 199, 0.35);
 
-  /* Status Colors */
-  --color-status-progress: #38bdf8;
-  --color-status-progress-bg: rgba(56, 189, 248, 0.1);
-  --color-status-progress-border: rgba(56, 189, 248, 0.25);
+  /* Status Indicators */
+  --color-success: #16a34a;             /* Green 600 */
+  --color-success-bg: #f0fdf4;          /* Green 50 */
+  --color-success-border: #bbf7d0;      /* Green 200 */
 
-  --color-status-complete: #34d399;
-  --color-status-complete-bg: rgba(52, 211, 153, 0.1);
-  --color-status-complete-border: rgba(52, 211, 153, 0.25);
+  --color-warning: #d97706;             /* Amber 600 */
+  --color-warning-bg: #fffbeb;          /* Amber 50 */
+  --color-warning-border: #fde68a;      /* Amber 200 */
+
+  --color-error: #dc2626;               /* Red 600 */
+  --color-error-bg: #fef2f2;            /* Red 50 */
+  --color-error-border: #fecaca;        /* Red 200 */
+
+  /* Backward Compatibility Aliases */
+  --color-bg: var(--color-background);
+  --color-bg-subtle: var(--color-surface-subtle);
+  --color-text-primary: var(--color-text);
+  --color-accent-light: #0369a1;        /* High-contrast readable teal for text links */
+  --color-status-progress: var(--color-accent);
+  --color-status-progress-bg: var(--color-accent-subtle);
+  --color-status-progress-border: var(--color-accent-border);
+  --color-status-complete: var(--color-success);
+  --color-status-complete-bg: var(--color-success-bg);
+  --color-status-complete-border: var(--color-success-border);
+
+  /* ==========================================================================
+     SHADOW SYSTEM (Subtle & Restrained)
+     ========================================================================== */
+
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.03);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+  --shadow-modal: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
 
   /* ==========================================================================
      TYPOGRAPHY SYSTEM
-     Font families, responsive scales, line heights, and weights.
      ========================================================================== */
 
   --font-family-base: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -95,22 +120,25 @@
   --space-20: 5rem;     /* 80px */
   --space-24: 6rem;     /* 96px */
 
-  /* Container & Content Dimensions */
+  /* Dimensions & Heights */
   --container-max-width: 1120px;
   --content-text-max-width: 720px;    /* 65-75 characters per line for reading comfort */
   --header-height: 72px;
   --header-height-mobile: 64px;
+  --input-height: 40px;
+  --button-height: 40px;
+  --input-height-sm: 34px;
+  --button-height-sm: 34px;
 
   /* Border Radii */
   --radius-xs: 2px;
   --radius-sm: 4px;
-  --radius-md: 8px;      /* Architectural default for cards */
-  --radius-lg: 12px;
+  --radius-md: 6px;      /* Architectural restrained default for inputs & cards */
+  --radius-lg: 8px;
   --radius-full: 9999px; /* Status pills & round badges */
 
   /* ==========================================================================
      MOTION & TRANSITIONS
-     Restrained, purpose-driven micro-interactions.
      ========================================================================== */
 
   --duration-fast: 150ms;

@@ -22,11 +22,27 @@ export function Footer({ personal, contact }) {
       <div className="container">
         <div className="footer-inner">
           {/* Brand & Identity */}
-          <div className="footer-brand">
-            <div className="footer-brand-name">{personal.name}</div>
-            <p className="footer-brand-desc">
-              {personal.headline} &bull; {personal.currentRole} at {personal.currentInstitution}.
-            </p>
+          <div className="footer-brand flex items-start gap-4">
+            <img
+              src="./assets/images/marye-agegn-brand-banner.jpg"
+              alt="Marye Agegn Gebrie"
+              className="footer-brand-emblem"
+              style={{
+                width: '64px',
+                height: '64px',
+                objectFit: 'cover',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-border)',
+                boxShadow: 'var(--shadow-xs)',
+                flexShrink: 0,
+              }}
+            />
+            <div>
+              <div className="footer-brand-name">{personal.name}</div>
+              <p className="footer-brand-desc">
+                {personal.headline} &bull; {personal.currentRole} at {personal.currentInstitution}.
+              </p>
+            </div>
           </div>
 
           {/* Approved Professional Links */}

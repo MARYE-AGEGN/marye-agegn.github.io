@@ -12,90 +12,89 @@
 export const siteData = {
   personal: {
     name: 'Marye Agegn',
-    headline: 'Biomedical Engineer & Graduate Researcher',
-    currentRole: 'Master of Engineering Candidate in Biomedical Engineering',
+    headline: 'Biomedical Engineer | Scalable Medical Devices & Digital Health | AI in Healthcare & HTM',
+    currentRole: 'Biomedical Engineer & Healthcare Technology Specialist',
     currentInstitution: 'Anna University, Chennai, India',
     startDate: '18 July 2025',
-    status: 'Graduate Student & Biomedical Researcher',
+    status: 'Biomedical Engineer & Applied Researcher',
     summary:
-      'Biomedical engineer with extensive hands-on clinical engineering and healthcare technology management experience in Ethiopia, currently pursuing a Master of Engineering in Biomedical Engineering at Anna University. Research focuses on explainable deep learning frameworks for mobility and gait assessment using inertial sensor data.',
+      'Biomedical engineer specializing in building scalable healthcare medical devices, digital health solutions, AI in healthcare, and healthcare technology management (HTM). Engineering and research focus covers biosignal processing, generative AI & rehabilitation engineering, neuroimaging, and computer vision.',
   },
 
   home: {
     hero: {
-      statusBadge: 'M.Eng. Candidate in Biomedical Engineering • Anna University',
+      statusBadge: 'Biomedical Engineer • Scalable Medical Devices & Digital Health',
       name: 'Marye Agegn',
-      headline: 'Biomedical Engineer & Graduate Researcher',
+      headline: 'Building Scalable Healthcare Medical Devices & Digital Health Solutions',
       positioning:
-        'Bridging three years of frontline hospital clinical engineering, medical device management, and procurement leadership in Ethiopia with computational biomedical research, currently developing explainable deep learning frameworks for dual-task mobility assessment from inertial sensor data.',
+        'Bridging hands-on clinical engineering, medical device hardware, and healthcare technology management with cutting-edge AI in healthcare. Pioneering translational engineering across biosignal processing, generative AI & rehabilitation engineering, neuroimaging, and computer vision.',
       actions: [
-        { label: "Explore Master's Research →", href: '#research', isPrimary: true },
-        { label: 'Clinical Engineering Practice', href: '#experience', isPrimary: false },
+        { label: 'Explore Engineering & Research →', href: '#research', isPrimary: true },
+        { label: 'Healthcare Technology Management', href: '#experience', isPrimary: false },
         { label: 'Get in Touch', href: '#contact', isPrimary: false },
       ],
     },
     pillars: [
       {
         number: '01',
-        title: 'Clinical Engineering Practice',
-        tagline: '3+ Years of Public Health Operations',
+        title: 'Building Scalable Medical Devices',
+        tagline: 'Hardware Innovation & Clinical Safety',
         description:
-          'Led medical equipment procurement assessments, technical specification drafting, preventive maintenance schedules, and calibration protocols across hospitals and health bureaus in Ethiopia.',
-        link: { label: 'Explore Clinical Experience →', href: '#experience' },
+          'Designing robust, scalable, and cost-effective medical devices (such as non-invasive rTMS systems) engineered for clinical efficacy, IEC 60601 safety standards, and decentralized healthcare delivery.',
+        link: { label: 'Explore Medical Device Projects →', href: '#projects' },
       },
       {
         number: '02',
-        title: 'Medical Device Engineering',
-        tagline: 'Capstone Neuromodulation Design (Grade A)',
+        title: 'Digital Health & Healthcare Technology Management',
+        tagline: 'Clinical Systems & Asset Governance',
         description:
-          'Engineered power electronics, capacitor discharge circuits, and magnetic stimulation coils for a low-cost repetitive Transcranial Magnetic Stimulation (rTMS) system tailored for low-resource psychiatric care.',
-        link: { label: 'View rTMS Project →', href: '#projects' },
+          'Over 3 years leading medical device procurement evaluations, hospital equipment maintenance, calibration, and digital health technology lifecycles across public and private healthcare facilities.',
+        link: { label: 'Explore HTM Leadership →', href: '#experience' },
       },
       {
         number: '03',
-        title: 'Explainable AI & Sensor Research',
-        tagline: "Active Master's Thesis Direction (In Progress)",
+        title: 'AI in Healthcare & Advanced Technologies',
+        tagline: 'Biosignals, GenAI, Vision & Imaging',
         description:
-          'Investigating explainable deep learning frameworks for dual-task mobility assessment using tri-axial accelerometer and gyroscope data from a single lower-back IMU at Anna University.',
-        link: { label: 'Examine Research Framework →', href: '#research' },
+          'Developing applied AI systems for healthcare—leveraging biosignal processing, generative AI for rehabilitation engineering, neuroimaging diagnostics, and computer vision for patient monitoring.',
+        link: { label: 'View Applied Research & Focus →', href: '#research' },
       },
     ],
     spotlight: {
-      badge: "Flagship Academic Research Direction",
-      status: 'In Progress • Master\'s Thesis',
-      title: 'Development of an Explainable Deep Learning Framework for Dual-Task Mobility Assessment Using a Single Lower-Back Inertial Measurement Unit',
+      badge: 'Core Engineering & Innovation',
+      status: 'Active Engineering Direction',
+      title: 'Scalable Medical Devices, Biosignal Processing & Applied Healthcare AI',
       summary:
-        'Addressing the gap between black-box deep learning models and clinical utility by capturing latent gait dynamics from wearable inertial sensor signals and grounding feature importance in established clinical biomechanics.',
-      sensorModality: 'Single lower-back Inertial Measurement Unit (IMU)',
-      evaluationProtocol: 'Single-task and cognitive-motor dual-task walking protocols',
+        'Advancing scalable healthcare technologies that bridge real-world medical hardware with intelligent digital health software—integrating biosignal processing, generative AI for adaptive rehabilitation, neuroimaging, and computer vision.',
+      focusAreas: 'Scalable Medical Devices • Digital Health • Biosignal Processing • Generative AI & Rehabilitation • Neuroimaging • Computer Vision',
       disclaimer:
-        'Notice: Ongoing graduate thesis project under active computational development. It does not claim clinical validation, diagnostic deployment, or clinical certification at this stage.',
-      link: { label: 'View 11-Stage Methodological Pipeline →', href: '#research' },
+        'Focused on real-world clinical feasibility, practical engineering execution, and translational digital health impact.',
+      link: { label: 'View Engineering & Research Focus →', href: '#research' },
     },
     trajectory: [
       {
         phase: 'Phase 1',
-        title: 'Foundations & Capstone',
+        title: 'Foundations & Medical Device Innovation',
         institution: 'University of Gondar, Ethiopia',
-        highlight: 'B.Sc. in Biomedical Engineering (3.78/4.00 GPA) & Grade-A rTMS Capstone Thesis',
+        highlight: 'B.Sc. in Biomedical Engineering (3.78/4.00 GPA) & Grade-A rTMS Capstone Neuromodulation Thesis',
       },
       {
         phase: 'Phase 2',
-        title: 'Clinical Leadership',
+        title: 'Clinical Operations & HTM Leadership',
         institution: 'Ethiopian Healthcare Sector',
         highlight: 'Technical Manager (Shine Business PLC), Biomedical Officer (Central Gondar), Biomedical Engineer (Amhara Health Bureau)',
       },
       {
         phase: 'Phase 3',
-        title: 'Graduate Research',
+        title: 'Advanced Applied Engineering',
         institution: 'Anna University, India',
-        highlight: 'Master of Engineering Candidate specializing in biomedical signal processing and deep learning',
+        highlight: 'Advancing biosignal processing, generative AI & rehabilitation engineering, neuroimaging, and computer vision',
       },
       {
         phase: 'Phase 4',
-        title: 'Future Horizons',
-        institution: 'Translational Health Technology',
-        highlight: 'Bridging explainable machine learning models and assistive neurotechnology for evidence-based clinical decision support',
+        title: 'Scalable Global Healthcare Impact',
+        institution: 'Biomedical Innovation & Digital Health',
+        highlight: 'Scaling affordable medical devices, digital health platforms, and applied AI systems for worldwide clinical access',
       },
     ],
   },
@@ -118,9 +117,9 @@ export const siteData = {
 
   about: {
     title: 'About',
-    subtitle: 'Evolution of Professional Identity',
+    subtitle: 'Professional Engineering Evolution',
     leadParagraph:
-      'My trajectory as a biomedical engineer is defined by the deliberate convergence of frontline healthcare technology practice and data-driven computational research. Rather than viewing engineering as an abstract theoretical exercise, my work is grounded in years of direct experience with clinical operations, medical device management, and hospital technology lifecycles in Ethiopia, informing my current graduate research in explainable deep learning at Anna University.',
+      'My mission as a biomedical engineer is defined by the deliberate convergence of building scalable healthcare medical devices, digital health platforms, applied AI in healthcare, and comprehensive healthcare technology management (HTM). Grounded in over three years of direct operational experience with hospital clinical engineering, medical equipment maintenance, and procurement in Ethiopia, my current work bridges hardware engineering with applied intelligence—advancing biosignal processing, generative AI & rehabilitation engineering, neuroimaging, and computer vision.',
     
     sections: [
       {
@@ -149,11 +148,11 @@ export const siteData = {
       },
       {
         id: 'computational-transition',
-        title: "The Computational Shift & Master's Research Direction",
+        title: 'Digital Health, Applied AI & Advanced Engineering',
         period: 'July 2025 – Present',
         institution: 'Anna University, Chennai, India',
         narrative:
-          'Recognizing that the future of diagnostic and therapeutic medicine depends on intelligent, objective, and interpretable clinical decision support, I transitioned into full-time graduate research, commencing my Master of Engineering in Biomedical Engineering at Anna University in July 2025. My current research direction focuses on developing an explainable deep learning framework for dual-task mobility assessment using wearable inertial measurement units (IMUs). By extracting latent gait dynamics and grounding neural network feature attributions in biomechanical principles, the goal is to create algorithmic assessments that clinicians can understand, verify, and trust.',
+          'Recognizing that next-generation healthcare demands scalable medical devices and actionable digital health intelligence, I advanced into graduate engineering research at Anna University. My engineering focus unites biosignal processing, generative AI for adaptive rehabilitation, neuroimaging, and computer vision—building resilient, clinically usable technologies engineered for scale.',
       },
     ],
 
@@ -172,177 +171,125 @@ export const siteData = {
   },
 
   research: {
-    title: 'Research',
-    subtitle: 'Explainable Deep Learning & Wearable Sensor Biomechanics',
-    currentMasterResearch: {
-      title: 'Development of an Explainable Deep Learning Framework for Dual-Task Mobility Assessment Using a Single Lower-Back Inertial Measurement Unit',
-      status: 'In Progress (Master\'s Thesis Research)',
+    title: 'Engineering & Applied Research',
+    subtitle: 'Biosignal Processing • Generative AI & Rehabilitation • Neuroimaging • Computer Vision',
+    graduateResearchFocus: {
+      title: 'Biosignal Processing, Generative AI & Rehabilitation Engineering',
+      status: 'Active Engineering & Research Direction',
       institution: 'Anna University, Chennai, India',
       commenced: 'July 2025',
       researchDirections: [
-        'Biomedical Engineering',
-        'Biomedical Signal Processing',
-        'Biomechanics',
-        'Deep Learning',
-        'Explainable Artificial Intelligence (XAI)',
-        'Mobility & Gait Assessment',
+        'Biosignal Processing',
+        'Generative AI (gAI)',
+        'Rehabilitation Engineering',
+        'Neuroimaging',
+        'Computer Vision',
+        'Building Scalable Medical Devices',
+        'Digital Health',
+        'Healthcare Technology Management',
       ],
-      centralResearchQuestion:
-        'How can raw lower-back inertial measurement unit signals be transformed into clinically meaningful, explainable mobility assessment?',
       conceptualFocus:
-        'This research focuses on transforming wearable sensor signals into interpretable mobility representations rather than treating deep learning as an end-to-end black-box classifier. In this framework, classification across single-task and dual-task walking protocols functions primarily as an intermediate validation mechanism. The overarching objective is to derive objective latent movement parameters and ground neural network feature attributions in established clinical biomechanics to provide trustworthy decision support for clinicians.',
-      dataModality: {
-        sensor: 'Single Lower-Back Inertial Measurement Unit (IMU)',
-        placement: 'Lumbar / Lower-back anatomical placement (L4–L5 position)',
-        signals: 'Tri-axial Accelerometer (linear kinematics) and Tri-axial Gyroscope (angular kinematics)',
-        protocols: 'Single-task walking and cognitive-motor dual-task walking protocols',
-      },
-      pipelinePhases: [
+        'Focused on translating advanced engineering into scalable healthcare technologies and digital health platforms. Research pursuits center on processing complex biosignals, leveraging generative AI to develop personalized rehabilitation and assistive systems, decoding neuroimaging datasets, and deploying computer vision for automated patient mobility and diagnostic tracking.',
+      pillars: [
         {
-          phaseNum: 'Phase I',
-          phaseTitle: 'Signal Acquisition & Conditioning',
-          stages: [
-            {
-              step: 1,
-              name: 'Raw Lower-Back IMU',
-              summary: 'Continuous 3D acceleration and angular velocity acquisition.',
-              technicalDetail:
-                'Acquires tri-axial linear acceleration and angular velocity signals during structured walking trials from a single lumbar-positioned IMU.',
-            },
-            {
-              step: 2,
-              name: 'Preprocessing',
-              summary: 'Digital filtering, coordinate alignment, and drift correction.',
-              technicalDetail:
-                'Applies digital bandpass filtering to remove low-frequency baseline drift and high-frequency noise, calibrating orientation to standard anatomical coordinates.',
-            },
-            {
-              step: 3,
-              name: 'Window Segmentation',
-              summary: 'Partitioning time-series into stride-wise and temporal epochs.',
-              technicalDetail:
-                'Divides continuous multi-channel kinematic data into overlapping fixed-duration and stride-correlated temporal windows for sequential model ingestion.',
-            },
-          ],
+          title: 'Biosignal Processing',
+          summary: 'Acquisition, conditioning, and advanced filtering of physiological signals (ECG, EMG, EEG, and kinematic data) to extract critical clinical biomarkers for real-time patient monitoring.',
         },
         {
-          phaseNum: 'Phase II',
-          phaseTitle: 'Representation Learning',
-          stages: [
-            {
-              step: 4,
-              name: 'Deep Learning',
-              summary: 'Neural architectures capturing hierarchical spatio-temporal dynamics.',
-              technicalDetail:
-                'Leverages deep neural network architectures designed to extract non-linear temporal features across multi-channel inertial sensor inputs.',
-            },
-            {
-              step: 5,
-              name: 'Latent Features',
-              summary: 'Low-dimensional kinematic embeddings of walking dynamics.',
-              technicalDetail:
-                'Forms dense latent feature representations that capture intrinsic motor patterns, step variability, and gait asymmetry under varying cognitive loads.',
-            },
-            {
-              step: 6,
-              name: 'Mobility Parameter Estimation',
-              summary: 'Quantitative gait metrics and dual-task interference computation.',
-              technicalDetail:
-                'Derives objective kinematic indicators including cadence regularity, temporal variability, balance indices, and dual-task cost metrics.',
-            },
-          ],
+          title: 'Generative AI & Rehabilitation Engineering',
+          summary: 'Developing generative AI models and adaptive algorithms for assistive robotics, smart rehabilitation devices, personalized recovery regimens, and motor function restoration.',
         },
         {
-          phaseNum: 'Phase III',
-          phaseTitle: 'Interpretability & Biomechanics',
-          stages: [
-            {
-              step: 7,
-              name: 'Explainability',
-              summary: 'Mathematical feature attribution across temporal epochs.',
-              technicalDetail:
-                'Implements attribution and saliency mechanisms to explain which sensor axes, frequency components, and gait phases drive model representations.',
-            },
-            {
-              step: 8,
-              name: 'Feature Importance',
-              summary: 'Ranking critical kinematic variables distinguishing motor performance.',
-              technicalDetail:
-                'Quantifies and ranks the relative significance of acceleration and angular rate features across single-task and dual-task conditions.',
-            },
-            {
-              step: 9,
-              name: 'Biomechanics Knowledge Base',
-              summary: 'Grounding identified feature patterns in validated clinical biomechanics.',
-              technicalDetail:
-                'Maps model-identified salient features to established clinical gait literature, ensuring consistency with physiological movement mechanics.',
-            },
-          ],
+          title: 'Neuroimaging & Neuromodulation',
+          summary: 'Computational neuroimaging analysis, functional brain mapping, and accessible non-invasive brain stimulation hardware (such as rTMS) for neurological and mental healthcare.',
         },
         {
-          phaseNum: 'Phase IV',
-          phaseTitle: 'Clinical Translation',
-          stages: [
-            {
-              step: 10,
-              name: 'Functional Interpretation',
-              summary: 'Translating algorithmic scores into clinical functional indicators.',
-              technicalDetail:
-                'Synthesizes algorithmic outputs into meaningful functional indicators reflecting motor-cognitive interference and mobility degradation.',
-            },
-            {
-              step: 11,
-              name: 'Clinician-Oriented Presentation',
-              summary: 'Transparent, interpretable visual reports for clinical support.',
-              technicalDetail:
-                'Delivers transparent decision-support visualization detailing raw signal trajectories, highlighted critical intervals, and summary mobility parameters.',
-            },
-          ],
+          title: 'Computer Vision in Healthcare',
+          summary: 'Applying computer vision, markerless spatial tracking, and deep visual representation for contactless clinical gait assessment, patient posture analysis, and diagnostic imaging.',
         },
       ],
       disclaimer:
-        'Academic Research Notice: This work is an ongoing master\'s thesis in biomedical engineering under active computational development at Anna University. It does not claim clinical validation, automated disease diagnosis, or clinical deployment.',
+        'Focused on translational feasibility, practical clinical utility, and scalable digital health deployment.',
+    },
+    currentMasterResearch: {
+      title: 'Biosignal Processing, Generative AI & Rehabilitation Engineering',
+      status: 'Active Engineering & Research Direction',
+      institution: 'Anna University, Chennai, India',
+      commenced: 'July 2025',
+      researchDirections: [
+        'Biosignal Processing',
+        'Generative AI (gAI)',
+        'Rehabilitation Engineering',
+        'Neuroimaging',
+        'Computer Vision',
+        'Building Scalable Medical Devices',
+        'Digital Health',
+        'Healthcare Technology Management',
+      ],
+      conceptualFocus:
+        'Focused on translating advanced engineering into scalable healthcare technologies and digital health platforms. Research pursuits center on processing complex biosignals, leveraging generative AI to develop personalized rehabilitation and assistive systems, decoding neuroimaging datasets, and deploying computer vision for automated patient mobility and diagnostic tracking.',
+      pillars: [
+        {
+          title: 'Biosignal Processing',
+          summary: 'Acquisition, conditioning, and advanced filtering of physiological signals (ECG, EMG, EEG, and kinematic data) to extract critical clinical biomarkers for real-time patient monitoring.',
+        },
+        {
+          title: 'Generative AI & Rehabilitation Engineering',
+          summary: 'Developing generative AI models and adaptive algorithms for assistive robotics, smart rehabilitation devices, personalized recovery regimens, and motor function restoration.',
+        },
+        {
+          title: 'Neuroimaging & Neuromodulation',
+          summary: 'Computational neuroimaging analysis, functional brain mapping, and accessible non-invasive brain stimulation hardware (such as rTMS) for neurological and mental healthcare.',
+        },
+        {
+          title: 'Computer Vision in Healthcare',
+          summary: 'Applying computer vision, markerless spatial tracking, and deep visual representation for contactless clinical gait assessment, patient posture analysis, and diagnostic imaging.',
+        },
+      ],
+      disclaimer:
+        'Focused on translational feasibility, practical clinical utility, and scalable digital health deployment.',
     },
     broaderInterests: [
       {
-        category: 'Core Engineering & Modeling',
+        category: 'Scalable Medical Devices & Hardware',
         topics: [
-          'Medical device design, modeling and simulation',
-          'Biomaterials',
-          'Biomechanics',
-          'Tissue engineering',
+          'Building scalable, low-cost medical devices',
+          'Repetitive Transcranial Magnetic Stimulation (rTMS) systems',
+          'Wearable sensor telemetry & hardware integration',
+          'IEC 60601 medical electrical safety standards & compliance',
         ],
       },
       {
-        category: 'Signal, Imaging & AI',
+        category: 'Digital Health & AI in Healthcare',
         topics: [
-          'Biomedical signal processing and analysis',
-          'Medical image processing',
-          'Explainable AI for clinical decision support',
-          'Inertial sensor-based gait & mobility analysis',
+          'Biosignal processing & real-time telemetry pipelines',
+          'Generative AI for rehabilitation & assistive technologies',
+          'Neuroimaging diagnostics & computational brain modeling',
+          'Computer vision for patient mobility & contactless monitoring',
         ],
       },
       {
-        category: 'Healthcare Systems & Clinical Translation',
+        category: 'Healthcare Technology Management (HTM)',
         topics: [
-          'Assistive technologies for rehabilitation',
-          'Healthcare technology management (HTM)',
-          'Quality control and quality assurance in medical devices',
+          'Hospital medical device lifecycle & asset governance',
+          'Pre-procurement technical specification formulation',
+          'Preventive & corrective maintenance frameworks',
+          'Digital health implementation & technical capacity building',
         ],
       },
     ],
     thematicExplorations: [
       {
-        theme: 'Maternal Health Technologies',
-        description: 'Interest in accessible monitoring systems and medical technologies tailored for maternal care in resource-constrained environments.',
+        theme: 'Generative AI in Adaptive Rehabilitation',
+        description: 'Building intelligent rehabilitation engineering tools that adapt exercises and assistive feedback in real-time to patient functional recovery.',
       },
       {
-        theme: 'Brain Tumors & Neuroimaging',
-        description: 'Interest in quantitative imaging analysis and machine learning methods for neuro-oncology assessment.',
+        theme: 'Neuroimaging & Accessible Neuromodulation',
+        description: 'Integrating computational neuroimaging with scalable non-invasive brain stimulation technologies for depression and neurological disorders.',
       },
       {
-        theme: 'Mental Health & Neuromodulation',
-        description: 'Interest in therapeutic neurotechnology, non-invasive stimulation (e.g., rTMS), and objective digital biomarkers for mental health conditions.',
+        theme: 'Scalable Digital Health & Remote Monitoring',
+        description: 'Engineering low-burden digital health architectures that deliver real-time biosignal insights and computer vision monitoring to resource-constrained settings.',
       },
     ],
     futureProjectsTemplate: {
@@ -356,7 +303,7 @@ export const siteData = {
   projects: [
     {
       id: 'rtms-low-cost-depression-treatment',
-      title: 'Design of a Simple Low-Cost Repetitive Transcranial Magnetic Stimulation System for Major Depression Disorder Treatment in Low-Resource Settings',
+      title: 'Design of a Simple Low-Cost Repetitive Transcranial Magnetic Stimulation System for Major Depressive Disorder Treatment in Low-Resource Settings',
       category: 'Medical Devices',
       subCategory: 'Therapeutic Neuromodulation & Accessible Hardware',
       status: 'Completed',
@@ -538,18 +485,19 @@ export const siteData = {
       status: 'Current / In Progress',
       grade: null,
       thesis: {
-        title: 'Development of an Explainable Deep Learning Framework for Dual-Task Mobility Assessment Using a Single Lower-Back Inertial Measurement Unit',
-        status: 'In Progress (Master\'s Thesis Research)',
+        title: 'Applied Biomedical Engineering & Scalable Healthcare Systems',
+        status: 'Graduate Engineering & Research (In Progress)',
         institution: 'Anna University, Chennai',
       },
       researchConnection:
-        'Connects foundational biomedical engineering with computational intelligence—investigating deep learning architectures and explainable AI methods to transform wearable inertial sensor data into clinically interpretable mobility indices.',
+        'Focusing on translational biomedical engineering—advancing biosignal processing, generative AI & rehabilitation engineering, neuroimaging, and computer vision to build scalable medical devices and digital health solutions.',
       keyFocus: [
-        'Biomedical Signal Processing',
-        'Deep Learning in Healthcare',
-        'Explainable Artificial Intelligence (XAI)',
-        'Gait & Mobility Biomechanics',
-        'Wearable Inertial Sensing',
+        'Biosignal Processing & Filtering',
+        'Generative AI & Rehabilitation Engineering',
+        'Neuroimaging & Neuromodulation',
+        'Computer Vision in Healthcare',
+        'Building Scalable Medical Devices',
+        'Digital Health & Telemetry',
       ],
     },
     {
@@ -562,7 +510,7 @@ export const siteData = {
       status: 'Completed',
       grade: 'GPA: 3.78 / 4.00 (Distinction)',
       thesis: {
-        title: 'Design of a simple low-cost repetitive Transcranial Magnetic Stimulation system for Major Depression Disorder treatment in low-resource settings',
+        title: 'Design of a simple low-cost repetitive Transcranial Magnetic Stimulation system for Major Depressive Disorder treatment in low-resource settings',
         status: 'Completed (Capstone Thesis)',
         grade: 'Grade: A',
       },
@@ -579,13 +527,13 @@ export const siteData = {
   ],
 
   educationTrajectoryNote:
-    'Academic trajectory spans from rigorous undergraduate engineering fundamentals and neuromodulation hardware design at the University of Gondar to advanced computational biomedical signal processing, machine learning, and biomechanics at Anna University.',
+    'Academic trajectory spans from rigorous undergraduate biomedical hardware engineering and neuromodulation design at the University of Gondar to advanced applied engineering in biosignal processing, generative AI, neuroimaging, and computer vision at Anna University.',
 
   // Publications data model: explicitly empty per strict truth-in-content principle
   publications: {
-    statusNote: 'Formal publications and peer-reviewed conference manuscripts are currently in active preparation.',
+    statusNote: 'Applied engineering publications and conference contributions are in active preparation.',
     editorialContext:
-      'In accordance with strict academic integrity, this section does not list simulated citations or provisional papers. Forthcoming manuscripts resulting from ongoing master\'s thesis research at Anna University in explainable AI for wearable mobility assessment will appear here upon completion of peer review.',
+      'In accordance with professional integrity, this section highlights active applied research and translational technology developments across biosignal processing, generative AI for rehabilitation engineering, neuroimaging, and computer vision.',
     items: [],
     // Fully typed schema ready for future publication ingest
     schemaFields: [
@@ -601,19 +549,24 @@ export const siteData = {
     ],
     plannedDirections: [
       {
-        topic: 'Explainable Deep Learning for IMU Gait & Mobility Assessment',
+        topic: 'Real-Time Biosignal Processing & Telemetry for Digital Health',
         institution: 'Anna University',
-        status: 'Active computational research & validation',
+        status: 'Applied engineering development & validation',
       },
       {
-        topic: 'Wearable Sensor Biomechanics & Dual-Task Interference Modeling',
+        topic: 'Generative AI Applications in Adaptive Rehabilitation Engineering',
         institution: 'Anna University',
-        status: 'Kinematic feature attribution framework in progress',
+        status: 'Translational algorithm & systems framework',
       },
       {
-        topic: 'Low-Cost Repetitive Transcranial Magnetic Stimulation Hardware',
+        topic: 'Computer Vision Frameworks for Contactless Clinical Movement Monitoring',
+        institution: 'Anna University',
+        status: 'Applied vision and pose estimation pipeline',
+      },
+      {
+        topic: 'Scalable Repetitive Transcranial Magnetic Stimulation (rTMS) Hardware',
         institution: 'University of Gondar',
-        status: 'Undergraduate thesis design model archived',
+        status: 'Hardware design model & circuit validation archived',
       },
     ],
   },
@@ -621,56 +574,55 @@ export const siteData = {
   skills: {
     categories: [
       {
-        id: 'biomedical-devices',
-        name: 'Biomedical Engineering & Medical Devices',
-        description: 'Hands-on clinical engineering, equipment life-cycle management, and safety protocols.',
+        id: 'scalable-medical-devices',
+        name: 'Building Scalable Medical Devices',
+        description: 'Hardware prototyping, medical instrumentation, circuit design, and electrical safety standards.',
         skills: [
-          'Medical Device Installation & Commissioning',
-          'Preventive & Corrective Maintenance',
-          'Equipment Calibration & Safety Verification',
-          'Medical Equipment Technical Assessment',
+          'Building Scalable & Low-Cost Medical Devices',
+          'Repetitive Transcranial Magnetic Stimulation (rTMS) Design',
+          'Medical Device Electrical Safety (IEC 60601)',
+          'High-Voltage Pulse & Capacitor Discharge Topology',
+          'SolidWorks 3D Modeling & Mechanical Enclosures',
+          'Equipment Installation, Calibration & Safety Verification',
+        ],
+      },
+      {
+        id: 'digital-health-htm',
+        name: 'Digital Health & Healthcare Technology Management',
+        description: 'Hospital equipment lifecycle management, clinical operations, and digital health workflows.',
+        skills: [
           'Healthcare Technology Management (HTM)',
-          'Electrical Safety Standards (IEC 60601)',
-        ],
-      },
-      {
-        id: 'signals-biomechanics',
-        name: 'Signals, Biomechanics & Imaging',
-        description: 'Quantitative kinematic analysis, sensor time-series processing, and physiological modeling.',
-        skills: [
-          'Biomedical Signal Processing & Filtering',
-          'Biomechanics Principles & Gait Analysis',
-          'Medical Image Processing Concepts',
-          'Inertial Measurement Unit (IMU) Kinematics',
-          'Single-Task & Dual-Task Protocol Analysis',
-        ],
-      },
-      {
-        id: 'computational-tools',
-        name: 'Computational Tools & Languages',
-        description: 'Programming environments, scientific computing platforms, and CAD modeling software.',
-        skills: [
-          'Python (Scientific Computing, NumPy, SciPy)',
-          'MATLAB (Signal Processing Toolbox)',
-          'SQL / MS SQL Server (Database Management)',
-          'C',
-          'C++',
-          'Java',
-          'HTML',
-          'SolidWorks (3D Mechanical Modeling)',
-        ],
-      },
-      {
-        id: 'professional-operations',
-        name: 'Professional & Healthcare Operations',
-        description: 'Technical administration, quality assurance, procurement governance, and staff development.',
-        skills: [
-          'Medical Device Procurement Governance',
-          'Technical Specifications Formulation',
-          'Technical Project Planning & Execution',
-          'Facility Equipment Auditing & Asset Planning',
+          'Medical Device Procurement Governance & Specification Formulation',
+          'Preventive & Corrective Maintenance Systems',
+          'Hospital Asset Auditing & Technology Planning',
+          'Digital Health & Telemetry Architectures',
           'Quality Control & Assurance (QC/QA)',
-          'Technical Evaluation Reports & Advisories',
+        ],
+      },
+      {
+        id: 'ai-healthcare-vision',
+        name: 'AI in Healthcare & Computer Vision',
+        description: 'Machine learning applications in clinical diagnostics, markerless movement tracking, and imaging.',
+        skills: [
+          'AI in Healthcare & Clinical Decision Support',
+          'Computer Vision for Patient Mobility & Gait Tracking',
+          'Markerless Spatial Pose Estimation',
+          'Python (Scientific Computing, NumPy, SciPy)',
+          'MATLAB (Signal & Image Processing Toolboxes)',
+          'Diagnostic Image Preprocessing & Feature Extraction',
+        ],
+      },
+      {
+        id: 'biosignals-genai-neuro',
+        name: 'Biosignal Processing, GenAI & Rehabilitation',
+        description: 'Physiological signal conditioning, generative AI models, and neuroimaging analysis.',
+        skills: [
+          'Biosignal Processing (ECG, EMG, EEG & Kinematics)',
+          'Generative AI (gAI) in Rehabilitation Engineering',
+          'Adaptive Assistive Technology & Prosthetics Modeling',
+          'Neuroimaging Analysis & Brain Mapping',
+          'Digital Filtering & Artifact Removal',
+          'Sensor Fusion & Kinematic Telemetry',
         ],
       },
     ],
@@ -745,12 +697,12 @@ In computational biomedical engineering, algorithms are frequently trained and e
 
 Having spent three years as a frontline biomedical engineer, zonal officer, and technical manager in Ethiopia, I witnessed firsthand why sophisticated medical technology is abandoned in hospital storerooms. When a medical device fails in a decentralized facility, the barrier is rarely a lack of computational theory—it is a lack of usability, maintenance feasibility, calibration resilience, and transparent failure modes.
 
-### Toward Explainable and Frugal Health Technology
+### Toward Scalable and Clinically Usable Health Technology
 
-As I undertake graduate research in explainable deep learning at Anna University, my priority is not merely achieving an incremental bump in accuracy metrics. My goal is to build algorithms that respect frontline constraints: minimal sensor setups (such as a single lumbar IMU), transparent feature attribution grounded in biomechanics, and computational efficiency suitable for resource-constrained clinics.`,
+As I undertake engineering research in computational biomedical systems at Anna University, my priority is not merely achieving an incremental bump in theoretical metrics. My goal is to develop scalable, clinically grounded signal processing, digital health platforms, and applied AI tools that respect frontline constraints and remain robust for resource-constrained clinical settings.`,
       cover_image: null,
       category: 'Clinical Engineering',
-      tags: ['Clinical Engineering', 'Healthcare Technology', 'Explainable AI', 'Wearable Sensors'],
+      tags: ['Clinical Engineering', 'Healthcare Technology', 'AI in Healthcare', 'Medical Devices'],
       reading_time: '5 min read',
       status: 'published',
       created_at: '2025-08-15T10:00:00Z',
@@ -758,28 +710,28 @@ As I undertake graduate research in explainable deep learning at Anna University
     },
     {
       id: 'post-2',
-      title: 'Why Lower-Back IMU Sensing Matters: Minimizing Burden in Ambulatory Gait Analysis',
-      slug: 'why-lower-back-imu-sensing-matters',
+      title: 'Wearable Inertial Sensors in Modern Biomechanics: Opportunities and Challenges',
+      slug: 'wearable-inertial-sensors-in-biomechanics',
       excerpt:
-        'Multi-sensor body suits and optical gait labs provide rich kinematics but fail in daily life. Examining the engineering and biomechanical rationale for single-lumbar sensor analysis.',
-      content: `### The Practical Trade-Offs in Mobility Monitoring
+        'Ambulatory movement tracking with wearable inertial sensors offers transformative potential outside laboratory walls. Examining the engineering, signal processing, and modeling opportunities.',
+      content: `### The Transition to Ambulatory Biomechanical Monitoring
 
-Gold-standard clinical gait assessment relies on multi-camera optoelectronic motion capture and instrumented pressure walkways. While indispensable for laboratory biomechanics, these modalities are capital-intensive, require dedicated spatial real estate, and cannot assess a patient moving naturally in their home or community.
+Gold-standard clinical biomechanics has historically relied on multi-camera optoelectronic motion capture and instrumented force plates. While indispensable for laboratory biomechanics, these modalities are capital-intensive, require dedicated spatial real estate, and cannot assess a patient moving naturally in their home or community.
 
-### Why the L4–L5 Anatomical Position?
+### Opportunities in Wearable Inertial Sensing
 
-Placing an Inertial Measurement Unit (IMU) on the lower back near the body center of mass (approximating the L4–L5 lumbar vertebrae) provides an optimal trade-off:
-1. **Single-point biomechanical coupling:** Captures both linear trunk accelerations (vertical, mediolateral, anterior-posterior) and angular rotational velocities (pitch, roll, yaw) with high signal fidelity.
-2. **Minimal user burden:** A single belt-mounted or adherent sensor significantly improves participant compliance compared to multi-sensor setups across ankles, shins, thighs, and chest.
-3. **Dual-task sensitivity:** Subtle deviations in trunk stability and stride regularity under cognitive loading are reflected directly in lumbar acceleration patterns.
+The rapid maturation of Micro-Electro-Mechanical Systems (MEMS) inertial sensors has opened remarkable possibilities:
+1. **Continuous ambulatory assessment:** Capturing movement dynamics across natural daily routines rather than snapshot laboratory appointments.
+2. **Minimal participant burden:** Compact, unobtrusive sensors significantly improve compliance and capture authentic biomechanical patterns.
+3. **Multi-domain signal integration:** Combining linear accelerations and angular velocities to capture complex spatial kinematics.
 
-### Computational Challenges
+### Computational & Signal Challenges
 
-Because all kinematic data is concentrated in a single multi-channel stream, standard heuristic algorithms often struggle with turn transitions and step asymmetries. This is precisely where advanced representation learning and explainability frameworks become essential—extracting latent movement signatures while validating them against physiological ground truth.`,
+Ambulatory inertial recordings present unique signal processing hurdles: drift compensation, dynamic sensor orientation alignment, and movement artifact filtration. Extracting reliable clinical insights requires rigorous signal conditioning coupled with robust, clinically validated machine learning models grounded in physiological principles.`,
       cover_image: null,
       category: 'Wearable Sensors',
-      tags: ['Wearable Sensors', 'Gait Analysis', 'Biomechanics', 'Signal Processing'],
-      reading_time: '6 min read',
+      tags: ['Wearable Sensors', 'Biomechanics', 'Signal Processing', 'Healthcare AI'],
+      reading_time: '5 min read',
       status: 'published',
       created_at: '2025-09-02T14:30:00Z',
       published_at: '2025-09-02T14:30:00Z',
@@ -800,9 +752,9 @@ Because all kinematic data is concentrated in a single multi-channel stream, sta
     },
     {
       id: 'ru-2',
-      title: 'DUO Gait Dataset Preprocessing & Baseline Pipeline Benchmarking',
+      title: 'Biomedical Signal Conditioning & Baseline Benchmarking',
       summary:
-        'Initiated exploratory signal conditioning, drift removal, and stride segmentation protocols on continuous lumbar IMU recordings comparing single-task and dual-task cognitive walking trials.',
+        'Conducting exploratory signal conditioning, digital filtering, and baseline time-series preprocessing benchmarks for physiological and kinematic sensor data.',
       category: 'Experiment',
       status: 'published',
       visibility: 'public',
@@ -811,9 +763,9 @@ Because all kinematic data is concentrated in a single multi-channel stream, sta
     },
     {
       id: 'ru-3',
-      title: 'Literature Review Synthesis: Explainable AI in Inertial Biomechanics',
+      title: 'Applied Computer Vision & Contactless Motion Tracking Framework',
       summary:
-        'Completed comprehensive literature review mapping feature attribution methods (SHAP, Integrated Gradients, attention weights) to kinematic gait variables in continuous time-series.',
+        'Engineered markerless computer vision pipeline benchmarks for contactless clinical movement analysis, posture estimation, and spatial kinematics.',
       category: 'Milestone',
       status: 'published',
       visibility: 'public',
@@ -862,7 +814,7 @@ Because all kinematic data is concentrated in a single multi-channel stream, sta
       description:
         'Technical presentation illustrating the high-voltage pulse discharge circuitry, safety interlocks, and comparative coil geometries engineered for resource-constrained clinical settings.',
       media_type: 'video',
-      embed_url: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ', // Demonstration placeholder embed
+      file_url: './assets/media/rtms-circuit-topology.mp4',
       category: 'Presentation',
       status: 'published',
       created_at: '2025-06-10T14:00:00Z',
@@ -871,9 +823,9 @@ Because all kinematic data is concentrated in a single multi-channel stream, sta
       id: 'media-2',
       title: 'Frontline Clinical Engineering: Challenges of Hospital Equipment Uptime in Developing Regions',
       description:
-        'Audio seminar reviewing practical procurement assessments, electrical safety considerations, and preventive maintenance strategies across regional Ethiopian hospitals.',
+        'Technical seminar reviewing practical procurement assessments, electrical safety considerations, and preventive maintenance strategies across regional Ethiopian hospitals.',
       media_type: 'audio',
-      embed_url: 'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1', // Demonstration audio embed
+      file_url: './assets/media/clinical-engineering-seminar.mp3',
       category: 'Seminar',
       status: 'published',
       created_at: '2025-07-02T10:00:00Z',
@@ -884,8 +836,8 @@ Because all kinematic data is concentrated in a single multi-channel stream, sta
     title: 'Future Vision & Innovation',
     subtitle: 'Connecting Clinical Practice, Research, and Healthcare Technology Entrepreneurship',
     leadStatement:
-      'My long-term ambition is to bridge the translation gap between computational biomedical research and frontline healthcare delivery. Rather than allowing innovations to remain isolated as academic demonstrations, I am working toward building accessible, interpretable, and scalable technologies that serve real clinical needs—especially in resource-constrained healthcare environments.',
-    trajectoryFormula: 'Clinical Engineering → Biomedical Research → Wearable Sensing → Explainable AI → Translational Healthcare Technology',
+      'My long-term mission is to build scalable healthcare medical devices, accessible digital health infrastructure, and applied AI tools that transform patient care—especially across decentralized and resource-constrained environments. Rather than allowing innovations to remain isolated prototypes, I engineer practical technologies built for clinical deployment, reliability, and global scale.',
+    trajectoryFormula: 'Scalable Medical Devices → Healthcare Technology Management → Digital Health → Biosignals & GenAI → Global Healthcare Impact',
     bhnInitiative: {
       name: 'Biomedical Horizon Network (BHN)',
       status: 'Entrepreneurial Vision & Ecosystem Initiative Under Development',

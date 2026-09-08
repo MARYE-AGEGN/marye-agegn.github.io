@@ -29,6 +29,34 @@ export function About({ about }) {
         </header>
 
         {/* ==================================================================
+            1b. EXECUTIVE IDENTITY & BRAND BANNER
+            ================================================================== */}
+        <div
+          className="about-brand-banner-card card mb-8 overflow-hidden"
+          style={{
+            background: '#ffffff',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--color-border)',
+            boxShadow: 'var(--shadow-sm)',
+            maxHeight: '260px',
+            position: 'relative',
+          }}
+        >
+          <img
+            src="./assets/images/marye-agegn-brand-banner.jpg"
+            alt="Marye Agegn Gebrie — Innovator & Professional"
+            style={{
+              width: '100%',
+              height: '240px',
+              objectFit: 'cover',
+              objectPosition: 'center',
+              display: 'block',
+            }}
+            loading="lazy"
+          />
+        </div>
+
+        {/* ==================================================================
             2. LEAD EDITORIAL NARRATIVE
             ================================================================== */}
         {leadParagraph && (
@@ -52,6 +80,50 @@ export function About({ about }) {
             </div>
           </aside>
         )}
+
+        {/* ==================================================================
+            3b. CLINICAL ENGINEERING PRACTICE IN ACTION
+            ================================================================== */}
+        <div
+          className="about-clinical-spotlight card p-6 my-8"
+          style={{
+            background: '#ffffff',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--color-border)',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
+          <div className="about-clinical-grid">
+            <div className="about-clinical-img-col">
+              <img
+                src="./assets/images/marye-agegn-clinical.jpg"
+                alt="Marye Agegn during hospital clinical engineering and healthcare technology management practice in Ethiopia"
+                className="about-clinical-img"
+                loading="lazy"
+              />
+            </div>
+            <div className="about-clinical-text-col">
+              <span className="section-status-badge">Frontline Practice</span>
+              <h3 className="text-xl font-bold mt-2" style={{ color: 'var(--color-text)' }}>
+                Clinical Grounding &amp; Hospital Operations
+              </h3>
+              <p className="text-muted text-sm mt-2" style={{ lineHeight: '1.7' }}>
+                With over three years managing hospital diagnostic systems, intensive care equipment, and medical technology lifecycles across healthcare facilities in Ethiopia, Marye's engineering perspective is anchored in frontline healthcare delivery. This hands-on operational foundation directly informs his work in building scalable medical devices, digital health platforms, biosignal processing, and applied AI in healthcare.
+              </p>
+              <div className="flex flex-wrap gap-2 mt-4 text-xs">
+                <span className="badge" style={{ background: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)' }}>
+                  🏥 Hospital Equipment Uptime &amp; Safety
+                </span>
+                <span className="badge" style={{ background: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)' }}>
+                  ⚡ Medical Device Maintenance &amp; Calibration
+                </span>
+                <span className="badge" style={{ background: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)' }}>
+                  🩺 Translational Clinical Engineering
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* ==================================================================
             4. THE FOUR PROGRESSION CHAPTERS

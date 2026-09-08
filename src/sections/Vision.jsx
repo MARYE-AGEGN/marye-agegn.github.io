@@ -31,12 +31,25 @@ export function Vision() {
         {vision.bhnInitiative && (
           <div className="bhn-container card p-8">
             <div className="bhn-header">
-              <div className="bhn-badge-row">
-                <span className="badge badge-accent">{vision.bhnInitiative.badge}</span>
-                <span className="bhn-status-text">{vision.bhnInitiative.status}</span>
+              <div className="bhn-header-flex">
+                <div className="bhn-logo-wrapper">
+                  <img
+                    src="./assets/images/bhn-logo.jpg"
+                    alt="Biomedical Horizon Network (BHN) — Enabling Impossible"
+                    className="bhn-logo-img"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="bhn-header-text flex-1">
+                  <div className="bhn-badge-row">
+                    <span className="badge badge-accent">{vision.bhnInitiative.badge}</span>
+                    <span className="bhn-status-text">{vision.bhnInitiative.status}</span>
+                  </div>
+                  <h3 className="bhn-title mt-2">{vision.bhnInitiative.name}</h3>
+                  <div className="bhn-motto-tagline">“Enabling Impossible”</div>
+                  <p className="bhn-summary mt-2">{vision.bhnInitiative.summary}</p>
+                </div>
               </div>
-              <h3 className="bhn-title mt-2">{vision.bhnInitiative.name}</h3>
-              <p className="bhn-summary mt-2">{vision.bhnInitiative.summary}</p>
             </div>
 
             {/* Core Problem Callout */}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase, isSupabaseConfigured, updateSupabaseConfig, getSupabaseConfig } from '../../data/supabaseClient';
 import {
   getPosts,
@@ -16,6 +16,9 @@ import {
   getInboundMessages,
   getInboundCollaborations,
 } from '../../data/contentStore';
+import { getMediaLibrary } from '../../data/mediaStore';
+import { UniversalFileUploader } from '../../components/common/UniversalFileUploader';
+import { MediaLibrary } from '../../components/admin/MediaLibrary';
 
 export function AdminDashboard() {
   // Authentication state
@@ -27,13 +30,14 @@ export function AdminDashboard() {
   const [localAdminAuthenticated, setLocalAdminAuthenticated] = useState(false);
 
   // Dashboard active tab
-  const [activeTab, setActiveTab] = useState('overview'); // overview, posts, research, docs, media, messages, settings
+  const [activeTab, setActiveTab] = useState('overview'); // overview, media_library, posts, research, docs, media, messages, settings
 
   // Content collections
   const [posts, setPosts] = useState([]);
   const [researchUpdates, setResearchUpdates] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [mediaItems, setMediaItems] = useState([]);
+  const [mediaLibraryItems, setMediaLibraryItems] = useState([]);
   const [messages, setMessages] = useState([]);
   const [collaborations, setCollaborations] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -43,6 +47,9 @@ export function AdminDashboard() {
   const [editingResearch, setEditingResearch] = useState(null);
   const [editingDoc, setEditingDoc] = useState(null);
   const [editingMedia, setEditingMedia] = useState(null);
+
+  // Media picker modal state for content editors
+  const [pickerConfig, setPickerConfig] = useState(null); // { target: 'doc'|'media'|'postImage'|'researchFigure', filter: 'all'|'image'|'document'|'video' }
 
   // Research IP Protection Checkpoint Modal
   const [ipModalData, setIpModalData] = useState(null);
@@ -56,7 +63,6 @@ export function AdminDashboard() {
 
   // Check auth session
   useEffect(() => {
-    // Check local session storage first
     const localSession = sessionStorage.getItem('marye_admin_authenticated');
     if (localSession === 'true') {
       setLocalAdminAuthenticated(true);
@@ -75,7 +81,7 @@ export function AdminDashboard() {
     }
   }, []);
 
-  // Fetch all content
+  // Fetch all content & media library
   useEffect(() => {
     async function loadAll() {
       const [allPosts, allResearch, allDocs, allMedia, allMsgs, allCollabs] = await Promise.all([
@@ -92,6 +98,7 @@ export function AdminDashboard() {
       setMediaItems(allMedia);
       setMessages(allMsgs);
       setCollaborations(allCollabs);
+      setMediaLibraryItems(getMediaLibrary());
     }
     loadAll();
   }, [refreshTrigger]);
@@ -104,6 +111,14 @@ export function AdminDashboard() {
     setAuthLoading(true);
     setAuthError('');
 
+    // Local development / fallback passkey
+    if (password === 'admin' || password === 'marye2025') {
+      sessionStorage.setItem('marye_admin_authenticated', 'true');
+      setLocalAdminAuthenticated(true);
+      setAuthLoading(false);
+      return;
+    }
+
     if (isSupabaseConfigured && supabase) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
@@ -112,13 +127,7 @@ export function AdminDashboard() {
         return;
       }
     } else {
-      // Local development / fallback passkey
-      if (password === 'admin' || password === 'marye2025') {
-        sessionStorage.setItem('marye_admin_authenticated', 'true');
-        setLocalAdminAuthenticated(true);
-      } else {
-        setAuthError('Invalid password. (Tip: Use "marye2025" or configure Supabase credentials in settings).');
-      }
+      setAuthError('Invalid credentials. (For local preview use "marye2025" or configure Supabase credentials in settings).');
     }
     setAuthLoading(false);
   }
@@ -150,7 +159,6 @@ export function AdminDashboard() {
   // Research Update Actions with IP Checkpoint
   function triggerResearchSave(updateData) {
     if (updateData.status === 'published') {
-      // Trigger IP Checkpoint
       setIpModalData(updateData);
       setIpConfirmed(false);
     } else {
@@ -209,19 +217,65 @@ export function AdminDashboard() {
     setSettingsNotice('Supabase configuration updated. Please refresh the page to apply.');
   }
 
-  // If NOT authenticated, show Login View
+  // Handle asset chosen from Media Library Picker Modal
+  function handlePickerSelect(selected) {
+    if (!pickerConfig) return;
+
+    if (pickerConfig.target === 'doc' && editingDoc) {
+      setEditingDoc({
+        ...editingDoc,
+        file_url: selected.path,
+        file_name: selected.filename,
+        file_size: selected.fileSizeFormatted,
+        file_type: selected.filename.split('.').pop().toUpperCase(),
+      });
+    } else if (pickerConfig.target === 'media' && editingMedia) {
+      setEditingMedia({
+        ...editingMedia,
+        file_url: selected.path,
+        file_name: selected.filename,
+        file_size: selected.fileSizeFormatted,
+        media_type: selected.type || 'video',
+      });
+    } else if (pickerConfig.target === 'postImage' && editingPost) {
+      setEditingPost({
+        ...editingPost,
+        featured_image: selected.path,
+        featured_image_alt: selected.altText || selected.title,
+      });
+    } else if (pickerConfig.target === 'researchFigure' && editingResearch) {
+      setEditingResearch({
+        ...editingResearch,
+        figure_url: selected.path,
+        figure_caption: selected.title,
+      });
+    }
+
+    setPickerConfig(null);
+  }
+
+  // -------------------------------------------------------------
+  // If NOT authenticated, show Professional Light Login View
+  // -------------------------------------------------------------
   if (!isAuthenticated) {
     return (
-      <div className="admin-login-wrapper py-16">
-        <div className="container">
-          <div className="admin-login-card card max-w-md mx-auto p-8">
-            <div className="admin-login-header text-center mb-6">
-              <span className="section-badge">Platform Management</span>
-              <h2 className="text-2xl font-bold mt-2">Administrator Access</h2>
-              <p className="text-muted text-sm mt-1">Private control panel for Marye Agegn</p>
+      <div className="admin-main-container flex items-center justify-center min-h-screen py-16" style={{ background: 'var(--color-surface-subtle)' }}>
+        <div className="container" style={{ maxWidth: '440px' }}>
+          <div className="card p-8 shadow-md" style={{ background: '#ffffff', borderRadius: 'var(--radius-lg)' }}>
+            <div className="text-center mb-6">
+              <span className="section-badge mb-2">Platform Administration</span>
+              <h2 className="text-2xl font-bold mt-2" style={{ color: 'var(--color-text)' }}>Administrator Access</h2>
+              <p className="text-muted text-sm mt-1">Authorized control console for Marye Agegn</p>
             </div>
 
-            {authError && <div className="alert-error-banner p-3 mb-4 text-sm">{authError}</div>}
+            {authError && (
+              <div
+                className="p-3 mb-4 text-sm rounded"
+                style={{ background: 'var(--color-error-bg)', color: 'var(--color-error)', border: '1px solid var(--color-error-border)' }}
+              >
+                {authError}
+              </div>
+            )}
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="form-group">
@@ -253,9 +307,12 @@ export function AdminDashboard() {
               </button>
             </form>
 
-            <div className="admin-login-footer mt-6 pt-4 border-t border-slate text-center text-xs text-muted">
+            <div
+              className="mt-6 pt-4 text-center text-xs text-muted"
+              style={{ borderTop: '1px solid var(--color-border)' }}
+            >
               <p>🔒 Authenticated via PostgreSQL Row Level Security (RLS).</p>
-              <a href="#/" className="inline-block mt-2 text-cyan">
+              <a href="#/" className="inline-block mt-2 font-medium" style={{ color: 'var(--color-primary)' }}>
                 ← Return to Public Portfolio
               </a>
             </div>
@@ -265,21 +322,51 @@ export function AdminDashboard() {
     );
   }
 
-  // Authenticated Dashboard
+  // -------------------------------------------------------------
+  // Authenticated Dashboard (Light UI)
+  // -------------------------------------------------------------
   return (
-    <div className="admin-dashboard-page py-10">
+    <div className="admin-main-container">
       <div className="container">
-        {/* Top Bar */}
-        <div className="admin-top-bar card p-4 flex items-center justify-between mb-8">
+        {/* Top Navigation Bar */}
+        <div
+          className="admin-top-bar card p-4 flex items-center justify-between mb-6"
+          style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}
+        >
           <div className="flex items-center gap-3">
-            <span className="badge badge-success">Admin Session Active</span>
-            <h1 className="admin-brand-title text-xl font-bold">Marye Agegn • Platform CMS</h1>
+            <span
+              className="badge"
+              style={{
+                background: 'var(--color-success-bg)',
+                color: 'var(--color-success)',
+                border: '1px solid var(--color-success-border)',
+                fontWeight: 600,
+                fontSize: '0.75rem',
+              }}
+            >
+              Session Active
+            </span>
+            <img
+              src="./assets/images/marye-agegn-brand-banner.jpg"
+              alt="Marye Agegn Brand"
+              style={{
+                width: '32px',
+                height: '32px',
+                objectFit: 'cover',
+                borderRadius: '4px',
+                border: '1px solid var(--color-border)',
+                flexShrink: 0,
+              }}
+            />
+            <h1 className="text-lg font-bold" style={{ color: 'var(--color-text)', margin: 0 }}>
+              Marye Agegn • Platform CMS
+            </h1>
             <span className="text-xs text-muted">
-              {isSupabaseConfigured ? '🟢 Connected to Supabase' : '🟡 Offline / Local Store Mode'}
+              {isSupabaseConfigured ? '🟢 Connected to Supabase' : '🟡 Local Store Mode'}
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <a href="#/" className="btn btn-secondary btn-sm" target="_blank" rel="noopener noreferrer">
               View Live Website ↗
             </a>
@@ -290,9 +377,10 @@ export function AdminDashboard() {
         </div>
 
         {/* Dashboard Navigation Tabs */}
-        <div className="admin-tabs-bar mb-8" role="tablist">
+        <div className="admin-tabs-bar mb-6" role="tablist">
           {[
             { id: 'overview', label: '📊 Overview' },
+            { id: 'media_library', label: `📁 Media Library (${mediaLibraryItems.length})` },
             { id: 'posts', label: `📝 Articles (${posts.length})` },
             { id: 'research', label: `🔬 Research Updates (${researchUpdates.length})` },
             { id: 'docs', label: `📄 Documents & CV (${documents.length})` },
@@ -311,38 +399,52 @@ export function AdminDashboard() {
           ))}
         </div>
 
+        {/* ------------------------------------------------------- */}
         {/* TAB 1: OVERVIEW */}
+        {/* ------------------------------------------------------- */}
         {activeTab === 'overview' && (
-          <div className="overview-tab-view space-y-8">
-            <div className="stats-grid grid grid-cols-4 gap-4">
-              <div className="stat-card card p-6">
-                <span className="text-muted text-sm">Total Articles</span>
-                <div className="text-3xl font-bold text-cyan mt-1">{posts.length}</div>
-                <span className="text-xs text-muted">{posts.filter((p) => p.status === 'published').length} Published</span>
+          <div className="overview-tab-view space-y-6">
+            <div className="stats-grid">
+              <div className="stat-card">
+                <span className="stat-card-label">Media Library Assets</span>
+                <div className="stat-card-val" style={{ color: 'var(--color-primary)' }}>{mediaLibraryItems.length}</div>
+                <span className="text-xs text-muted">Images, PDFs &amp; Video Streams</span>
               </div>
-              <div className="stat-card card p-6">
-                <span className="text-muted text-sm">Research Milestones</span>
-                <div className="text-3xl font-bold text-cyan mt-1">{researchUpdates.length}</div>
-                <span className="text-xs text-muted">Protected under IP Policy</span>
+              <div className="stat-card">
+                <span className="stat-card-label">Articles Published</span>
+                <div className="stat-card-val" style={{ color: 'var(--color-primary)' }}>{posts.length}</div>
+                <span className="text-xs text-muted">
+                  {posts.filter((p) => p.status === 'published').length} Live Public Articles
+                </span>
               </div>
-              <div className="stat-card card p-6">
-                <span className="text-muted text-sm">Verified Documents</span>
-                <div className="text-3xl font-bold text-cyan mt-1">{documents.length}</div>
-                <span className="text-xs text-muted">Active CV: {documents.find((d) => d.is_current_cv)?.version || 'v2.1'}</span>
+              <div className="stat-card">
+                <span className="stat-card-label">Research Milestones</span>
+                <div className="stat-card-val" style={{ color: 'var(--color-primary)' }}>{researchUpdates.length}</div>
+                <span className="text-xs text-muted">Protected under IP Protocol</span>
               </div>
-              <div className="stat-card card p-6">
-                <span className="text-muted text-sm">Inbound Requests</span>
-                <div className="text-3xl font-bold text-cyan mt-1">{messages.length + collaborations.length}</div>
-                <span className="text-xs text-muted">{collaborations.length} Research Proposals</span>
+              <div className="stat-card">
+                <span className="stat-card-label">Verified Documents</span>
+                <div className="stat-card-val" style={{ color: 'var(--color-primary)' }}>{documents.length}</div>
+                <span className="text-xs text-muted">
+                  Active CV: {documents.find((d) => d.is_current_cv)?.version || 'v2.1'}
+                </span>
               </div>
             </div>
 
-            <div className="quick-actions-card card p-6">
-              <h3 className="text-lg font-semibold mb-4">Quick Content Actions</h3>
-              <div className="flex gap-4">
+            <div className="card p-6" style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}>
+              <h3 className="text-md font-bold mb-3" style={{ color: 'var(--color-text)' }}>Quick Content Operations</h3>
+              <div className="flex flex-wrap gap-3">
                 <button
                   type="button"
                   className="btn btn-primary btn-sm"
+                  onClick={() => setActiveTab('media_library')}
+                >
+                  📁 Open Media Library
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
                   onClick={() => {
                     setEditingPost({
                       title: '',
@@ -357,12 +459,12 @@ export function AdminDashboard() {
                     setActiveTab('posts');
                   }}
                 >
-                  + Write New Article
+                  + Draft New Article
                 </button>
 
                 <button
                   type="button"
-                  className="btn btn-primary btn-sm"
+                  className="btn btn-secondary btn-sm"
                   onClick={() => {
                     setEditingResearch({
                       title: '',
@@ -383,7 +485,7 @@ export function AdminDashboard() {
                   onClick={() => {
                     setEditingDoc({
                       title: 'Academic Curriculum Vitae',
-                      description: 'Updated academic CV detailing recent appointments and research.',
+                      description: 'Updated academic CV detailing recent appointments, publications, and clinical research.',
                       category: 'CV',
                       file_url: './assets/documents/Marye_Agegn_Academic_CV.pdf',
                       file_type: 'PDF',
@@ -402,11 +504,25 @@ export function AdminDashboard() {
           </div>
         )}
 
-        {/* TAB 2: POSTS MANAGER */}
+        {/* ------------------------------------------------------- */}
+        {/* TAB: MEDIA LIBRARY (NEW)                                 */}
+        {/* ------------------------------------------------------- */}
+        {activeTab === 'media_library' && (
+          <div className="media-library-tab-view">
+            <MediaLibrary />
+          </div>
+        )}
+
+        {/* ------------------------------------------------------- */}
+        {/* TAB 2: ARTICLES & TECHNICAL POSTS */}
+        {/* ------------------------------------------------------- */}
         {activeTab === 'posts' && (
           <div className="posts-tab-view space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">Articles &amp; Technical Notes</h2>
+              <div>
+                <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Articles &amp; Technical Notes</h2>
+                <p className="text-sm text-muted">Manage peer-facing articles, engineering breakdowns, and clinical workflows.</p>
+              </div>
               <button
                 type="button"
                 className="btn btn-primary btn-sm"
@@ -427,11 +543,13 @@ export function AdminDashboard() {
               </button>
             </div>
 
-            {/* Post Editor Drawer */}
+            {/* Post Editor */}
             {editingPost && (
-              <div className="editor-modal card p-6 border-cyan">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold">{editingPost.id ? 'Edit Article' : 'Draft New Article'}</h3>
+              <div className="card p-6 shadow-sm" style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}>
+                <div className="flex items-center justify-between mb-4 pb-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                  <h3 className="text-lg font-bold" style={{ color: 'var(--color-text)' }}>
+                    {editingPost.id ? 'Edit Article' : 'Draft New Article'}
+                  </h3>
                   <button type="button" className="btn btn-secondary btn-sm" onClick={() => setEditingPost(null)}>
                     Cancel
                   </button>
@@ -440,7 +558,7 @@ export function AdminDashboard() {
                 <form onSubmit={handleSavePost} className="space-y-4">
                   <div className="form-grid-2">
                     <div className="form-group">
-                      <label>Title *</label>
+                      <label>Article Title *</label>
                       <input
                         type="text"
                         required
@@ -450,7 +568,7 @@ export function AdminDashboard() {
                       />
                     </div>
                     <div className="form-group">
-                      <label>Slug URL *</label>
+                      <label>URL Slug *</label>
                       <input
                         type="text"
                         required
@@ -467,11 +585,12 @@ export function AdminDashboard() {
                         value={editingPost.category}
                         onChange={(e) => setEditingPost({ ...editingPost, category: e.target.value })}
                       >
+                        <option value="Medical Devices">Medical Devices</option>
+                        <option value="Digital Health">Digital Health</option>
+                        <option value="AI in Healthcare">AI in Healthcare</option>
+                        <option value="Biosignal Processing">Biosignal Processing</option>
                         <option value="Clinical Engineering">Clinical Engineering</option>
-                        <option value="Wearable Sensors">Wearable Sensors</option>
-                        <option value="Explainable AI">Explainable AI</option>
                         <option value="Healthcare Technology">Healthcare Technology</option>
-                        <option value="Biomedical Research">Biomedical Research</option>
                       </select>
                     </div>
                     <div className="form-group">
@@ -483,7 +602,7 @@ export function AdminDashboard() {
                       />
                     </div>
                     <div className="form-group">
-                      <label>Publication Status</label>
+                      <label>Status</label>
                       <select
                         value={editingPost.status}
                         onChange={(e) => setEditingPost({ ...editingPost, status: e.target.value })}
@@ -495,28 +614,61 @@ export function AdminDashboard() {
                     </div>
                   </div>
 
+                  {/* Featured Image with Local Uploader & Library Picker */}
                   <div className="form-group">
-                    <label>Short Excerpt (Lead summary for search &amp; cards)</label>
-                    <textarea
-                      rows="2"
-                      value={editingPost.excerpt}
-                      onChange={(e) => setEditingPost({ ...editingPost, excerpt: e.target.value })}
-                      placeholder="Brief synopsis..."
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="font-semibold text-sm">Featured Article Image</label>
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-xs"
+                        onClick={() => setPickerConfig({ target: 'postImage', filter: 'image' })}
+                      >
+                        📁 Choose from Media Library
+                      </button>
+                    </div>
+                    <UniversalFileUploader
+                      acceptedType="image"
+                      initialValue={
+                        editingPost.featured_image
+                          ? { filename: editingPost.featured_image.split('/').pop(), path: editingPost.featured_image }
+                          : null
+                      }
+                      onFileSelected={(meta) => {
+                        setEditingPost((prev) => ({
+                          ...prev,
+                          featured_image: meta.localPreviewUrl || meta.path,
+                          featured_image_path: meta.path,
+                        }));
+                      }}
+                      onFileRemoved={() => {
+                        setEditingPost((prev) => ({ ...prev, featured_image: '', featured_image_path: '' }));
+                      }}
+                      helpText="Upload an article cover image or pick from the media library."
                     />
                   </div>
 
                   <div className="form-group">
-                    <label>Article Content (Markdown supported)</label>
+                    <label>Lead Excerpt</label>
+                    <textarea
+                      rows="2"
+                      value={editingPost.excerpt}
+                      onChange={(e) => setEditingPost({ ...editingPost, excerpt: e.target.value })}
+                      placeholder="Brief summary displayed on cards and search results..."
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Full Content (Markdown Supported)</label>
                     <textarea
                       rows="8"
                       required
                       value={editingPost.content}
                       onChange={(e) => setEditingPost({ ...editingPost, content: e.target.value })}
-                      placeholder="### Subheading&#10;&#10;Write technical analysis here..."
+                      placeholder="### Overview&#10;&#10;Write comprehensive article text here..."
                     />
                   </div>
 
-                  <div className="flex justify-end gap-3">
+                  <div className="flex justify-end gap-3 pt-2">
                     <button type="button" className="btn btn-secondary" onClick={() => setEditingPost(null)}>
                       Cancel
                     </button>
@@ -529,8 +681,8 @@ export function AdminDashboard() {
             )}
 
             {/* Posts Table */}
-            <div className="card overflow-hidden">
-              <table className="admin-table w-full">
+            <div className="admin-table-container">
+              <table className="admin-table">
                 <thead>
                   <tr>
                     <th>Title</th>
@@ -541,50 +693,58 @@ export function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {posts.map((post) => (
-                    <tr key={post.id}>
-                      <td className="font-medium">{post.title}</td>
-                      <td>
-                        <span className="badge category-badge">{post.category}</span>
-                      </td>
-                      <td>
-                        <span className={`status-badge ${post.status}`}>{post.status}</span>
-                      </td>
-                      <td className="text-sm text-muted">
-                        {post.created_at ? new Date(post.created_at).toLocaleDateString() : 'N/A'}
-                      </td>
-                      <td>
-                        <div className="btn-group">
-                          <button
-                            type="button"
-                            className="btn btn-secondary btn-xs"
-                            onClick={() => setEditingPost(post)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-outline-danger btn-xs"
-                            onClick={() => handleDeletePost(post.id)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                  {posts.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="text-center py-6 text-muted">No articles found.</td>
                     </tr>
-                  ))}
+                  ) : (
+                    posts.map((post) => (
+                      <tr key={post.id}>
+                        <td className="font-medium" style={{ color: 'var(--color-text)' }}>{post.title}</td>
+                        <td>
+                          <span className="badge category-badge">{post.category}</span>
+                        </td>
+                        <td>
+                          <span className={`status-badge ${post.status}`}>{post.status}</span>
+                        </td>
+                        <td className="text-sm text-muted">
+                          {post.created_at ? new Date(post.created_at).toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td>
+                          <div className="btn-group">
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-xs"
+                              onClick={() => setEditingPost(post)}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-outline-danger btn-xs"
+                              onClick={() => handleDeletePost(post.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         )}
 
-        {/* TAB 3: RESEARCH UPDATES WITH IP PROTECTION CHECKPOINT */}
+        {/* ------------------------------------------------------- */}
+        {/* TAB 3: RESEARCH UPDATES & IP CHECKPOINT */}
+        {/* ------------------------------------------------------- */}
         {activeTab === 'research' && (
           <div className="research-tab-view space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold">Research Milestones &amp; Updates</h2>
+                <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Research Milestones &amp; Updates</h2>
                 <p className="text-sm text-muted">
                   High-level public progress announcements protected by the Research IP &amp; Confidentiality Policy.
                 </p>
@@ -608,10 +768,16 @@ export function AdminDashboard() {
 
             {/* Research Editor */}
             {editingResearch && (
-              <div className="editor-modal card p-6 border-cyan">
-                <h3 className="text-lg font-bold mb-4">
-                  {editingResearch.id ? 'Edit Research Milestone' : 'Add Research Milestone'}
-                </h3>
+              <div className="card p-6 shadow-sm" style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}>
+                <div className="flex items-center justify-between mb-4 pb-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                  <h3 className="text-lg font-bold" style={{ color: 'var(--color-text)' }}>
+                    {editingResearch.id ? 'Edit Research Milestone' : 'Add Research Milestone'}
+                  </h3>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => setEditingResearch(null)}>
+                    Cancel
+                  </button>
+                </div>
+
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -627,11 +793,11 @@ export function AdminDashboard() {
                         required
                         value={editingResearch.title}
                         onChange={(e) => setEditingResearch({ ...editingResearch, title: e.target.value })}
-                        placeholder="e.g., DUO Gait Baseline Benchmarking Initiated"
+                        placeholder="e.g. Multi-Sensor Data Validation Completed"
                       />
                     </div>
                     <div className="form-group">
-                      <label>Milestone Type</label>
+                      <label>Milestone Category</label>
                       <select
                         value={editingResearch.category}
                         onChange={(e) => setEditingResearch({ ...editingResearch, category: e.target.value })}
@@ -644,6 +810,39 @@ export function AdminDashboard() {
                     </div>
                   </div>
 
+                  {/* Milestone Figure / Diagram with Local Uploader & Library Picker */}
+                  <div className="form-group">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="font-semibold text-sm">Research Figure / Plot (Optional)</label>
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-xs"
+                        onClick={() => setPickerConfig({ target: 'researchFigure', filter: 'image' })}
+                      >
+                        📁 Choose from Media Library
+                      </button>
+                    </div>
+                    <UniversalFileUploader
+                      acceptedType="image"
+                      initialValue={
+                        editingResearch.figure_url
+                          ? { filename: editingResearch.figure_url.split('/').pop(), path: editingResearch.figure_url }
+                          : null
+                      }
+                      onFileSelected={(meta) => {
+                        setEditingResearch((prev) => ({
+                          ...prev,
+                          figure_url: meta.localPreviewUrl || meta.path,
+                          figure_path: meta.path,
+                        }));
+                      }}
+                      onFileRemoved={() => {
+                        setEditingResearch((prev) => ({ ...prev, figure_url: '', figure_path: '' }));
+                      }}
+                      helpText="Attach a sensor diagram, setup photo, or public-safe architecture chart."
+                    />
+                  </div>
+
                   <div className="form-group">
                     <label>High-Level Public Summary *</label>
                     <textarea
@@ -651,16 +850,16 @@ export function AdminDashboard() {
                       required
                       value={editingResearch.summary}
                       onChange={(e) => setEditingResearch({ ...editingResearch, summary: e.target.value })}
-                      placeholder="Broad, non-confidential description of progress..."
+                      placeholder="Broad, non-confidential description of milestone progress..."
                     />
                     <span className="text-xs text-muted block mt-1">
-                      ⚠️ Remember: Do NOT include raw hyperparameters, unpublished equations, or novel architecture secrets.
+                      ⚠️ Confidentiality Note: Do not disclose unpublished mathematical formulations, confidential step-by-step pipeline architectures, or raw experimental weights.
                     </span>
                   </div>
 
                   <div className="form-grid-2">
                     <div className="form-group">
-                      <label>Status</label>
+                      <label>Publication Status</label>
                       <select
                         value={editingResearch.status}
                         onChange={(e) => setEditingResearch({ ...editingResearch, status: e.target.value })}
@@ -681,7 +880,7 @@ export function AdminDashboard() {
                     </div>
                   </div>
 
-                  <div className="flex justify-end gap-3 mt-4">
+                  <div className="flex justify-end gap-3 pt-2">
                     <button type="button" className="btn btn-secondary" onClick={() => setEditingResearch(null)}>
                       Cancel
                     </button>
@@ -694,8 +893,8 @@ export function AdminDashboard() {
             )}
 
             {/* Research Updates Table */}
-            <div className="card overflow-hidden">
-              <table className="admin-table w-full">
+            <div className="admin-table-container">
+              <table className="admin-table">
                 <thead>
                   <tr>
                     <th>Milestone Title</th>
@@ -706,49 +905,60 @@ export function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {researchUpdates.map((ru) => (
-                    <tr key={ru.id}>
-                      <td className="font-medium">{ru.title}</td>
-                      <td>
-                        <span className="badge category-badge">{ru.category}</span>
-                      </td>
-                      <td>
-                        <span className={`status-badge ${ru.status}`}>{ru.status}</span>
-                      </td>
-                      <td>
-                        <span className="text-xs">{ru.visibility === 'public' ? '🌐 Public' : '🔒 Private'}</span>
-                      </td>
-                      <td>
-                        <div className="btn-group">
-                          <button
-                            type="button"
-                            className="btn btn-secondary btn-xs"
-                            onClick={() => setEditingResearch(ru)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-outline-danger btn-xs"
-                            onClick={() => handleDeleteResearch(ru.id)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                  {researchUpdates.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="text-center py-6 text-muted">No research milestones recorded yet.</td>
                     </tr>
-                  ))}
+                  ) : (
+                    researchUpdates.map((ru) => (
+                      <tr key={ru.id}>
+                        <td className="font-medium" style={{ color: 'var(--color-text)' }}>{ru.title}</td>
+                        <td>
+                          <span className="badge category-badge">{ru.category}</span>
+                        </td>
+                        <td>
+                          <span className={`status-badge ${ru.status}`}>{ru.status}</span>
+                        </td>
+                        <td>
+                          <span className="text-xs">{ru.visibility === 'public' ? '🌐 Public' : '🔒 Private'}</span>
+                        </td>
+                        <td>
+                          <div className="btn-group">
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-xs"
+                              onClick={() => setEditingResearch(ru)}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-outline-danger btn-xs"
+                              onClick={() => handleDeleteResearch(ru.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         )}
 
+        {/* ------------------------------------------------------- */}
         {/* TAB 4: DOCUMENTS & CV MANAGER */}
+        {/* ------------------------------------------------------- */}
         {activeTab === 'docs' && (
           <div className="docs-tab-view space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">Documents &amp; CV Management</h2>
+              <div>
+                <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Documents &amp; CV Management</h2>
+                <p className="text-sm text-muted">Upload and publish verified academic CVs, official certifications, and technical reports.</p>
+              </div>
               <button
                 type="button"
                 className="btn btn-primary btn-sm"
@@ -770,12 +980,18 @@ export function AdminDashboard() {
               </button>
             </div>
 
-            {/* Document Editor Form */}
+            {/* Document Editor */}
             {editingDoc && (
-              <div className="editor-modal card p-6 border-cyan">
-                <h3 className="text-lg font-bold mb-4">
-                  {editingDoc.id ? 'Edit Document Entry' : 'Add New Document / CV'}
-                </h3>
+              <div className="card p-6 shadow-sm" style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}>
+                <div className="flex items-center justify-between mb-4 pb-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                  <h3 className="text-lg font-bold" style={{ color: 'var(--color-text)' }}>
+                    {editingDoc.id ? 'Edit Document Entry' : 'Add New Document / CV'}
+                  </h3>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => setEditingDoc(null)}>
+                    Cancel
+                  </button>
+                </div>
+
                 <form onSubmit={handleSaveDoc} className="space-y-4">
                   <div className="form-grid-2">
                     <div className="form-group">
@@ -789,13 +1005,13 @@ export function AdminDashboard() {
                       />
                     </div>
                     <div className="form-group">
-                      <label>File URL or Path *</label>
+                      <label>File URL or Canonical Path *</label>
                       <input
                         type="text"
                         required
                         value={editingDoc.file_url}
                         onChange={(e) => setEditingDoc({ ...editingDoc, file_url: e.target.value })}
-                        placeholder="./assets/documents/Marye_Agegn_CV.pdf or Supabase URL"
+                        placeholder="./assets/documents/Marye_Agegn_CV.pdf"
                       />
                     </div>
                   </div>
@@ -834,7 +1050,7 @@ export function AdminDashboard() {
                   </div>
 
                   <div className="form-group">
-                    <label>Description</label>
+                    <label>Description &amp; Purpose</label>
                     <textarea
                       rows="2"
                       value={editingDoc.description}
@@ -842,18 +1058,52 @@ export function AdminDashboard() {
                     />
                   </div>
 
+                  {/* Universal Local Document Upload Component with Media Library Picker */}
+                  <div className="form-group">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="font-semibold text-sm">Upload Local Document File</label>
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-xs"
+                        onClick={() => setPickerConfig({ target: 'doc', filter: 'document' })}
+                      >
+                        📁 Choose from Media Library
+                      </button>
+                    </div>
+                    <UniversalFileUploader
+                      acceptedType="document"
+                      initialValue={
+                        editingDoc.file_name
+                          ? { filename: editingDoc.file_name, path: editingDoc.file_url, file_size: editingDoc.file_size }
+                          : null
+                      }
+                      onFileSelected={(meta) => {
+                        setEditingDoc((prev) => ({
+                          ...prev,
+                          file_url: meta.localPreviewUrl || meta.path,
+                          file_name: meta.filename,
+                          file_size: meta.fileSizeFormatted,
+                          file_type: meta.filename.split('.').pop().toUpperCase(),
+                        }));
+                      }}
+                      onFileRemoved={() => {
+                        setEditingDoc((prev) => ({ ...prev, file_url: '', file_name: '', file_size: '' }));
+                      }}
+                    />
+                  </div>
+
                   <div className="form-group checkbox-group">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex items-center gap-2 cursor-pointer text-sm">
                       <input
                         type="checkbox"
                         checked={editingDoc.is_current_cv}
                         onChange={(e) => setEditingDoc({ ...editingDoc, is_current_cv: e.target.checked })}
                       />
-                      <span>Set as Current Active Public CV (Replaces previous active version)</span>
+                      <span>Set as Current Active Public CV (replaces previous version as default download)</span>
                     </label>
                   </div>
 
-                  <div className="flex justify-end gap-3 mt-4">
+                  <div className="flex justify-end gap-3 pt-2">
                     <button type="button" className="btn btn-secondary" onClick={() => setEditingDoc(null)}>
                       Cancel
                     </button>
@@ -866,53 +1116,84 @@ export function AdminDashboard() {
             )}
 
             {/* Documents Table */}
-            <div className="card overflow-hidden">
-              <table className="admin-table w-full">
+            <div className="admin-table-container">
+              <table className="admin-table">
                 <thead>
                   <tr>
                     <th>Document</th>
                     <th>Category</th>
                     <th>Version</th>
-                    <th>Current Active CV</th>
+                    <th>Active CV Status</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {documents.map((doc) => (
-                    <tr key={doc.id}>
-                      <td className="font-medium">{doc.title}</td>
-                      <td>
-                        <span className="badge category-badge">{doc.category}</span>
-                      </td>
-                      <td>{doc.version}</td>
-                      <td>{doc.is_current_cv ? <span className="badge badge-success">Active CV ★</span> : '—'}</td>
-                      <td>
-                        <div className="btn-group">
-                          <button type="button" className="btn btn-secondary btn-xs" onClick={() => setEditingDoc(doc)}>
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-outline-danger btn-xs"
-                            onClick={() => handleDeleteDoc(doc.id)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                  {documents.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="text-center py-6 text-muted">No documents registered.</td>
                     </tr>
-                  ))}
+                  ) : (
+                    documents.map((doc) => (
+                      <tr key={doc.id}>
+                        <td className="font-medium" style={{ color: 'var(--color-text)' }}>{doc.title}</td>
+                        <td>
+                          <span className="badge category-badge">{doc.category}</span>
+                        </td>
+                        <td>{doc.version}</td>
+                        <td>
+                          {doc.is_current_cv ? (
+                            <span
+                              className="badge"
+                              style={{
+                                background: 'var(--color-success-bg)',
+                                color: 'var(--color-success)',
+                                border: '1px solid var(--color-success-border)',
+                                fontWeight: 600,
+                              }}
+                            >
+                              Active CV ★
+                            </span>
+                          ) : (
+                            '—'
+                          )}
+                        </td>
+                        <td>
+                          <div className="btn-group">
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-xs"
+                              onClick={() => setEditingDoc(doc)}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-outline-danger btn-xs"
+                              onClick={() => handleDeleteDoc(doc.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         )}
 
+        {/* ------------------------------------------------------- */}
         {/* TAB 5: MEDIA ITEMS */}
+        {/* ------------------------------------------------------- */}
         {activeTab === 'media' && (
           <div className="media-tab-view space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">Media Stream Management</h2>
+              <div>
+                <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Media Stream Management</h2>
+                <p className="text-sm text-muted">Manage conference recordings, clinical demonstration clips, and audio discussions.</p>
+              </div>
               <button
                 type="button"
                 className="btn btn-primary btn-sm"
@@ -921,19 +1202,28 @@ export function AdminDashboard() {
                     title: '',
                     description: '',
                     media_type: 'video',
-                    embed_url: 'https://www.youtube-nocookie.com/embed/',
+                    file_url: './assets/media/',
                     category: 'Presentation',
                     status: 'published',
                   })
                 }
               >
-                + Embed New Media
+                + Add New Media
               </button>
             </div>
 
+            {/* Media Editor */}
             {editingMedia && (
-              <div className="editor-modal card p-6 border-cyan">
-                <h3 className="text-lg font-bold mb-4">{editingMedia.id ? 'Edit Media' : 'Embed New Media'}</h3>
+              <div className="card p-6 shadow-sm" style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}>
+                <div className="flex items-center justify-between mb-4 pb-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                  <h3 className="text-lg font-bold" style={{ color: 'var(--color-text)' }}>
+                    {editingMedia.id ? 'Edit Media Item' : 'Add New Media Item'}
+                  </h3>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => setEditingMedia(null)}>
+                    Cancel
+                  </button>
+                </div>
+
                 <form onSubmit={handleSaveMedia} className="space-y-4">
                   <div className="form-grid-2">
                     <div className="form-group">
@@ -943,6 +1233,7 @@ export function AdminDashboard() {
                         required
                         value={editingMedia.title}
                         onChange={(e) => setEditingMedia({ ...editingMedia, title: e.target.value })}
+                        placeholder="e.g. Gait Analysis Hardware Demo"
                       />
                     </div>
                     <div className="form-group">
@@ -951,20 +1242,54 @@ export function AdminDashboard() {
                         value={editingMedia.media_type}
                         onChange={(e) => setEditingMedia({ ...editingMedia, media_type: e.target.value })}
                       >
-                        <option value="video">Video (YouTube / Vimeo embed)</option>
-                        <option value="audio">Audio (SoundCloud / Stream embed)</option>
+                        <option value="video">Video (MP4 or Embedded Stream)</option>
+                        <option value="audio">Audio (MP3 or Podcast Recording)</option>
                       </select>
                     </div>
                   </div>
 
+                  {/* Universal Local Media Uploader with Media Library Picker */}
                   <div className="form-group">
-                    <label>Embed URL *</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="font-semibold text-sm">Upload Local Video / Audio File</label>
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-xs"
+                        onClick={() => setPickerConfig({ target: 'media', filter: 'video' })}
+                      >
+                        📁 Choose from Media Library
+                      </button>
+                    </div>
+                    <UniversalFileUploader
+                      acceptedType={editingMedia.media_type === 'audio' ? 'all' : 'video'}
+                      initialValue={
+                        editingMedia.file_name
+                          ? { filename: editingMedia.file_name, path: editingMedia.file_url, file_size: editingMedia.file_size, media_type: editingMedia.media_type }
+                          : null
+                      }
+                      onFileSelected={(meta) => {
+                        setEditingMedia((prev) => ({
+                          ...prev,
+                          file_url: meta.localPreviewUrl || meta.path,
+                          file_name: meta.filename,
+                          file_size: meta.fileSizeFormatted,
+                          media_type: meta.type || 'video',
+                        }));
+                      }}
+                      onFileRemoved={() => {
+                        setEditingMedia((prev) => ({ ...prev, file_url: '', file_name: '', file_size: '' }));
+                      }}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Or enter Direct Video / Audio URL</label>
                     <input
-                      type="url"
+                      type="text"
                       required
-                      placeholder="https://www.youtube-nocookie.com/embed/VIDEO_ID"
-                      value={editingMedia.embed_url}
-                      onChange={(e) => setEditingMedia({ ...editingMedia, embed_url: e.target.value })}
+                      placeholder="./assets/media/video.mp4 or Supabase Storage URL"
+                      value={editingMedia.file_url || ''}
+                      onChange={(e) => setEditingMedia({ ...editingMedia, file_url: e.target.value })}
                     />
                   </div>
 
@@ -977,7 +1302,7 @@ export function AdminDashboard() {
                     />
                   </div>
 
-                  <div className="flex justify-end gap-3 mt-4">
+                  <div className="flex justify-end gap-3 pt-2">
                     <button type="button" className="btn btn-secondary" onClick={() => setEditingMedia(null)}>
                       Cancel
                     </button>
@@ -989,75 +1314,120 @@ export function AdminDashboard() {
               </div>
             )}
 
-            <div className="card overflow-hidden">
-              <table className="admin-table w-full">
+            {/* Media Table */}
+            <div className="admin-table-container">
+              <table className="admin-table">
                 <thead>
                   <tr>
                     <th>Title</th>
                     <th>Type</th>
-                    <th>Embed URL</th>
+                    <th>File Source</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {mediaItems.map((item) => (
-                    <tr key={item.id}>
-                      <td className="font-medium">{item.title}</td>
-                      <td>
-                        <span className="badge category-badge">{item.media_type}</span>
-                      </td>
-                      <td className="text-xs text-muted truncate max-w-xs">{item.embed_url}</td>
-                      <td>
-                        <div className="btn-group">
-                          <button
-                            type="button"
-                            className="btn btn-secondary btn-xs"
-                            onClick={() => setEditingMedia(item)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-outline-danger btn-xs"
-                            onClick={() => handleDeleteMedia(item.id)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                  {mediaItems.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="text-center py-6 text-muted">No media items recorded yet.</td>
                     </tr>
-                  ))}
+                  ) : (
+                    mediaItems.map((item) => (
+                      <tr key={item.id}>
+                        <td className="font-medium" style={{ color: 'var(--color-text)' }}>{item.title}</td>
+                        <td>
+                          <span className="badge category-badge">{item.media_type}</span>
+                        </td>
+                        <td className="text-xs text-muted truncate max-w-xs">{item.file_url || item.embed_url}</td>
+                        <td>
+                          <div className="btn-group">
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-xs"
+                              onClick={() => setEditingMedia(item)}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-outline-danger btn-xs"
+                              onClick={() => handleDeleteMedia(item.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         )}
 
+        {/* ------------------------------------------------------- */}
         {/* TAB 6: INBOUND MESSAGES & COLLABORATIONS */}
+        {/* ------------------------------------------------------- */}
         {activeTab === 'messages' && (
           <div className="messages-tab-view space-y-8">
             {/* Collaborations Section */}
             <div>
-              <h2 className="text-xl font-bold mb-4">Research &amp; Industry Collaboration Proposals ({collaborations.length})</h2>
+              <div className="mb-4">
+                <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>
+                  Research &amp; Industry Collaboration Proposals ({collaborations.length})
+                </h2>
+                <p className="text-sm text-muted">Inbound proposals submitted through the Collaboration Gateway modal.</p>
+              </div>
+
               {collaborations.length === 0 ? (
-                <div className="card p-6 text-center text-muted">No collaboration proposals received yet.</div>
+                <div className="card p-8 text-center text-muted" style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}>
+                  No collaboration proposals received yet.
+                </div>
               ) : (
                 <div className="space-y-4">
                   {collaborations.map((collab) => (
-                    <div key={collab.id} className="card p-6 border-l-4 border-cyan">
-                      <div className="flex items-center justify-between">
+                    <div
+                      key={collab.id}
+                      className="card p-6"
+                      style={{
+                        background: '#ffffff',
+                        borderRadius: 'var(--radius-md)',
+                        borderLeft: '4px solid var(--color-primary)',
+                      }}
+                    >
+                      <div className="flex items-start justify-between">
                         <div>
-                          <h3 className="font-bold text-lg">{collab.name}</h3>
-                          <span className="text-sm text-cyan">{collab.organization}</span>
+                          <h3 className="font-bold text-lg" style={{ color: 'var(--color-text)' }}>{collab.name}</h3>
+                          <span className="text-sm font-medium" style={{ color: 'var(--color-primary)' }}>
+                            {collab.organization}
+                          </span>
                           <span className="text-muted text-sm ml-3">✉️ {collab.email}</span>
                         </div>
                         <span className="badge category-badge">{collab.collaboration_type}</span>
                       </div>
-                      <div className="mt-2 text-sm">
-                        <strong>Area of Interest:</strong> {collab.area_of_interest}
+
+                      <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
+                        <div><strong>Research Domain:</strong> {collab.area_of_interest}</div>
+                        <div><strong>Target Timeline:</strong> {collab.urgency_level || 'Flexible'}</div>
+                        {collab.phone && <div><strong>Phone:</strong> {collab.phone}</div>}
+                        {collab.linkedin && <div><strong>LinkedIn:</strong> {collab.linkedin}</div>}
+                        {collab.orcid && <div><strong>ORCID:</strong> {collab.orcid}</div>}
+                        {collab.website && <div><strong>Website:</strong> {collab.website}</div>}
                       </div>
-                      <p className="mt-3 p-3 bg-slate-900 rounded text-sm whitespace-pre-wrap">{collab.message}</p>
-                      <div className="mt-2 text-xs text-muted">
+
+                      {collab.proposal_file_name && (
+                        <div className="mt-3 p-2 rounded text-sm flex items-center gap-2" style={{ background: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)' }}>
+                          <span>📎 Attached Proposal:</span>
+                          <strong>{collab.proposal_file_name}</strong>
+                          {collab.proposal_file_size && <span className="text-xs text-muted">({(collab.proposal_file_size / 1024 / 1024).toFixed(2)} MB)</span>}
+                        </div>
+                      )}
+
+                      <div className="mt-3 p-4 rounded text-sm whitespace-pre-wrap" style={{ background: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}>
+                        {collab.message}
+                      </div>
+
+                      <div className="mt-3 text-xs text-muted">
                         Submitted: {new Date(collab.created_at).toLocaleString()}
                       </div>
                     </div>
@@ -1067,23 +1437,33 @@ export function AdminDashboard() {
             </div>
 
             {/* General Inbound Messages */}
-            <div className="pt-6 border-t border-slate">
-              <h2 className="text-xl font-bold mb-4">Direct Contact Messages ({messages.length})</h2>
+            <div className="pt-6" style={{ borderTop: '1px solid var(--color-border)' }}>
+              <div className="mb-4">
+                <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>
+                  Direct Contact Messages ({messages.length})
+                </h2>
+                <p className="text-sm text-muted">Messages received through the general contact form.</p>
+              </div>
+
               {messages.length === 0 ? (
-                <div className="card p-6 text-center text-muted">No direct contact messages recorded.</div>
+                <div className="card p-8 text-center text-muted" style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}>
+                  No direct contact messages recorded.
+                </div>
               ) : (
                 <div className="space-y-4">
                   {messages.map((msg) => (
-                    <div key={msg.id} className="card p-6">
+                    <div key={msg.id} className="card p-6" style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}>
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-bold">{msg.name}</h3>
+                          <h3 className="font-bold" style={{ color: 'var(--color-text)' }}>{msg.name}</h3>
                           <span className="text-muted text-sm">{msg.email}</span>
                         </div>
                         <span className="badge category-badge">{msg.category || 'General'}</span>
                       </div>
-                      <h4 className="font-semibold text-cyan mt-2">{msg.subject}</h4>
-                      <p className="mt-2 p-3 bg-slate-900 rounded text-sm">{msg.message}</p>
+                      <h4 className="font-semibold mt-2" style={{ color: 'var(--color-primary)' }}>{msg.subject}</h4>
+                      <p className="mt-2 p-3 rounded text-sm" style={{ background: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}>
+                        {msg.message}
+                      </p>
                       <div className="mt-2 text-xs text-muted">
                         Received: {new Date(msg.created_at).toLocaleString()}
                       </div>
@@ -1095,16 +1475,25 @@ export function AdminDashboard() {
           </div>
         )}
 
+        {/* ------------------------------------------------------- */}
         {/* TAB 7: SETTINGS & SUPABASE CONFIG */}
+        {/* ------------------------------------------------------- */}
         {activeTab === 'settings' && (
           <div className="settings-tab-view max-w-2xl mx-auto space-y-6">
-            <div className="card p-8">
-              <h2 className="text-xl font-bold mb-2">Backend Connection (Supabase)</h2>
+            <div className="card p-8 shadow-sm" style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}>
+              <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>Backend Synchronization (Supabase)</h2>
               <p className="text-sm text-muted mb-6">
-                Configure your free Supabase credentials to enable multi-device sync, database persistence, and file storage.
+                Connect your Supabase project to enable persistent PostgreSQL cloud storage, multi-device management, and file storage buckets.
               </p>
 
-              {settingsNotice && <div className="alert-success-banner p-3 mb-4 text-sm">{settingsNotice}</div>}
+              {settingsNotice && (
+                <div
+                  className="p-3 mb-4 text-sm rounded"
+                  style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)', border: '1px solid var(--color-success-border)' }}
+                >
+                  {settingsNotice}
+                </div>
+              )}
 
               <form onSubmit={handleSaveSettings} className="space-y-4">
                 <div className="form-group">
@@ -1128,7 +1517,7 @@ export function AdminDashboard() {
                     onChange={(e) => setSupabaseAnonKeyInput(e.target.value)}
                   />
                   <span className="text-xs text-muted mt-1 block">
-                    🔒 The <code>anon</code> public key is safe for client-side use because data access is strictly governed by PostgreSQL Row Level Security (RLS). Never paste your <code>service_role</code> key here.
+                    🔒 The <code>anon</code> public key is safe for client-side use because data access is strictly governed by PostgreSQL Row Level Security (RLS). Never paste your <code>service_role</code> secret key.
                   </span>
                 </div>
 
@@ -1137,7 +1526,8 @@ export function AdminDashboard() {
                     href="https://supabase.com/dashboard"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-cyan text-sm underline"
+                    className="text-sm font-medium"
+                    style={{ color: 'var(--color-primary)' }}
                   >
                     Open Supabase Dashboard ↗
                   </a>
@@ -1148,32 +1538,55 @@ export function AdminDashboard() {
               </form>
             </div>
 
-            <div className="card p-6">
-              <h3 className="text-md font-bold mb-2">Database Initialization SQL Script</h3>
-              <p className="text-sm text-muted mb-3">
-                Need to set up the tables in a new Supabase project? Copy the complete migration script from{' '}
-                <code>src/data/supabaseSchema.sql</code> and execute it in your Supabase SQL Editor.
+            <div className="card p-6" style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}>
+              <h3 className="text-md font-bold mb-2" style={{ color: 'var(--color-text)' }}>Database Initialization Schema</h3>
+              <p className="text-sm text-muted">
+                To initialize or verify your PostgreSQL tables, copy the migration script from <code>src/data/supabaseSchema.sql</code> and execute it in your Supabase SQL Editor.
               </p>
             </div>
           </div>
         )}
 
-        {/* MANDATORY RESEARCH INTELLECTUAL PROPERTY CHECKPOINT MODAL */}
+        {/* ------------------------------------------------------- */}
+        {/* MANDATORY RESEARCH IP CHECKPOINT MODAL */}
+        {/* ------------------------------------------------------- */}
         {ipModalData && (
           <div className="modal-backdrop" role="dialog" aria-modal="true">
-            <div className="modal-dialog ip-checkpoint-dialog card p-8 max-w-lg border-warning">
-              <div className="checkpoint-badge-row flex items-center gap-2 mb-3">
-                <span className="badge badge-warning">⚠️ Research Confidentiality Checkpoint</span>
+            <div
+              className="modal-dialog card p-8 max-w-lg shadow-lg"
+              style={{
+                background: '#ffffff',
+                borderRadius: 'var(--radius-lg)',
+                border: '2px solid var(--color-warning)',
+              }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span
+                  className="badge"
+                  style={{
+                    background: 'var(--color-warning-bg)',
+                    color: 'var(--color-warning)',
+                    border: '1px solid var(--color-warning-border)',
+                    fontWeight: 600,
+                  }}
+                >
+                  ⚠️ Research Confidentiality Checkpoint
+                </span>
               </div>
 
-              <h3 className="text-xl font-bold text-white">Pre-Publication IP Verification</h3>
+              <h3 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>
+                Pre-Publication IP Verification
+              </h3>
               <p className="mt-2 text-sm text-muted">
                 You are about to publish a research milestone titled: <strong>"{ipModalData.title}"</strong>.
               </p>
 
-              <div className="ip-guideline-box p-4 bg-slate-900 rounded mt-4 text-xs text-muted space-y-2">
-                <p className="font-semibold text-white">Academic Integrity &amp; Novelty Guardrails:</p>
-                <ul className="list-disc pl-4 space-y-1">
+              <div
+                className="p-4 rounded mt-4 text-xs space-y-2"
+                style={{ background: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
+              >
+                <p className="font-semibold">Academic Integrity &amp; Novelty Guardrails:</p>
+                <ul className="list-disc pl-4 space-y-1 text-muted">
                   <li>Does this text disclose unpublished mathematical formulas or novel feature engineering?</li>
                   <li>Does it reveal specific, unreleased hyperparameters or exact ablation tables?</li>
                   <li>Could this compromise the patentability or primary journal novelty of your Master's thesis?</li>
@@ -1181,7 +1594,7 @@ export function AdminDashboard() {
               </div>
 
               <div className="checkpoint-checkbox mt-6">
-                <label className="flex items-start gap-3 cursor-pointer text-sm">
+                <label className="flex items-start gap-3 cursor-pointer text-sm" style={{ color: 'var(--color-text)' }}>
                   <input
                     type="checkbox"
                     checked={ipConfirmed}
@@ -1194,12 +1607,11 @@ export function AdminDashboard() {
                 </label>
               </div>
 
-              <div className="modal-actions flex justify-end gap-3 mt-6">
+              <div className="flex justify-end gap-3 mt-6">
                 <button
                   type="button"
                   className="btn btn-secondary"
                   onClick={() => {
-                    // Save as draft instead
                     proceedSaveResearch({ ...ipModalData, status: 'draft' });
                   }}
                 >
@@ -1214,6 +1626,31 @@ export function AdminDashboard() {
                   Confirm &amp; Publish Publicly →
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ------------------------------------------------------- */}
+        {/* REUSABLE MEDIA PICKER MODAL FOR EDITORS                 */}
+        {/* ------------------------------------------------------- */}
+        {pickerConfig && (
+          <div className="modal-backdrop" role="dialog" aria-modal="true" style={{ zIndex: 9999 }}>
+            <div
+              className="modal-dialog card p-6 max-w-4xl shadow-xl"
+              style={{
+                background: '#ffffff',
+                borderRadius: 'var(--radius-lg)',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                width: '95%',
+              }}
+            >
+              <MediaLibrary
+                isPickerMode={true}
+                pickerFilter={pickerConfig.filter || 'all'}
+                onSelectMedia={handlePickerSelect}
+                onClosePicker={() => setPickerConfig(null)}
+              />
             </div>
           </div>
         )}

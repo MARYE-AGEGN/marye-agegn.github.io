@@ -18,7 +18,7 @@ export function Blog() {
     loadData();
   }, []);
 
-  const categories = ['All', 'Clinical Engineering', 'Wearable Sensors', 'Explainable AI', 'Healthcare Technology', 'Research'];
+  const categories = ['All', 'Medical Devices', 'Digital Health', 'AI in Healthcare', 'Biosignal Processing', 'Clinical Engineering'];
 
   const filteredPosts = posts.filter((post) => {
     const matchesCategory = selectedCategory === 'All' || post.category === selectedCategory;
@@ -40,7 +40,7 @@ export function Blog() {
             Blog &amp; Technical Notes
           </h2>
           <p className="section-subtitle">
-            Perspectives at the intersection of frontline clinical engineering, wearable inertial sensing, and explainable biomedical AI.
+            Perspectives at the intersection of building scalable medical devices, digital health systems, biosignal processing, and AI in healthcare.
           </p>
         </div>
 

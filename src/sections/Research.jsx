@@ -1,20 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 export function Research({ research }) {
   if (!research) return null;
 
   const {
-    title = 'Research',
-    subtitle = 'Explainable Deep Learning & Wearable Sensor Biomechanics',
+    title = 'Engineering & Applied Research',
+    subtitle = 'Biosignal Processing • Generative AI & Rehabilitation • Neuroimaging • Computer Vision',
+    graduateResearchFocus,
     currentMasterResearch,
     broaderInterests = [],
     thematicExplorations = [],
     scopeNote,
   } = research;
 
-  // Flatten all 11 stages for easy lookup and interactive selection
-  const allStages = currentMasterResearch?.pipelinePhases?.flatMap((phase) => phase.stages) || [];
-  const [selectedStage, setSelectedStage] = useState(allStages[0] || null);
+  const activeFocus = graduateResearchFocus || currentMasterResearch;
 
   return (
     <section id="research" className="section-wrapper" aria-labelledby="research-title">
@@ -23,7 +22,7 @@ export function Research({ research }) {
             1. SECTION HEADER
             ================================================================== */}
         <header className="section-header">
-          <span className="section-status-badge">Primary Academic Anchor</span>
+          <span className="section-status-badge">Engineering &amp; Applied Innovation</span>
           <h2 id="research-title" className="section-title">{title}</h2>
           {subtitle && (
             <p style={{ color: 'var(--color-accent-light)', fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', margin: 0 }}>
@@ -33,46 +32,32 @@ export function Research({ research }) {
         </header>
 
         {/* ==================================================================
-            2. CENTRAL RESEARCH QUESTION
+            2. CORE RESEARCH & ENGINEERING FOCUS
             ================================================================== */}
-        {currentMasterResearch?.centralResearchQuestion && (
-          <aside className="research-question-box" aria-label="Central Research Question">
-            <div className="research-question-label">
-              Central Research Question
-            </div>
-            <p className="research-question-text">
-              &ldquo;{currentMasterResearch.centralResearchQuestion}&rdquo;
-            </p>
-          </aside>
-        )}
-
-        {/* ==================================================================
-            3. MASTER'S THESIS RESEARCH DOSSIER
-            ================================================================== */}
-        {currentMasterResearch && (
-          <article className="research-dossier" aria-labelledby="thesis-title">
+        {activeFocus && (
+          <article className="research-dossier" aria-labelledby="research-focus-title">
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                 <span className="badge-tag" style={{ color: 'var(--color-accent-light)' }}>
-                  Active Master&apos;s Thesis Direction
+                  Active Engineering Focus
                 </span>
                 <span className="status-pill status-pill-progress">
-                  {currentMasterResearch.status}
+                  {activeFocus.status}
                 </span>
               </div>
               <div style={{ fontSize: 'var(--font-size-xs)', fontFamily: 'var(--font-family-mono)', color: 'var(--color-text-muted)' }}>
-                {currentMasterResearch.institution} &bull; Commenced {currentMasterResearch.commenced}
+                {activeFocus.institution} &bull; Commenced {activeFocus.commenced}
               </div>
             </div>
 
-            <h3 id="thesis-title" style={{ fontSize: 'clamp(1.3rem, 2.5vw, var(--font-size-2xl))', color: 'var(--color-text-primary)', lineHeight: 1.35, marginBottom: 'var(--space-4)' }}>
-              {currentMasterResearch.title}
+            <h3 id="research-focus-title" style={{ fontSize: 'clamp(1.3rem, 2.5vw, var(--font-size-2xl))', color: 'var(--color-text-primary)', lineHeight: 1.35, marginBottom: 'var(--space-4)' }}>
+              {activeFocus.title}
             </h3>
 
             {/* Research Direction Chips */}
-            {currentMasterResearch.researchDirections && (
+            {activeFocus.researchDirections && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)', marginBottom: 'var(--space-6)' }} aria-label="Research fields">
-                {currentMasterResearch.researchDirections.map((dir, idx) => (
+                {activeFocus.researchDirections.map((dir, idx) => (
                   <span key={idx} className="badge-tag">
                     {dir}
                   </span>
@@ -80,169 +65,74 @@ export function Research({ research }) {
               </div>
             )}
 
-            {/* Conceptual Framework Text */}
-            <div className="content-reading-width" style={{ marginBottom: 'var(--space-6)' }}>
-              <p style={{ color: 'var(--color-text-secondary)', fontSize: '1rem', lineHeight: '1.7', margin: 0 }}>
-                {currentMasterResearch.conceptualFocus}
+            {/* Conceptual Framework Overview */}
+            <div className="content-reading-width" style={{ marginBottom: 'var(--space-8)' }}>
+              <p style={{ color: 'var(--color-text-secondary)', fontSize: '1.05rem', lineHeight: '1.75', margin: 0 }}>
+                {activeFocus.conceptualFocus}
               </p>
             </div>
 
-            {/* Data Modality & Protocols Grid */}
-            {currentMasterResearch.dataModality && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 'var(--space-3)', marginBottom: 'var(--space-8)' }}>
-                <div style={{ padding: 'var(--space-4)', backgroundColor: 'rgba(11, 15, 23, 0.6)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)' }}>
-                  <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', fontFamily: 'var(--font-family-mono)', color: 'var(--color-accent-light)', textTransform: 'uppercase', marginBottom: '4px' }}>
-                    Sensor &amp; Placement
-                  </span>
-                  <strong style={{ display: 'block', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
-                    {currentMasterResearch.dataModality.sensor}
-                  </strong>
-                  <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', margin: 0 }}>
-                    {currentMasterResearch.dataModality.placement}
-                  </p>
-                </div>
-
-                <div style={{ padding: 'var(--space-4)', backgroundColor: 'rgba(11, 15, 23, 0.6)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)' }}>
-                  <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', fontFamily: 'var(--font-family-mono)', color: 'var(--color-accent-light)', textTransform: 'uppercase', marginBottom: '4px' }}>
-                    Signal Channels
-                  </span>
-                  <strong style={{ display: 'block', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
-                    Kinematic Time-Series
-                  </strong>
-                  <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', margin: 0 }}>
-                    {currentMasterResearch.dataModality.signals}
-                  </p>
-                </div>
-
-                <div style={{ padding: 'var(--space-4)', backgroundColor: 'rgba(11, 15, 23, 0.6)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)' }}>
-                  <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', fontFamily: 'var(--font-family-mono)', color: 'var(--color-accent-light)', textTransform: 'uppercase', marginBottom: '4px' }}>
-                    Walking Protocols
-                  </span>
-                  <strong style={{ display: 'block', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
-                    Single vs. Dual-Task
-                  </strong>
-                  <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', margin: 0 }}>
-                    {currentMasterResearch.dataModality.protocols}
-                  </p>
+            {/* Core Applied Engineering Pillars */}
+            {(activeFocus.pillars || activeFocus.corePillars) && (
+              <div style={{ marginBottom: 'var(--space-6)' }}>
+                <h4 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-2)' }}>
+                  Core Applied Research Pillars
+                </h4>
+                <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+                  Translational engineering pillars bridging physical biosensors, generative intelligence, neuro-diagnostics, and vision systems.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 'var(--space-4)' }}>
+                  {(activeFocus.pillars || activeFocus.corePillars).map((pillar, idx) => (
+                    <div key={idx} className="card-base" style={{ padding: 'var(--space-5)' }}>
+                      <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', fontFamily: 'var(--font-family-mono)', color: 'var(--color-accent-light)', marginBottom: 'var(--space-1)' }}>
+                        Pillar 0{idx + 1}
+                      </span>
+                      <strong style={{ display: 'block', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-2)' }}>
+                        {pillar.title}
+                      </strong>
+                      <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', lineHeight: '1.6', margin: 0 }}>
+                        {pillar.summary}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* ==============================================================
-                4. THE 11-STAGE METHODOLOGICAL PIPELINE EXPLORER
-                ============================================================== */}
-            <div className="pipeline-explorer">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 'var(--space-4)' }}>
-                <div>
-                  <h4 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)', margin: 0 }}>
-                    11-Stage Methodological Framework
-                  </h4>
-                  <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', margin: 0 }}>
-                    Select any stage below to inspect inputs, algorithmic processing, and clinical translation intent.
-                  </p>
-                </div>
-                <span className="badge-tag" style={{ fontSize: '0.7rem' }}>
-                  Interactive Inspector
-                </span>
+            {/* Translational Mission Notice */}
+            <div
+              style={{
+                backgroundColor: 'rgba(2, 132, 199, 0.05)',
+                border: '1px solid rgba(2, 132, 199, 0.25)',
+                borderRadius: 'var(--radius-md)',
+                padding: 'var(--space-4) var(--space-5)',
+                marginTop: 'var(--space-4)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-1)' }}>
+                <span style={{ fontSize: '1rem', color: 'var(--color-accent-light)' }}>⚙️</span>
+                <strong style={{ fontSize: 'var(--font-size-xs)', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-primary)' }}>
+                  Translational Engineering &amp; Clinical Impact
+                </strong>
               </div>
-
-              {/* 4-Phase Grid */}
-              <div className="pipeline-phases-wrapper">
-                {currentMasterResearch.pipelinePhases?.map((phase, pIdx) => (
-                  <div key={pIdx} className="pipeline-phase-col">
-                    <div className="pipeline-phase-header">
-                      {phase.phaseNum}: {phase.phaseTitle}
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                      {phase.stages.map((stage) => {
-                        const isSelected = selectedStage?.step === stage.step;
-                        return (
-                          <button
-                            key={stage.step}
-                            type="button"
-                            onClick={() => setSelectedStage(stage)}
-                            className={`pipeline-stage-btn ${isSelected ? 'selected' : ''}`}
-                            aria-pressed={isSelected}
-                          >
-                            <span className="pipeline-stage-num">Stage 0{stage.step}</span>
-                            <span className="pipeline-stage-name">{stage.name}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Active Stage Detail Inspection Card */}
-              {selectedStage && (
-                <div className="pipeline-detail-card" role="region" aria-live="polite" aria-label="Pipeline Stage Details">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-2)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                      <span className="status-pill status-pill-progress" style={{ fontSize: '0.7rem' }}>
-                        Selected Stage 0{selectedStage.step}
-                      </span>
-                      <strong style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-primary)' }}>
-                        {selectedStage.name}
-                      </strong>
-                    </div>
-                    <span style={{ fontSize: 'var(--font-size-xs)', fontFamily: 'var(--font-family-mono)', color: 'var(--color-accent-light)' }}>
-                      Step {selectedStage.step} of 11
-                    </span>
-                  </div>
-
-                  <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-2)', fontWeight: 'var(--font-weight-medium)' }}>
-                    {selectedStage.summary}
-                  </p>
-
-                  <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', lineHeight: '1.6', margin: 0 }}>
-                    {selectedStage.technicalDetail}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* ==============================================================
-                5. TECHNICAL FIGURE / DIAGRAM CONTAINER PLACEHOLDER
-                ============================================================== */}
-            <div className="figure-placeholder-box">
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>
-                <span style={{ fontSize: 'var(--font-size-xs)', fontFamily: 'var(--font-family-mono)', color: 'var(--color-accent-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Technical Visualizations &amp; Signal Waveforms
-                </span>
-                <span className="badge-tag" style={{ fontSize: '0.65rem' }}>
-                  Architecture Ready
-                </span>
-              </div>
-              <h5 style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-2)' }}>
-                Tri-Axial Kinematic Signals &amp; Latent Feature Attribution Diagrams
-              </h5>
-              <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', maxWidth: '650px', margin: '0 auto', lineHeight: '1.5' }}>
-                Dedicated container prepared for raw acceleration/gyroscope time-series figures, stride window segmentation plots, and explainable feature attribution heatmaps as experimental master&apos;s thesis data is formalized.
-              </p>
-            </div>
-
-            {/* Academic Guardrail Notice */}
-            <div style={{ borderTop: '1px solid var(--color-border-subtle)', paddingTop: 'var(--space-4)' }}>
-              <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', fontStyle: 'italic', margin: 0 }}>
-                {currentMasterResearch.disclaimer}
+              <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', lineHeight: '1.6', margin: 0 }}>
+                Committed to scalable healthcare delivery: bridging physiological signal hardware with generative AI and computer vision to deliver reliable, clinically usable tools for hospitals, clinics, and decentralized communities.
               </p>
             </div>
           </article>
         )}
 
         {/* ==================================================================
-            6. BROADER RESEARCH INTERESTS & THEMATIC HORIZONS
+            3. BROADER APPLIED INTERESTS & CLINICAL DOMAINS
             ================================================================== */}
         <div style={{ marginTop: 'var(--space-12)' }}>
           <div className="section-header" style={{ marginBottom: 'var(--space-6)' }}>
-            <span className="section-status-badge">Exploratory Horizons</span>
+            <span className="section-status-badge">Innovation Ecosystem</span>
             <h3 style={{ fontSize: 'var(--font-size-xl)' }}>
-              Broader Research Interests &amp; Collaborative Areas
+              Applied Engineering Domains &amp; Collaborative Horizons
             </h3>
             <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)', margin: 0 }}>
-              Areas of active scientific curiosity and future inquiry, clearly distinguished from the active graduate thesis.
+              Connecting medical device hardware, digital health platforms, and advanced intelligence.
             </p>
           </div>
 
@@ -267,7 +157,7 @@ export function Research({ research }) {
           {thematicExplorations.length > 0 && (
             <div style={{ marginBottom: 'var(--space-8)' }}>
               <h4 style={{ fontSize: 'var(--font-size-md)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-4)' }}>
-                Thematic Areas of Clinical Interest
+                Target Healthcare Innovations
               </h4>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 'var(--space-4)' }}>
                 {thematicExplorations.map((theme, idx) => (
@@ -284,7 +174,7 @@ export function Research({ research }) {
             </div>
           )}
 
-          {/* Explicit Scope Note */}
+          {/* Scope Note */}
           <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', fontStyle: 'italic', borderTop: '1px solid var(--color-border-subtle)', paddingTop: 'var(--space-4)' }}>
             {scopeNote}
           </p>

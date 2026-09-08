@@ -68,26 +68,46 @@ export function Media() {
                 <div className="media-player-container">
                   {item.media_type === 'video' ? (
                     <div className="video-embed-wrapper">
-                      <iframe
-                        src={item.embed_url}
-                        title={item.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        loading="lazy"
-                        className="embed-iframe"
-                      />
+                      <video
+                        controls
+                        src={item.file_url}
+                        poster={item.poster_url || undefined}
+                        className="embed-video"
+                        preload="metadata"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          const wrapper = e.target.parentElement;
+                          if (!wrapper.querySelector('.media-fallback')) {
+                            const fallback = document.createElement('div');
+                            fallback.className = 'media-fallback';
+                            fallback.innerHTML = '<span class="text-muted">Media file unavailable</span>';
+                            wrapper.appendChild(fallback);
+                          }
+                        }}
+                      >
+                        Your browser does not support the video tag.
+                      </video>
                     </div>
                   ) : item.media_type === 'audio' ? (
                     <div className="audio-embed-wrapper">
-                      <iframe
-                        src={item.embed_url}
-                        title={item.title}
-                        scrolling="no"
-                        frameBorder="no"
-                        allow="autoplay"
-                        loading="lazy"
-                        className="embed-audio-iframe"
-                      />
+                      <audio
+                        controls
+                        src={item.file_url}
+                        className="embed-audio"
+                        preload="metadata"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          const wrapper = e.target.parentElement;
+                          if (!wrapper.querySelector('.media-fallback')) {
+                            const fallback = document.createElement('div');
+                            fallback.className = 'media-fallback';
+                            fallback.innerHTML = '<span class="text-muted">Media file unavailable</span>';
+                            wrapper.appendChild(fallback);
+                          }
+                        }}
+                      >
+                        Your browser does not support the audio tag.
+                      </audio>
                     </div>
                   ) : null}
                 </div>
@@ -110,7 +130,7 @@ export function Media() {
         {/* Media Storage Policy Notice */}
         <div className="media-policy-footer text-center mt-8">
           <p className="text-muted text-sm">
-            💡 <em>Notice: Video and audio assets are hosted through secure high-bandwidth content delivery networks and embedded without bloating local repository files.</em>
+            💡 <em>All media assets are streamed directly from the site's own static hosting infrastructure. No third-party tracking scripts or external embeds are used.</em>
           </p>
         </div>
       </div>
