@@ -106,12 +106,24 @@ export function Footer({ personal, contact }) {
           <p>
             &copy; {currentYear} {personal.name}. All rights reserved.
           </p>
-          <div className="footer-meta-links flex gap-4 text-xs">
-            <a href="#admin" className="text-cyan underline">
-              Admin Portal ⚙️
+          <div className="footer-meta-links flex items-center gap-3 text-xs">
+            <a
+              href="#admin"
+              className="badge"
+              style={{
+                textDecoration: 'none',
+                background: 'var(--color-primary-light, #e0f2fe)',
+                color: 'var(--color-primary, #0284c7)',
+                fontWeight: 600,
+                padding: '3px 10px',
+                borderRadius: 'var(--radius-full)',
+                border: '1px solid rgba(2, 132, 199, 0.3)',
+              }}
+            >
+              🔒 Admin Sign In
             </a>
             <span>•</span>
-            <span>Dynamic Research Platform</span>
+            <span>Dynamic Healthcare Platform</span>
             <span>•</span>
             <span>Hosted via GitHub Pages</span>
           </div>

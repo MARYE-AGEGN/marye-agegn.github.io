@@ -263,6 +263,28 @@ export function Navbar({ navigation, personal, onOpenSearch, onOpenCollaboration
           >
             Collaborate 🤝
           </button>
+
+          <a
+            href={!isMainPage ? '#home' : '#admin'}
+            className="btn btn-xs nav-admin-btn"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '0.35rem 0.75rem',
+              borderRadius: 'var(--radius-full)',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+              border: '1px solid var(--color-border)',
+              background: !isMainPage ? 'var(--color-primary)' : 'var(--color-surface)',
+              color: !isMainPage ? '#ffffff' : 'var(--color-text)',
+            }}
+            title={!isMainPage ? 'Return to Public Website' : 'Admin CMS Portal'}
+          >
+            <span>{!isMainPage ? '🏠' : '🔒'}</span>
+            <span>{!isMainPage ? 'View Site' : 'Admin'}</span>
+          </a>
         </div>
 
         {/* Mobile Navigation Toggle Button */}
@@ -450,11 +472,20 @@ export function Navbar({ navigation, personal, onOpenSearch, onOpenCollaboration
             <div className="flex justify-between items-center text-xs text-muted pt-2">
               <span>{personal.name}</span>
               <a
-                href="#admin"
+                href={!isMainPage ? '#home' : '#admin'}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-cyan underline"
+                className="badge"
+                style={{
+                  textDecoration: 'none',
+                  background: !isMainPage ? 'var(--color-primary)' : 'var(--color-surface)',
+                  color: !isMainPage ? '#ffffff' : 'var(--color-primary)',
+                  fontWeight: 600,
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-full)',
+                  border: '1px solid var(--color-border)',
+                }}
               >
-                Admin CMS ⚙️
+                {!isMainPage ? '🏠 Public Site' : '🔒 Admin Portal'}
               </a>
             </div>
           </div>

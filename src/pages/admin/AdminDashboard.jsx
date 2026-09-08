@@ -312,8 +312,8 @@ export function AdminDashboard() {
               style={{ borderTop: '1px solid var(--color-border)' }}
             >
               <p>🔒 Authenticated via PostgreSQL Row Level Security (RLS).</p>
-              <a href="#/" className="inline-block mt-2 font-medium" style={{ color: 'var(--color-primary)' }}>
-                ← Return to Public Portfolio
+              <a href="#home" className="inline-block mt-2 font-medium" style={{ color: 'var(--color-primary)' }}>
+                ← Return to Public Website
               </a>
             </div>
           </div>
