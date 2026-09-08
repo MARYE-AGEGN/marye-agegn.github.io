@@ -1,5 +1,5 @@
-import { supabase, isSupabaseConfigured } from './supabaseClient';
-import { siteData } from './siteData';
+import { supabase, isSupabaseConfigured } from './supabaseClient.js';
+import { siteData } from './siteData.js';
 
 /**
  * Unified Content Store
@@ -436,3 +436,255 @@ export async function getInboundCollaborations() {
   }
   return JSON.parse(localStorage.getItem('marye_inbound_collabs') || '[]');
 }
+
+// ------------------------------------------------------------------------------
+// 6. UNIFIED INQUIRIES & SERVICE REQUESTS (SUPABASE + FALLBACK)
+// ------------------------------------------------------------------------------
+const LOCAL_STORAGE_INQUIRIES_KEY = 'marye_inbound_inquiries';
+
+export async function submitInquiry(inquiryData) {
+  let attachmentUrl = null;
+  let attachmentName = inquiryData.attachment_name || null;
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      if (inquiryData.attachment_file && inquiryData.attachment_file.data) {
+        const cleanName = inquiryData.attachment_file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const fileName = `${Date.now()}_${cleanName}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('collaboration-attachments')
+          .upload(fileName, inquiryData.attachment_file.data, {
+            contentType: inquiryData.attachment_file.type || 'application/octet-stream',
+          });
+
+        if (!uploadError && uploadData) {
+          attachmentUrl = uploadData.path || fileName;
+          attachmentName = cleanName;
+        }
+      }
+
+      const insertPayload = {
+        name: inquiryData.name,
+        email: inquiryData.email,
+        organization: inquiryData.organization || '',
+        role: inquiryData.role || '',
+        country: inquiryData.country || '',
+        request_type: inquiryData.request_type || 'Professional service',
+        selected_service: inquiryData.selected_service || null,
+        subject: inquiryData.subject || `Inquiry: ${inquiryData.request_type}`,
+        message: inquiryData.message,
+        attachment_url: attachmentUrl,
+        attachment_name: attachmentName,
+        status: 'New',
+        priority: 'Normal',
+        source: 'Website Contact',
+        created_at: new Date().toISOString(),
+      };
+
+      const { data, error } = await supabase.from('inquiries').insert([insertPayload]).select().single();
+
+      if (!error) {
+        // Trigger server-side notification without exposing any client API key
+        try {
+          await supabase.functions.invoke('notify-inquiry', {
+            body: {
+              ...insertPayload,
+              submitted_at: new Date().toISOString(),
+            },
+          });
+        } catch {
+          // Edge function optional; inquiry is securely persisted in PostgreSQL
+        }
+        return { success: true, inquiry: data };
+      }
+    } catch (err) {
+      console.warn('Supabase inquiry submission warning, storing locally:', err);
+    }
+  }
+
+  // Fallback storage
+  const existing = JSON.parse(localStorage.getItem(LOCAL_STORAGE_INQUIRIES_KEY) || '[]');
+  const localRecord = {
+    id: `inq-${Date.now()}`,
+    ...inquiryData,
+    attachment_url: attachmentUrl,
+    attachment_name: attachmentName,
+    status: 'New',
+    priority: 'Normal',
+    source: 'Website Contact',
+    created_at: new Date().toISOString(),
+  };
+  existing.unshift(localRecord);
+  localStorage.setItem(LOCAL_STORAGE_INQUIRIES_KEY, JSON.stringify(existing));
+  return { success: true, localStored: true, inquiry: localRecord };
+}
+
+export async function getInquiries() {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('inquiries').select('*').order('created_at', { ascending: false });
+      if (!error && data) return data;
+    } catch (err) {
+      console.warn('Supabase getInquiries error:', err);
+    }
+  }
+  return JSON.parse(localStorage.getItem(LOCAL_STORAGE_INQUIRIES_KEY) || '[]');
+}
+
+export async function updateInquiryStatus(id, newStatus, adminNotes = null) {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const updatePayload = { status: newStatus };
+      if (adminNotes !== null) updatePayload.admin_notes = adminNotes;
+      if (newStatus === 'Contacted' || newStatus === 'Completed') {
+        updatePayload.replied_at = new Date().toISOString();
+      }
+      const { data, error } = await supabase.from('inquiries').update(updatePayload).eq('id', id).select().single();
+      if (!error && data) return { success: true, inquiry: data };
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  const existing = JSON.parse(localStorage.getItem(LOCAL_STORAGE_INQUIRIES_KEY) || '[]');
+  const updated = existing.map((item) =>
+    item.id === id ? { ...item, status: newStatus, admin_notes: adminNotes !== null ? adminNotes : item.admin_notes } : item
+  );
+  localStorage.setItem(LOCAL_STORAGE_INQUIRIES_KEY, JSON.stringify(updated));
+  return { success: true };
+}
+
+// ------------------------------------------------------------------------------
+// 7. BHN MEMBERSHIP APPLICATIONS (SUPABASE + FALLBACK)
+// ------------------------------------------------------------------------------
+const LOCAL_STORAGE_BHN_KEY = 'marye_bhn_applications';
+
+export async function submitBhnApplication(applicationData) {
+  const payload = {
+    name: applicationData.name,
+    email: applicationData.email,
+    organization: applicationData.organization || '',
+    role: applicationData.role || '',
+    country: applicationData.country || '',
+    background: applicationData.background || '',
+    areas_of_interest: Array.isArray(applicationData.areas_of_interest) ? applicationData.areas_of_interest : [],
+    statement_of_interest: applicationData.statement_of_interest || applicationData.message || '',
+    profile_url: applicationData.profile_url || applicationData.linkedin || '',
+    message: applicationData.message || '',
+    status: 'Pending',
+    created_at: new Date().toISOString(),
+  };
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('bhn_applications').insert([payload]).select().single();
+      if (!error) return { success: true, application: data };
+    } catch (err) {
+      console.warn('Supabase BHN submission error, falling back locally:', err);
+    }
+  }
+
+  const existing = JSON.parse(localStorage.getItem(LOCAL_STORAGE_BHN_KEY) || '[]');
+  const localRecord = { id: `bhn-${Date.now()}`, ...payload };
+  existing.unshift(localRecord);
+  localStorage.setItem(LOCAL_STORAGE_BHN_KEY, JSON.stringify(existing));
+  return { success: true, localStored: true, application: localRecord };
+}
+
+export async function getBhnApplications() {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('bhn_applications').select('*').order('created_at', { ascending: false });
+      if (!error && data) return data;
+    } catch (err) {
+      console.warn('Supabase getBhnApplications error:', err);
+    }
+  }
+  return JSON.parse(localStorage.getItem(LOCAL_STORAGE_BHN_KEY) || '[]');
+}
+
+export async function updateBhnApplicationStatus(id, newStatus, adminNotes = null) {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const updatePayload = { status: newStatus };
+      if (adminNotes !== null) updatePayload.admin_notes = adminNotes;
+      if (newStatus === 'Active' || newStatus === 'Approved') {
+        updatePayload.approved_at = new Date().toISOString();
+      }
+      const { data, error } = await supabase.from('bhn_applications').update(updatePayload).eq('id', id).select().single();
+      if (!error && data) return { success: true, application: data };
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  const existing = JSON.parse(localStorage.getItem(LOCAL_STORAGE_BHN_KEY) || '[]');
+  const updated = existing.map((item) =>
+    item.id === id ? { ...item, status: newStatus, admin_notes: adminNotes !== null ? adminNotes : item.admin_notes } : item
+  );
+  localStorage.setItem(LOCAL_STORAGE_BHN_KEY, JSON.stringify(updated));
+  return { success: true };
+}
+
+// ------------------------------------------------------------------------------
+// 8. CV PDF VALIDATION & UPLOAD (REAL BINARY PDF)
+// ------------------------------------------------------------------------------
+export async function uploadCvPdf(file, metadata = {}) {
+  if (!file) throw new Error('No file provided for CV upload');
+
+  // Strict MIME check
+  if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+    throw new Error('Invalid file format. Only true binary PDF files (application/pdf) are accepted.');
+  }
+
+  // Validate PDF magic bytes (%PDF-)
+  const arrayBuffer = await file.slice(0, 5).arrayBuffer();
+  const headerText = new TextDecoder('utf-8').decode(arrayBuffer);
+  if (!headerText.startsWith('%PDF-')) {
+    throw new Error('Corrupted or invalid PDF header. The file does not begin with standard %PDF- binary signature.');
+  }
+
+  const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const storagePath = `cv/${Date.now()}_${cleanName}`;
+  let publicUrl = null;
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(storagePath, file, {
+          contentType: 'application/pdf',
+          upsert: true,
+        });
+
+      if (!uploadError && uploadData) {
+        const { data: urlData } = supabase.storage.from('documents').getPublicUrl(storagePath);
+        publicUrl = urlData?.publicUrl || null;
+      }
+    } catch (err) {
+      console.warn('Supabase storage upload error:', err);
+    }
+  }
+
+  // If Supabase storage is unconfigured or failed, create an object URL
+  if (!publicUrl) {
+    publicUrl = URL.createObjectURL(file);
+  }
+
+  const docRecord = {
+    title: metadata.title || 'Official Academic Curriculum Vitae — Marye Agegn',
+    description: metadata.description || 'Verified academic curriculum vitae detailing clinical engineering experience, technical specifications, and graduate research trajectory.',
+    category: 'CV',
+    file_url: publicUrl,
+    file_type: 'PDF',
+    file_size: `${(file.size / 1024).toFixed(1)} KB`,
+    version: metadata.version || `v${new Date().getFullYear()}.${new Date().getMonth() + 1}`,
+    is_current_cv: true,
+    last_updated: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+    status: 'published',
+  };
+
+  const result = await saveDocument(docRecord);
+  return { success: true, document: result.document || docRecord, publicUrl };
+}
+

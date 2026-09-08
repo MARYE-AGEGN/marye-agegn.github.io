@@ -61,16 +61,26 @@ export function Home({ home, personal }) {
               </p>
 
               <div className="hero-actions" role="group" aria-label="Primary actions">
-                {heroData.actions.map((action, idx) => (
-                  <a
-                    key={idx}
-                    href={action.href}
-                    onClick={(e) => handleSmoothScroll(e, action.href)}
-                    className={`btn ${action.isPrimary ? 'btn-primary' : 'btn-secondary'}`}
-                  >
-                    {action.label}
-                  </a>
-                ))}
+                {heroData.actions.map((action, idx) => {
+                  const isContactAction = action.href === '#contact';
+                  return (
+                    <a
+                      key={idx}
+                      href={action.href}
+                      onClick={(e) => {
+                        if (isContactAction && typeof onOpenContact === 'function') {
+                          e.preventDefault();
+                          onOpenContact();
+                        } else {
+                          handleSmoothScroll(e, action.href);
+                        }
+                      }}
+                      className={`btn ${action.isPrimary ? 'btn-primary' : 'btn-secondary'}`}
+                    >
+                      {action.label}
+                    </a>
+                  );
+                })}
               </div>
             </div>
 

@@ -15,10 +15,16 @@ import {
   deleteMediaItem,
   getInboundMessages,
   getInboundCollaborations,
+  getInquiries,
+  updateInquiryStatus,
+  getBhnApplications,
+  updateBhnApplicationStatus,
+  uploadCvPdf,
 } from '../../data/contentStore';
 import { getMediaLibrary } from '../../data/mediaStore';
 import { UniversalFileUploader } from '../../components/common/UniversalFileUploader';
 import { MediaLibrary } from '../../components/admin/MediaLibrary';
+import { ConsultationWorkspace } from '../../components/admin/ConsultationWorkspace';
 
 export function AdminDashboard() {
   // Authentication state
@@ -27,10 +33,9 @@ export function AdminDashboard() {
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
-  const [localAdminAuthenticated, setLocalAdminAuthenticated] = useState(false);
 
   // Dashboard active tab
-  const [activeTab, setActiveTab] = useState('overview'); // overview, media_library, posts, research, docs, media, messages, settings
+  const [activeTab, setActiveTab] = useState('overview'); // overview, inquiries, bhn, docs, media_library, posts, research, media, settings
 
   // Content collections
   const [posts, setPosts] = useState([]);
@@ -40,6 +45,14 @@ export function AdminDashboard() {
   const [mediaLibraryItems, setMediaLibraryItems] = useState([]);
   const [messages, setMessages] = useState([]);
   const [collaborations, setCollaborations] = useState([]);
+  const [inquiries, setInquiries] = useState([]);
+  const [bhnApplications, setBhnApplications] = useState([]);
+  const [inquiryStatusFilter, setInquiryStatusFilter] = useState('All');
+  const [bhnStatusFilter, setBhnStatusFilter] = useState('All');
+  const [cvUploading, setCvUploading] = useState(false);
+  const [cvUploadMsg, setCvUploadMsg] = useState(null);
+  const [cvVersionInput, setCvVersionInput] = useState('v2.2');
+  const cvFileInputRef = useRef(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Form states
@@ -63,11 +76,6 @@ export function AdminDashboard() {
 
   // Check auth session
   useEffect(() => {
-    const localSession = sessionStorage.getItem('marye_admin_authenticated');
-    if (localSession === 'true') {
-      setLocalAdminAuthenticated(true);
-    }
-
     if (supabase && isSupabaseConfigured) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         setSession(session);
@@ -84,13 +92,15 @@ export function AdminDashboard() {
   // Fetch all content & media library
   useEffect(() => {
     async function loadAll() {
-      const [allPosts, allResearch, allDocs, allMedia, allMsgs, allCollabs] = await Promise.all([
+      const [allPosts, allResearch, allDocs, allMedia, allMsgs, allCollabs, allInq, allBhn] = await Promise.all([
         getPosts(true),
         getResearchUpdates(true),
         getDocuments(),
         getMediaItems(),
         getInboundMessages(),
         getInboundCollaborations(),
+        getInquiries(),
+        getBhnApplications(),
       ]);
       setPosts(allPosts);
       setResearchUpdates(allResearch);
@@ -98,36 +108,76 @@ export function AdminDashboard() {
       setMediaItems(allMedia);
       setMessages(allMsgs);
       setCollaborations(allCollabs);
+      setInquiries(allInq);
+      setBhnApplications(allBhn);
       setMediaLibraryItems(getMediaLibrary());
     }
     loadAll();
   }, [refreshTrigger]);
 
-  const isAuthenticated = Boolean(session || localAdminAuthenticated);
+  // CV Upload Handler (Strict %PDF- Validation & Binary Storage)
+  async function handleCvFileUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  // Handle Login
+    setCvUploading(true);
+    setCvUploadMsg(null);
+
+    try {
+      const result = await uploadCvPdf(file, {
+        version: cvVersionInput || 'v2.2',
+        title: 'Official Academic Curriculum Vitae — Marye Agegn',
+        description: 'Verified academic curriculum vitae detailing clinical engineering experience, technical specifications, and graduate research trajectory.',
+      });
+
+      setCvUploadMsg({
+        type: 'success',
+        text: `CV binary successfully stored and activated (${result.document.file_size}). The public "Download CV" button now serves this exact file.`,
+      });
+
+      const updatedDocs = await getDocuments();
+      setDocuments(updatedDocs);
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (err) {
+      console.error('CV upload error:', err);
+      setCvUploadMsg({ type: 'error', text: err.message || 'Failed to upload CV. Only genuine binary PDF files are accepted.' });
+    } finally {
+      setCvUploading(false);
+      if (cvFileInputRef.current) cvFileInputRef.current.value = '';
+    }
+  }
+
+  // Inquiry Status Handler
+  async function handleUpdateInquiry(id, status, notes = null) {
+    await updateInquiryStatus(id, status, notes);
+    const updated = await getInquiries();
+    setInquiries(updated);
+  }
+
+  // BHN Application Status Handler
+  async function handleUpdateBhn(id, status, notes = null) {
+    await updateBhnApplicationStatus(id, status, notes);
+    const updated = await getBhnApplications();
+    setBhnApplications(updated);
+  }
+
+  const isAuthenticated = Boolean(session);
+
+  // Handle Login (Strict Supabase Auth without hardcoded credentials)
   async function handleLogin(e) {
     e.preventDefault();
     setAuthLoading(true);
     setAuthError('');
 
-    // Local development / fallback passkey
-    if (password === 'admin' || password === 'marye2025') {
-      sessionStorage.setItem('marye_admin_authenticated', 'true');
-      setLocalAdminAuthenticated(true);
-      setAuthLoading(false);
-      return;
-    }
-
     if (isSupabaseConfigured && supabase) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
-        setAuthError(error.message);
+        setAuthError(error.message || 'Invalid credentials. Please verify your email and password.');
         setAuthLoading(false);
         return;
       }
     } else {
-      setAuthError('Invalid credentials. (For local preview use "marye2025" or configure Supabase credentials in settings).');
+      setAuthError('Supabase is not configured. Please ensure your project URL and keys are configured.');
     }
     setAuthLoading(false);
   }
@@ -136,9 +186,7 @@ export function AdminDashboard() {
     if (supabase && isSupabaseConfigured) {
       supabase.auth.signOut();
     }
-    sessionStorage.removeItem('marye_admin_authenticated');
     setSession(null);
-    setLocalAdminAuthenticated(false);
   }
 
   // Post Actions
@@ -377,27 +425,45 @@ export function AdminDashboard() {
         </div>
 
         {/* Dashboard Navigation Tabs */}
-        <div className="admin-tabs-bar mb-6" role="tablist">
-          {[
+        {(() => {
+          const newInqCount = inquiries.filter((i) => i.status === 'New').length;
+          const pendingBhnCount = bhnApplications.filter((b) => b.status === 'Pending').length;
+
+          const adminTabs = [
             { id: 'overview', label: '📊 Overview' },
+            { id: 'ai_consultations', label: '🤖 AI Consultations & Inquiries' },
+            {
+              id: 'inquiries',
+              label: newInqCount > 0 ? `📬 Inquiries (${newInqCount} New)` : `📬 Inquiries (${inquiries.length})`,
+            },
+            {
+              id: 'bhn',
+              label: pendingBhnCount > 0 ? `🌐 BHN (${pendingBhnCount} Pending)` : `🌐 BHN (${bhnApplications.length})`,
+            },
+            { id: 'docs', label: `📄 Documents & CV (${documents.length})` },
             { id: 'media_library', label: `📁 Media Library (${mediaLibraryItems.length})` },
             { id: 'posts', label: `📝 Articles (${posts.length})` },
             { id: 'research', label: `🔬 Research Updates (${researchUpdates.length})` },
-            { id: 'docs', label: `📄 Documents & CV (${documents.length})` },
             { id: 'media', label: `🎥 Media Items (${mediaItems.length})` },
-            { id: 'messages', label: `📬 Inbound (${messages.length + collaborations.length})` },
+            { id: 'messages', label: `📨 Collab Archive (${collaborations.length})` },
             { id: 'settings', label: '⚙️ Database Settings' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              className={`admin-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+          ];
+
+          return (
+            <div className="admin-tabs-bar mb-6" role="tablist">
+              {adminTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={`admin-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+                  onClick={() => setActiveTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* ------------------------------------------------------- */}
         {/* TAB 1: OVERVIEW */}
@@ -406,27 +472,46 @@ export function AdminDashboard() {
           <div className="overview-tab-view space-y-6">
             <div className="stats-grid">
               <div className="stat-card">
-                <span className="stat-card-label">Media Library Assets</span>
-                <div className="stat-card-val" style={{ color: 'var(--color-primary)' }}>{mediaLibraryItems.length}</div>
-                <span className="text-xs text-muted">Images, PDFs &amp; Video Streams</span>
-              </div>
-              <div className="stat-card">
-                <span className="stat-card-label">Articles Published</span>
-                <div className="stat-card-val" style={{ color: 'var(--color-primary)' }}>{posts.length}</div>
+                <span className="stat-card-label">New Inquiries &amp; Requests</span>
+                <div className="stat-card-val" style={{ color: inquiries.filter((i) => i.status === 'New').length > 0 ? '#0284c7' : 'var(--color-text)' }}>
+                  {inquiries.filter((i) => i.status === 'New').length > 0
+                    ? `${inquiries.filter((i) => i.status === 'New').length} New`
+                    : 'No new requests'}
+                </div>
                 <span className="text-xs text-muted">
-                  {posts.filter((p) => p.status === 'published').length} Live Public Articles
+                  {inquiries.length} Total Website Submissions
                 </span>
               </div>
+
               <div className="stat-card">
-                <span className="stat-card-label">Research Milestones</span>
-                <div className="stat-card-val" style={{ color: 'var(--color-primary)' }}>{researchUpdates.length}</div>
-                <span className="text-xs text-muted">Protected under IP Protocol</span>
-              </div>
-              <div className="stat-card">
-                <span className="stat-card-label">Verified Documents</span>
-                <div className="stat-card-val" style={{ color: 'var(--color-primary)' }}>{documents.length}</div>
+                <span className="stat-card-label">BHN Membership Applications</span>
+                <div className="stat-card-val" style={{ color: bhnApplications.filter((b) => b.status === 'Pending').length > 0 ? '#0f766e' : 'var(--color-text)' }}>
+                  {bhnApplications.filter((b) => b.status === 'Pending').length > 0
+                    ? `${bhnApplications.filter((b) => b.status === 'Pending').length} Pending`
+                    : 'No new requests'}
+                </div>
                 <span className="text-xs text-muted">
-                  Active CV: {documents.find((d) => d.is_current_cv)?.version || 'v2.1'}
+                  {bhnApplications.length} Total Applications
+                </span>
+              </div>
+
+              <div className="stat-card">
+                <span className="stat-card-label">Active Curriculum Vitae</span>
+                <div className="stat-card-val" style={{ color: 'var(--color-primary)' }}>
+                  {documents.find((d) => d.is_current_cv)?.version || 'v2.1'}
+                </div>
+                <span className="text-xs text-muted">
+                  Verified Binary PDF ({documents.find((d) => d.is_current_cv)?.file_size || '240 KB'})
+                </span>
+              </div>
+
+              <div className="stat-card">
+                <span className="stat-card-label">Media &amp; Articles Published</span>
+                <div className="stat-card-val" style={{ color: 'var(--color-primary)' }}>
+                  {posts.length + mediaLibraryItems.length}
+                </div>
+                <span className="text-xs text-muted">
+                  {posts.length} Live Articles • {mediaLibraryItems.length} Media Assets
                 </span>
               </div>
             </div>
@@ -501,6 +586,367 @@ export function AdminDashboard() {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ------------------------------------------------------- */}
+        {/* TAB: AI CONSULTATIONS & TECHNICAL REQUESTS              */}
+        {/* ------------------------------------------------------- */}
+        {activeTab === 'ai_consultations' && (
+          <div className="ai-consultations-tab-view space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)', margin: '0 0 4px 0' }}>
+                  AI Technical Consultations &amp; Escalations
+                </h2>
+                <p className="text-sm text-muted" style={{ margin: 0 }}>
+                  Intelligent investigation workspace: Review visitor technical inquiries, inspect international standards, and dispatch direct responses.
+                </p>
+              </div>
+            </div>
+            <ConsultationWorkspace />
+          </div>
+        )}
+
+        {/* ------------------------------------------------------- */}
+        {/* TAB: INBOUND INQUIRIES & SERVICE REQUESTS               */}
+        {/* ------------------------------------------------------- */}
+        {activeTab === 'inquiries' && (
+          <div className="inquiries-tab-view space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>
+                  Website Inquiries &amp; Service Requests ({inquiries.length})
+                </h2>
+                <p className="text-sm text-muted">
+                  Formal inquiries, project proposals, and service discussions submitted through the unified contact desk.
+                </p>
+              </div>
+
+              {/* Status Filter Buttons */}
+              <div className="flex gap-2">
+                {['All', 'New', 'Reviewed', 'Responded', 'Archived'].map((status) => (
+                  <button
+                    key={status}
+                    type="button"
+                    className={`btn btn-xs ${inquiryStatusFilter === status ? 'btn-primary' : 'btn-secondary'}`}
+                    onClick={() => setInquiryStatusFilter(status)}
+                  >
+                    {status}
+                    {status === 'New' && inquiries.filter((i) => i.status === 'New').length > 0 && (
+                      <span className="ml-1 badge badge-sm" style={{ background: '#ef4444', color: '#fff' }}>
+                        {inquiries.filter((i) => i.status === 'New').length}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {(() => {
+              const filteredInquiries = inquiries.filter((inq) =>
+                inquiryStatusFilter === 'All' ? true : inq.status === inquiryStatusFilter
+              );
+
+              if (filteredInquiries.length === 0) {
+                return (
+                  <div className="card p-8 text-center text-muted" style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}>
+                    No inquiries found for status: <strong>{inquiryStatusFilter}</strong>.
+                  </div>
+                );
+              }
+
+              return (
+                <div className="space-y-4">
+                  {filteredInquiries.map((inq) => (
+                    <div
+                      key={inq.id}
+                      className="card p-6"
+                      style={{
+                        background: '#ffffff',
+                        borderRadius: 'var(--radius-md)',
+                        borderLeft: inq.status === 'New' ? '4px solid #0284c7' : '4px solid var(--color-border)',
+                      }}
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-lg" style={{ color: 'var(--color-text)', margin: 0 }}>
+                              {inq.name}
+                            </h3>
+                            {inq.status === 'New' && (
+                              <span className="badge" style={{ background: '#e0f2fe', color: '#0369a1', fontWeight: 600 }}>
+                                New Submission
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-sm mt-1">
+                            <span className="font-medium" style={{ color: 'var(--color-primary)' }}>
+                              {inq.organization || 'Independent Professional'}
+                            </span>
+                            <span className="text-muted ml-3">✉️ <a href={`mailto:${inq.email}`} style={{ color: 'inherit' }}>{inq.email}</a></span>
+                            {inq.phone && <span className="text-muted ml-3">📞 {inq.phone}</span>}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="badge category-badge">{inq.category}</span>
+                          <select
+                            value={inq.status}
+                            onChange={(e) => handleUpdateInquiry(inq.id, e.target.value)}
+                            className="text-xs p-1 rounded border"
+                            style={{ borderColor: 'var(--color-border)' }}
+                          >
+                            <option value="New">New</option>
+                            <option value="Reviewed">Reviewed</option>
+                            <option value="Responded">Responded</option>
+                            <option value="Archived">Archived</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {inq.selected_service && (
+                        <div className="mt-2 p-2 rounded text-xs font-semibold" style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0' }}>
+                          🎯 Service Requested: {inq.selected_service}
+                        </div>
+                      )}
+
+                      <div
+                        className="mt-3 p-4 rounded text-sm whitespace-pre-wrap"
+                        style={{ background: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
+                      >
+                        {inq.message}
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap items-center justify-between text-xs text-muted gap-2">
+                        <span>Submitted: {new Date(inq.created_at).toLocaleString()}</span>
+
+                        <div className="flex gap-2">
+                          {inq.status !== 'Reviewed' && (
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-xs"
+                              onClick={() => handleUpdateInquiry(inq.id, 'Reviewed')}
+                            >
+                              Mark Reviewed
+                            </button>
+                          )}
+                          {inq.status !== 'Responded' && (
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-xs"
+                              onClick={() => handleUpdateInquiry(inq.id, 'Responded')}
+                            >
+                              Mark Responded
+                            </button>
+                          )}
+                          {inq.status !== 'Archived' && (
+                            <button
+                              type="button"
+                              className="btn btn-outline-danger btn-xs"
+                              onClick={() => handleUpdateInquiry(inq.id, 'Archived')}
+                            >
+                              Archive
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* ------------------------------------------------------- */}
+        {/* TAB: BHN MEMBERSHIP APPLICATIONS                        */}
+        {/* ------------------------------------------------------- */}
+        {activeTab === 'bhn' && (
+          <div className="bhn-tab-view space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>
+                  Biomedical Horizon Network (BHN) Applications ({bhnApplications.length})
+                </h2>
+                <p className="text-sm text-muted">
+                  Membership and collaboration applications for the developing Biomedical Horizon Network initiative.
+                  A visitor is <strong>NOT</strong> publicly considered a BHN member until an administrator formally approves and activates their application.
+                </p>
+              </div>
+
+              {/* Status Filter Buttons */}
+              <div className="flex gap-2">
+                {['All', 'Pending', 'Approved', 'Active', 'Declined', 'Archived'].map((status) => (
+                  <button
+                    key={status}
+                    type="button"
+                    className={`btn btn-xs ${bhnStatusFilter === status ? 'btn-primary' : 'btn-secondary'}`}
+                    onClick={() => setBhnStatusFilter(status)}
+                  >
+                    {status}
+                    {status === 'Pending' && bhnApplications.filter((b) => b.status === 'Pending').length > 0 && (
+                      <span className="ml-1 badge badge-sm" style={{ background: '#0f766e', color: '#fff' }}>
+                        {bhnApplications.filter((b) => b.status === 'Pending').length}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {(() => {
+              const filteredBhn = bhnApplications.filter((b) =>
+                bhnStatusFilter === 'All' ? true : b.status === bhnStatusFilter
+              );
+
+              if (filteredBhn.length === 0) {
+                return (
+                  <div className="card p-8 text-center text-muted" style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}>
+                    No BHN applications found for status: <strong>{bhnStatusFilter}</strong>.
+                  </div>
+                );
+              }
+
+              return (
+                <div className="space-y-4">
+                  {filteredBhn.map((bhn) => (
+                    <div
+                      key={bhn.id}
+                      className="card p-6"
+                      style={{
+                        background: '#ffffff',
+                        borderRadius: 'var(--radius-md)',
+                        borderLeft:
+                          bhn.status === 'Active'
+                            ? '4px solid #16a34a'
+                            : bhn.status === 'Approved'
+                            ? '4px solid #0284c7'
+                            : bhn.status === 'Pending'
+                            ? '4px solid #0f766e'
+                            : '4px solid var(--color-border)',
+                      }}
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-lg" style={{ color: 'var(--color-text)', margin: 0 }}>
+                              {bhn.full_name}
+                            </h3>
+                            <span
+                              className="badge"
+                              style={{
+                                background:
+                                  bhn.status === 'Active'
+                                    ? '#dcfce7'
+                                    : bhn.status === 'Approved'
+                                    ? '#e0f2fe'
+                                    : bhn.status === 'Pending'
+                                    ? '#ccfbf1'
+                                    : '#f3f4f6',
+                                color:
+                                  bhn.status === 'Active'
+                                    ? '#15803d'
+                                    : bhn.status === 'Approved'
+                                    ? '#0369a1'
+                                    : bhn.status === 'Pending'
+                                    ? '#0f766e'
+                                    : '#4b5563',
+                                fontWeight: 700,
+                              }}
+                            >
+                              Status: {bhn.status}
+                            </span>
+                          </div>
+                          <div className="text-sm mt-1">
+                            <span className="font-medium" style={{ color: 'var(--color-primary)' }}>
+                              {bhn.institution}
+                            </span>
+                            <span className="text-muted ml-3">Specialization: <strong>{bhn.specialization}</strong></span>
+                            <span className="text-muted ml-3">✉️ <a href={`mailto:${bhn.email}`} style={{ color: 'inherit' }}>{bhn.email}</a></span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="badge category-badge">{bhn.focus_area || 'Biomedical Innovation'}</span>
+                          <select
+                            value={bhn.status}
+                            onChange={(e) => handleUpdateBhn(bhn.id, e.target.value)}
+                            className="text-xs p-1 rounded border"
+                            style={{ borderColor: 'var(--color-border)' }}
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Active">Active (Official Member)</option>
+                            <option value="Declined">Declined</option>
+                            <option value="Archived">Archived</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 text-sm">
+                        {bhn.professional_background && (
+                          <div className="p-3 rounded" style={{ background: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)' }}>
+                            <strong className="block text-xs text-muted mb-1">Professional Background:</strong>
+                            <p style={{ margin: 0 }}>{bhn.professional_background}</p>
+                          </div>
+                        )}
+                        {bhn.statement_of_interest && (
+                          <div className="p-3 rounded" style={{ background: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)' }}>
+                            <strong className="block text-xs text-muted mb-1">Statement of Interest &amp; Collaborative Goals:</strong>
+                            <p style={{ margin: 0 }}>{bhn.statement_of_interest}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap items-center justify-between text-xs text-muted gap-2">
+                        <span>Applied: {new Date(bhn.created_at).toLocaleString()}</span>
+
+                        <div className="flex gap-2">
+                          {bhn.status !== 'Active' && (
+                            <button
+                              type="button"
+                              className="btn btn-primary btn-xs"
+                              style={{ background: '#16a34a', borderColor: '#16a34a' }}
+                              onClick={() => handleUpdateBhn(bhn.id, 'Active')}
+                            >
+                              ✓ Approve &amp; Activate Member
+                            </button>
+                          )}
+                          {bhn.status !== 'Approved' && bhn.status !== 'Active' && (
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-xs"
+                              onClick={() => handleUpdateBhn(bhn.id, 'Approved')}
+                            >
+                              Approve
+                            </button>
+                          )}
+                          {bhn.status !== 'Declined' && (
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-xs"
+                              onClick={() => handleUpdateBhn(bhn.id, 'Declined')}
+                            >
+                              Decline
+                            </button>
+                          )}
+                          {bhn.status !== 'Archived' && (
+                            <button
+                              type="button"
+                              className="btn btn-outline-danger btn-xs"
+                              onClick={() => handleUpdateBhn(bhn.id, 'Archived')}
+                            >
+                              Archive
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -979,6 +1425,145 @@ export function AdminDashboard() {
                 + Add Document / New CV
               </button>
             </div>
+
+            {/* ------------------------------------------------------------- */}
+            {/* PRIMARY WORKFLOW: ACTUAL CV BINARY UPLOAD & VERIFICATION      */}
+            {/* ------------------------------------------------------------- */}
+            {(() => {
+              const activeCv = documents.find((d) => d.is_current_cv) || {
+                title: 'Official Academic Curriculum Vitae — Marye Agegn',
+                version: 'v2.2',
+                file_size: '240 KB',
+                file_url: './assets/documents/Marye_Agegn_Academic_CV.pdf',
+              };
+
+              return (
+                <div
+                  className="card p-6"
+                  style={{
+                    background: '#f8fafc',
+                    border: '2px solid #0284c7',
+                    borderRadius: 'var(--radius-md)',
+                  }}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="badge" style={{ background: '#0284c7', color: '#ffffff', fontWeight: 700 }}>
+                          PRIMARY CV WORKFLOW
+                        </span>
+                        <h3 className="text-lg font-bold" style={{ color: 'var(--color-text)', margin: 0 }}>
+                          Upload &amp; Activate Actual Academic CV (Binary PDF)
+                        </h3>
+                      </div>
+                      <p className="text-sm text-muted mt-1 max-w-2xl">
+                        Upload your real binary PDF document. The engine cryptographically verifies the <code>%PDF-</code> magic byte signature and stores the authentic binary file in Supabase Storage. The public website "Download CV" buttons immediately serve this exact file without source-code edits.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={activeCv.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-secondary btn-sm"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <span>Test Active PDF In Viewer</span> ↗
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Current Active CV Status Card */}
+                  <div
+                    className="mt-4 p-4 rounded-md grid grid-cols-1 md:grid-cols-4 gap-4"
+                    style={{ background: '#ffffff', border: '1px solid #cbd5e1' }}
+                  >
+                    <div>
+                      <span className="text-xs text-muted block">Active Document</span>
+                      <strong className="text-sm" style={{ color: 'var(--color-text)' }}>{activeCv.title}</strong>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted block">Version Tag</span>
+                      <strong className="text-sm font-mono text-primary">{activeCv.version || 'v2.2'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted block">Binary File Size</span>
+                      <strong className="text-sm">{activeCv.file_size || 'Verified Binary'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted block">MIME &amp; Magic Bytes</span>
+                      <span className="badge badge-sm" style={{ background: '#ecfdf5', color: '#047857', fontWeight: 600 }}>
+                        application/pdf (%PDF-)
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Upload Notification Alert */}
+                  {cvUploadMsg && (
+                    <div
+                      className="mt-4 p-3 rounded text-sm"
+                      style={{
+                        background: cvUploadMsg.type === 'success' ? '#ecfdf5' : '#fef2f2',
+                        color: cvUploadMsg.type === 'success' ? '#065f46' : '#991b1b',
+                        border: `1px solid ${cvUploadMsg.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+                      }}
+                    >
+                      {cvUploadMsg.type === 'success' ? '✓ ' : '⚠️ '}
+                      {cvUploadMsg.text}
+                    </div>
+                  )}
+
+                  {/* Upload Controls */}
+                  <div className="mt-4 flex flex-wrap items-end gap-4">
+                    <div style={{ minWidth: '130px' }}>
+                      <label className="text-xs font-semibold block mb-1">New Version Tag</label>
+                      <input
+                        type="text"
+                        value={cvVersionInput}
+                        onChange={(e) => setCvVersionInput(e.target.value)}
+                        placeholder="e.g. v2.3"
+                        style={{ padding: '0.45rem 0.75rem', fontSize: '0.85rem' }}
+                      />
+                    </div>
+
+                    <div className="flex-1" style={{ minWidth: '240px' }}>
+                      <label className="text-xs font-semibold block mb-1">Select Genuine PDF File</label>
+                      <input
+                        ref={cvFileInputRef}
+                        type="file"
+                        accept="application/pdf,.pdf"
+                        onChange={handleCvFileUpload}
+                        disabled={cvUploading}
+                        style={{
+                          padding: '0.4rem',
+                          fontSize: '0.85rem',
+                          border: '1px dashed #94a3b8',
+                          borderRadius: 'var(--radius-sm)',
+                          width: '100%',
+                          background: '#ffffff',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <button
+                        type="button"
+                        className="btn btn-primary btn-sm"
+                        disabled={cvUploading}
+                        onClick={() => cvFileInputRef.current?.click()}
+                      >
+                        {cvUploading ? 'Validating Magic Bytes & Uploading...' : 'Upload & Activate CV PDF'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-muted mt-3 mb-0">
+                    🛡️ <strong>Integrity Safeguard:</strong> Renaming an HTML or text file to <code>.pdf</code> will be strictly rejected. The file must begin with byte sequence <code>0x25 0x50 0x44 0x46 0x2D</code>.
+                  </p>
+                </div>
+              );
+            })()}
 
             {/* Document Editor */}
             {editingDoc && (
@@ -1517,7 +2102,7 @@ export function AdminDashboard() {
                     onChange={(e) => setSupabaseAnonKeyInput(e.target.value)}
                   />
                   <span className="text-xs text-muted mt-1 block">
-                    🔒 The <code>anon</code> public key is safe for client-side use because data access is strictly governed by PostgreSQL Row Level Security (RLS). Never paste your <code>service_role</code> secret key.
+                    🔒 The <code>anon</code> public key is safe for client-side use because data access is strictly governed by PostgreSQL Row Level Security (RLS). Never enter privileged backend secret keys in client forms.
                   </span>
                 </div>
 

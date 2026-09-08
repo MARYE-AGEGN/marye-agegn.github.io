@@ -1,28 +1,49 @@
 import React from 'react';
+import { siteData } from '../data/siteData';
 
-export function Research({ research }) {
-  if (!research) return null;
-
+/**
+ * Research Section Component
+ *
+ * Clearly distinguishes:
+ * 1. Current Research (In Progress at Anna University)
+ * 2. Academic & Research Interests
+ * 3. Future Research Directions
+ *
+ * Adheres strictly to scientific integrity and privacy:
+ * - High-level conceptual overview only
+ * - Zero disclosure of unpublished thesis methodology or proprietary data
+ * - Avoids exaggerated claims of completed expertise
+ */
+export function Research({ onSelectCollaboration }) {
+  const research = siteData.research || {};
   const {
-    title = 'Engineering & Applied Research',
-    subtitle = 'Biosignal Processing • Generative AI & Rehabilitation • Neuroimaging • Computer Vision',
-    graduateResearchFocus,
-    currentMasterResearch,
-    broaderInterests = [],
-    thematicExplorations = [],
+    title = 'Research & Academic Focus',
+    subtitle = 'Current Research • Academic & Research Interests • Future Directions',
+    currentResearch,
+    academicInterests,
+    futureDirections = [],
     scopeNote,
   } = research;
 
-  const activeFocus = graduateResearchFocus || currentMasterResearch;
+  const handleCollab = () => {
+    if (typeof onSelectCollaboration === 'function') {
+      onSelectCollaboration('Academic research collaboration', currentResearch?.title || 'Mobility Assessment & Wearable Biosensors');
+    } else {
+      const contactEl = document.getElementById('contact');
+      if (contactEl) {
+        contactEl.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   return (
-    <section id="research" className="section-wrapper" aria-labelledby="research-title">
+    <section id="research" className="section-wrapper research-section" aria-labelledby="research-title">
       <div className="container">
         {/* ==================================================================
             1. SECTION HEADER
             ================================================================== */}
         <header className="section-header">
-          <span className="section-status-badge">Engineering &amp; Applied Innovation</span>
+          <span className="section-status-badge">Scholarly &amp; Applied Trajectory</span>
           <h2 id="research-title" className="section-title">{title}</h2>
           {subtitle && (
             <p style={{ color: 'var(--color-accent-light)', fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', margin: 0 }}>
@@ -32,62 +53,116 @@ export function Research({ research }) {
         </header>
 
         {/* ==================================================================
-            2. CORE RESEARCH & ENGINEERING FOCUS
+            2. CURRENT RESEARCH (ACTIVE GRADUATE INVESTIGATION)
             ================================================================== */}
-        {activeFocus && (
-          <article className="research-dossier" aria-labelledby="research-focus-title">
+        {currentResearch && (
+          <article
+            className="research-dossier card"
+            style={{
+              padding: 'var(--space-8)',
+              background: '#ffffff',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-lg)',
+              marginBottom: 'var(--space-12)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+            }}
+            aria-labelledby="current-research-title"
+          >
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                <span className="badge-tag" style={{ color: 'var(--color-accent-light)' }}>
-                  Active Engineering Focus
+                <span
+                  className="badge"
+                  style={{
+                    background: 'var(--color-primary-light, #e0f2fe)',
+                    color: 'var(--color-primary, #0284c7)',
+                    fontWeight: 700,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.05em',
+                    textTransform: 'uppercase',
+                    padding: '3px 10px',
+                    borderRadius: 'var(--radius-full)',
+                  }}
+                >
+                  CURRENT RESEARCH
                 </span>
                 <span className="status-pill status-pill-progress">
-                  {activeFocus.status}
+                  {currentResearch.status}
                 </span>
               </div>
               <div style={{ fontSize: 'var(--font-size-xs)', fontFamily: 'var(--font-family-mono)', color: 'var(--color-text-muted)' }}>
-                {activeFocus.institution} &bull; Commenced {activeFocus.commenced}
+                {currentResearch.laboratory ? (
+                  <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>{currentResearch.laboratory} &bull; </span>
+                ) : null}
+                {currentResearch.institution} &bull; Commenced {currentResearch.commenced}
               </div>
             </div>
 
-            <h3 id="research-focus-title" style={{ fontSize: 'clamp(1.3rem, 2.5vw, var(--font-size-2xl))', color: 'var(--color-text-primary)', lineHeight: 1.35, marginBottom: 'var(--space-4)' }}>
-              {activeFocus.title}
+            <h3
+              id="current-research-title"
+              style={{
+                fontSize: 'clamp(1.25rem, 2.2vw, var(--font-size-2xl))',
+                color: 'var(--color-text-primary)',
+                lineHeight: 1.35,
+                marginBottom: 'var(--space-4)',
+                fontWeight: 700,
+              }}
+            >
+              {currentResearch.title}
             </h3>
 
-            {/* Research Direction Chips */}
-            {activeFocus.researchDirections && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)', marginBottom: 'var(--space-6)' }} aria-label="Research fields">
-                {activeFocus.researchDirections.map((dir, idx) => (
-                  <span key={idx} className="badge-tag">
-                    {dir}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Conceptual Framework Overview */}
-            <div className="content-reading-width" style={{ marginBottom: 'var(--space-8)' }}>
+            <div style={{ maxWidth: '880px', marginBottom: 'var(--space-8)' }}>
               <p style={{ color: 'var(--color-text-secondary)', fontSize: '1.05rem', lineHeight: '1.75', margin: 0 }}>
-                {activeFocus.conceptualFocus}
+                {currentResearch.highLevelSummary}
               </p>
             </div>
 
-            {/* Core Applied Engineering Pillars */}
-            {(activeFocus.pillars || activeFocus.corePillars) && (
+            {/* 4 Core Pillars of Current Research */}
+            {currentResearch.pillars && (
               <div style={{ marginBottom: 'var(--space-6)' }}>
-                <h4 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-2)' }}>
-                  Core Applied Research Pillars
+                <h4
+                  style={{
+                    fontSize: 'var(--font-size-xs)',
+                    fontWeight: 'var(--font-weight-bold)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: 'var(--color-text-muted)',
+                    marginBottom: 'var(--space-3)',
+                  }}
+                >
+                  Investigative Dimensions &amp; Applied Methodology:
                 </h4>
-                <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
-                  Translational engineering pillars bridging physical biosensors, generative intelligence, neuro-diagnostics, and vision systems.
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 'var(--space-4)' }}>
-                  {(activeFocus.pillars || activeFocus.corePillars).map((pillar, idx) => (
-                    <div key={idx} className="card-base" style={{ padding: 'var(--space-5)' }}>
-                      <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', fontFamily: 'var(--font-family-mono)', color: 'var(--color-accent-light)', marginBottom: 'var(--space-1)' }}>
-                        Pillar 0{idx + 1}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 'var(--space-4)' }}>
+                  {currentResearch.pillars.map((pillar, idx) => (
+                    <div
+                      key={idx}
+                      className="card-base"
+                      style={{
+                        padding: 'var(--space-5)',
+                        background: 'rgba(248, 250, 252, 0.7)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 'var(--radius-md)',
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: 'block',
+                          fontSize: 'var(--font-size-xs)',
+                          fontFamily: 'var(--font-family-mono)',
+                          color: 'var(--color-primary)',
+                          fontWeight: 700,
+                          marginBottom: 'var(--space-1)',
+                        }}
+                      >
+                        0{idx + 1}
                       </span>
-                      <strong style={{ display: 'block', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-2)' }}>
+                      <strong
+                        style={{
+                          display: 'block',
+                          fontSize: 'var(--font-size-sm)',
+                          color: 'var(--color-text-primary)',
+                          marginBottom: 'var(--space-2)',
+                        }}
+                      >
                         {pillar.title}
                       </strong>
                       <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', lineHeight: '1.6', margin: 0 }}>
@@ -99,86 +174,147 @@ export function Research({ research }) {
               </div>
             )}
 
-            {/* Translational Mission Notice */}
+            {/* Academic Notice and CTA */}
             <div
               style={{
-                backgroundColor: 'rgba(2, 132, 199, 0.05)',
-                border: '1px solid rgba(2, 132, 199, 0.25)',
-                borderRadius: 'var(--radius-md)',
-                padding: 'var(--space-4) var(--space-5)',
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 'var(--space-4)',
+                borderTop: '1px solid var(--color-border-subtle)',
+                paddingTop: 'var(--space-4)',
                 marginTop: 'var(--space-4)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-1)' }}>
-                <span style={{ fontSize: '1rem', color: 'var(--color-accent-light)' }}>⚙️</span>
-                <strong style={{ fontSize: 'var(--font-size-xs)', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-primary)' }}>
-                  Translational Engineering &amp; Clinical Impact
-                </strong>
-              </div>
-              <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', lineHeight: '1.6', margin: 0 }}>
-                Committed to scalable healthcare delivery: bridging physiological signal hardware with generative AI and computer vision to deliver reliable, clinically usable tools for hospitals, clinics, and decentralized communities.
+              <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', fontStyle: 'italic', margin: 0, flex: 1 }}>
+                {currentResearch.notice}
               </p>
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                onClick={handleCollab}
+                style={{ whiteSpace: 'nowrap' }}
+              >
+                Discuss Research Collaboration →
+              </button>
             </div>
           </article>
         )}
 
         {/* ==================================================================
-            3. BROADER APPLIED INTERESTS & CLINICAL DOMAINS
+            3. ACADEMIC & RESEARCH INTERESTS
             ================================================================== */}
-        <div style={{ marginTop: 'var(--space-12)' }}>
-          <div className="section-header" style={{ marginBottom: 'var(--space-6)' }}>
-            <span className="section-status-badge">Innovation Ecosystem</span>
-            <h3 style={{ fontSize: 'var(--font-size-xl)' }}>
-              Applied Engineering Domains &amp; Collaborative Horizons
-            </h3>
-            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)', margin: 0 }}>
-              Connecting medical device hardware, digital health platforms, and advanced intelligence.
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-6)', marginBottom: 'var(--space-8)' }}>
-            {broaderInterests.map((group, idx) => (
-              <div key={idx} className="card-base" style={{ padding: 'var(--space-6)' }}>
-                <h4 style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-accent-light)', marginBottom: 'var(--space-3)' }}>
-                  {group.category}
-                </h4>
-                <ul style={{ listStyleType: 'disc', paddingLeft: '1.25rem', color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)', margin: 0 }}>
-                  {group.topics.map((topic, tIdx) => (
-                    <li key={tIdx} style={{ marginBottom: 'var(--space-2)' }}>
-                      {topic}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          {/* Thematic Clinical Focus Areas */}
-          {thematicExplorations.length > 0 && (
-            <div style={{ marginBottom: 'var(--space-8)' }}>
-              <h4 style={{ fontSize: 'var(--font-size-md)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-4)' }}>
-                Target Healthcare Innovations
-              </h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 'var(--space-4)' }}>
-                {thematicExplorations.map((theme, idx) => (
-                  <div key={idx} className="card-base" style={{ padding: 'var(--space-5)' }}>
-                    <strong style={{ display: 'block', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', marginBottom: 'var(--space-1)' }}>
-                      {theme.theme}
-                    </strong>
-                    <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', lineHeight: '1.5', margin: 0 }}>
-                      {theme.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
+        {academicInterests && (
+          <div style={{ marginBottom: 'var(--space-12)' }}>
+            <div className="section-header" style={{ marginBottom: 'var(--space-4)' }}>
+              <span className="section-status-badge">Core Disciplines</span>
+              <h3 style={{ fontSize: 'var(--font-size-xl)', color: 'var(--color-text-primary)' }}>
+                Academic &amp; Research Interests
+              </h3>
+              <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', margin: 0 }}>
+                {academicInterests.intro}
+              </p>
             </div>
-          )}
 
-          {/* Scope Note */}
-          <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', fontStyle: 'italic', borderTop: '1px solid var(--color-border-subtle)', paddingTop: 'var(--space-4)' }}>
-            {scopeNote}
-          </p>
-        </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: 'var(--space-3)',
+                marginTop: 'var(--space-6)',
+              }}
+              role="list"
+              aria-label="Academic and Research Interests"
+            >
+              {academicInterests.items?.map((item, idx) => (
+                <div
+                  key={idx}
+                  role="listitem"
+                  className="card-base"
+                  style={{
+                    padding: 'var(--space-4) var(--space-5)',
+                    background: '#ffffff',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-md)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: 'var(--space-2)',
+                  }}
+                >
+                  <strong style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)', lineHeight: 1.35 }}>
+                    {item.name}
+                  </strong>
+                  <span
+                    style={{
+                      fontSize: '0.7rem',
+                      fontFamily: 'var(--font-family-mono)',
+                      color: 'var(--color-primary)',
+                      background: 'rgba(2, 132, 199, 0.08)',
+                      padding: '2px 8px',
+                      borderRadius: 'var(--radius-full)',
+                      alignSelf: 'flex-start',
+                    }}
+                  >
+                    {item.tag}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ==================================================================
+            4. FUTURE RESEARCH DIRECTIONS
+            ================================================================== */}
+        {futureDirections.length > 0 && (
+          <div style={{ marginBottom: 'var(--space-8)' }}>
+            <div className="section-header" style={{ marginBottom: 'var(--space-4)' }}>
+              <span className="section-status-badge">Future Horizons</span>
+              <h3 style={{ fontSize: 'var(--font-size-xl)', color: 'var(--color-text-primary)' }}>
+                Future Research Directions
+              </h3>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
+              {futureDirections.map((future, idx) => (
+                <div
+                  key={idx}
+                  className="card-base"
+                  style={{
+                    padding: 'var(--space-5)',
+                    background: 'rgba(248, 250, 252, 0.7)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-md)',
+                  }}
+                >
+                  <strong style={{ display: 'block', fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', marginBottom: 'var(--space-1)' }}>
+                    {future.theme}
+                  </strong>
+                  <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', lineHeight: '1.6', margin: 0 }}>
+                    {future.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Scope Note */}
+        {scopeNote && (
+          <aside
+            style={{
+              borderTop: '1px solid var(--color-border-subtle)',
+              paddingTop: 'var(--space-4)',
+              marginTop: 'var(--space-8)',
+            }}
+          >
+            <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', fontStyle: 'italic', margin: 0, lineHeight: 1.6 }}>
+              {scopeNote}
+            </p>
+          </aside>
+        )}
       </div>
     </section>
   );

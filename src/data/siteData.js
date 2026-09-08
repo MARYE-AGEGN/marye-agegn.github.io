@@ -9,25 +9,28 @@
  * - No invented claims, fake statistics, fake publications, or unverified achievements.
  */
 
+import { GONDAR_BSC_CURRICULUM_METADATA, GONDAR_BSC_COURSES } from './gondarBscCurriculum.js';
+
 export const siteData = {
   personal: {
     name: 'Marye Agegn',
-    headline: 'Biomedical Engineer | Scalable Medical Devices & Digital Health | AI in Healthcare & HTM',
-    currentRole: 'Biomedical Engineer & Healthcare Technology Specialist',
+    headline: 'Biomedical Engineer | Graduate Research in Gait Analysis & Lower-Back Inertial Sensing | Scalable Medical Devices & Digital Health',
+    currentRole: 'Biomedical Engineer (Graduate Researcher in Gait Analysis & Mobility Assessment)',
     currentInstitution: 'Anna University, Chennai, India',
+    currentFocus: 'Graduate research in gait analysis and mobility assessment using lower-back inertial sensing, with an emphasis on single-task and dual-task walking and explainable machine learning',
     startDate: '18 July 2025',
-    status: 'Biomedical Engineer & Applied Researcher',
+    status: 'Biomedical Engineer & Graduate Student',
     summary:
-      'Biomedical engineer specializing in building scalable healthcare medical devices, digital health solutions, AI in healthcare, and healthcare technology management (HTM). Engineering and research focus covers biosignal processing, generative AI & rehabilitation engineering, neuroimaging, and computer vision.',
+      'Biomedical engineer and graduate student at Anna University, Chennai. Conducting graduate research in gait analysis and mobility assessment using lower-back inertial sensing, with an emphasis on single-task and dual-task walking and explainable machine learning. Grounded in building scalable healthcare medical devices, digital health solutions, biosignal processing, medical image processing, medical imaging systems, and healthcare technology management (HTM).',
   },
 
   home: {
     hero: {
-      statusBadge: 'Biomedical Engineer • Scalable Medical Devices & Digital Health',
+      statusBadge: 'Biomedical Engineer • Graduate Research in Gait Analysis & Mobility Assessment',
       name: 'Marye Agegn',
       headline: 'Building Scalable Healthcare Medical Devices & Digital Health Solutions',
       positioning:
-        'Bridging hands-on clinical engineering, medical device hardware, and healthcare technology management with cutting-edge AI in healthcare. Pioneering translational engineering across biosignal processing, generative AI & rehabilitation engineering, neuroimaging, and computer vision.',
+        'Bridging hands-on clinical engineering, medical device hardware, and healthcare technology management with advanced biosignal processing, medical image processing, and gait analysis at Anna University.',
       actions: [
         { label: 'Explore Engineering & Research →', href: '#research', isPrimary: true },
         { label: 'Healthcare Technology Management', href: '#experience', isPrimary: false },
@@ -94,7 +97,7 @@ export const siteData = {
         phase: 'Phase 4',
         title: 'Scalable Global Healthcare Impact',
         institution: 'Biomedical Innovation & Digital Health',
-        highlight: 'Scaling affordable medical devices, digital health platforms, and applied AI systems for worldwide clinical access',
+        highlight: 'Translating accessible medical devices, digital health platforms, and applied signal algorithms for clinical access',
       },
     ],
   },
@@ -102,6 +105,7 @@ export const siteData = {
   navigation: [
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About' },
+    { id: 'services', label: 'Services' },
     { id: 'research', label: 'Research' },
     { id: 'projects', label: 'Projects' },
     { id: 'experience', label: 'Experience' },
@@ -110,16 +114,151 @@ export const siteData = {
     { id: 'blog', label: 'Blog & Notes' },
     { id: 'documents', label: 'Documents & CV' },
     { id: 'media', label: 'Media' },
-    { id: 'vision', label: 'Future Vision' },
+    { id: 'vision', label: 'Future Vision & BHN' },
     { id: 'skills', label: 'Skills' },
     { id: 'contact', label: 'Contact' },
+  ],
+
+  services: [
+    {
+      id: 'technical-specification',
+      title: 'Technical Specification',
+      category: 'Biomedical Engineering & HTM',
+      brief: 'Development and review of technical specifications for biomedical and medical technology systems, equipment and procurement requirements.',
+      scope: [
+        'Translating clinical workflows into precise engineering parameters',
+        'Formulating IEC 60601 safety and performance criteria',
+        'Vendor specification comparative benchmarking',
+        'Tender technical document formulation and validation',
+      ],
+    },
+    {
+      id: 'procurement-and-purchasing',
+      title: 'Procurement and Purchasing',
+      category: 'Biomedical Engineering & HTM',
+      brief: 'Technical support for evaluating, comparing and selecting appropriate medical technologies and equipment based on clinical, technical and operational requirements.',
+      scope: [
+        'Pre-procurement clinical utility and site suitability assessment',
+        'Total cost of ownership and spare-parts viability evaluation',
+        'Facility power quality and environmental tolerance verification',
+        'Supplier technical compliance and warranty appraisal',
+      ],
+    },
+    {
+      id: 'commissioning-and-acceptance-testing',
+      title: 'Commissioning and Acceptance Testing',
+      category: 'Clinical Engineering & Quality',
+      brief: 'Technical verification and acceptance support to confirm that medical equipment meets defined specifications, safety requirements and operational expectations before clinical use.',
+      scope: [
+        'Electrical safety verification (chassis leakage, ground resistance)',
+        'Baseline output and accuracy calibration benchmarking',
+        'Manufacturer installation protocol compliance check',
+        'Safe handover documentation and clinical sign-off',
+      ],
+    },
+    {
+      id: 'installation',
+      title: 'Installation',
+      category: 'Clinical Engineering & Infrastructure',
+      brief: 'Technical coordination and support for installation, configuration and readiness of medical technology systems within healthcare environments.',
+      scope: [
+        'Environmental, spatial, and electrical readiness verification',
+        'Technical coordination with hospital engineering and clinical staff',
+        'Equipment physical assembly, mounting, and system interconnects',
+        'Initial power-up verification and functional testing',
+      ],
+    },
+    {
+      id: 'decommissioning',
+      title: 'Decommissioning',
+      category: 'Healthcare Technology Management',
+      brief: 'Structured technical support for safe retirement, removal and documentation of medical equipment at the end of its operational lifecycle.',
+      scope: [
+        'Equipment obsolescence and condition audit',
+        'Biohazard, radiation, and electrical risk isolation',
+        'Viable component salvage and parts-bank cataloging',
+        'Hospital inventory deregistration and disposal reporting',
+      ],
+    },
+    {
+      id: 'technical-medical-technology-consultation',
+      title: 'Technical Medical Technology Consultation',
+      category: 'Biomedical Engineering Advisory',
+      brief: 'Independent biomedical engineering consultation for healthcare technology planning, evaluation, troubleshooting and technology-management decisions.',
+      scope: [
+        'Hospital medical equipment inventory gap analysis',
+        'Preventive maintenance protocol design and optimization',
+        'Technical root-cause failure troubleshooting',
+        'Strategic healthcare technology management guidance',
+      ],
+    },
+    {
+      id: 'market-study-and-product-design',
+      title: 'Market Study and Product Design',
+      category: 'Medical Product Engineering',
+      brief: 'Technical and market-oriented analysis to identify healthcare technology needs and translate them into practical medical product concepts.',
+      scope: [
+        'Clinical unmet need identification and user workflow mapping',
+        'Frugal engineering principles for low-resource healthcare contexts',
+        'Conceptual CAD architecture and mechanical modularity',
+        'Ergonomic, usability, and clinical environment considerations',
+      ],
+    },
+    {
+      id: 'medical-device-regulations-and-standards',
+      title: 'Medical Device Regulations and Standards',
+      category: 'Regulatory & Compliance Guidance',
+      brief: 'Technical guidance for understanding relevant medical-device regulatory pathways, standards and compliance considerations during development and implementation.',
+      scope: [
+        'IEC 60601 medical electrical safety framework guidance',
+        'ISO 13485 quality management concept review',
+        'Technical documentation and design history file structuring',
+        'Risk management considerations according to ISO 14971',
+      ],
+    },
+    {
+      id: 'research-and-development',
+      title: 'Research and Development',
+      category: 'Applied Biomedical R&D',
+      brief: 'Collaborative biomedical engineering R&D spanning medical technology, biosignals, AI, digital health and rehabilitation-oriented applications.',
+      scope: [
+        'Biosignal conditioning and digital filtering pipeline design',
+        'Gait analysis and kinematic sensor data modeling',
+        'Explainable deep learning for clinical movement analysis',
+        'Translational experimental protocols and data collection',
+      ],
+    },
+    {
+      id: 'healthcare-system-digitalization',
+      title: 'Healthcare System Digitalization',
+      category: 'Digital Health & HTM',
+      brief: 'Exploration and technical development of digital approaches for improving healthcare technology management, information flow, monitoring and operational decision-making.',
+      scope: [
+        'Digital maintenance logging and equipment uptime tracking',
+        'Ambulatory patient telemetry and sensor data integration',
+        'Clinical asset tracking and inventory digital workflows',
+        'Data interoperability and digital health infrastructure concepts',
+      ],
+    },
+    {
+      id: 'medical-product-development',
+      title: 'Medical Product Development',
+      category: 'Medical Product Engineering',
+      brief: 'Support across early-stage medical technology development, including problem definition, technical requirements, concept development, prototyping considerations and product-oriented engineering.',
+      scope: [
+        'Translating clinical problems into engineering requirements',
+        'Sensor integration and embedded microcontroller prototyping',
+        'Safety-critical circuit topology and hardware interlocks',
+        'Benchtop validation protocols and functional testing',
+      ],
+    },
   ],
 
   about: {
     title: 'About',
     subtitle: 'Professional Engineering Evolution',
     leadParagraph:
-      'My mission as a biomedical engineer is defined by the deliberate convergence of building scalable healthcare medical devices, digital health platforms, applied AI in healthcare, and comprehensive healthcare technology management (HTM). Grounded in over three years of direct operational experience with hospital clinical engineering, medical equipment maintenance, and procurement in Ethiopia, my current work bridges hardware engineering with applied intelligence—advancing biosignal processing, generative AI & rehabilitation engineering, neuroimaging, and computer vision.',
+      'My mission as a biomedical engineer is defined by the deliberate convergence of building scalable healthcare medical devices, digital health platforms, applied AI in healthcare, and comprehensive healthcare technology management (HTM). Grounded in over three years of direct operational experience with hospital clinical engineering, medical equipment maintenance, and procurement in Ethiopia, my current work bridges hardware engineering with applied intelligence—advancing biosignal processing, gait analysis, rehabilitation engineering, neuroimaging, and computer vision.',
     
     sections: [
       {
@@ -128,7 +267,7 @@ export const siteData = {
         period: '2016 – 2021',
         institution: 'University of Gondar, Ethiopia',
         narrative:
-          'My academic foundation began with a Bachelor of Science in Biomedical Engineering at the University of Gondar, graduating with a 3.78/4.00 cumulative GPA. For my capstone thesis, I designed a simple, low-cost repetitive Transcranial Magnetic Stimulation (rTMS) system targeted for Major Depressive Disorder in resource-constrained clinics, earning Grade A distinction. This project established a core engineering conviction: that advanced therapeutic technology must be designed with simplicity, affordability, and practical clinical feasibility at its core.',
+          'My academic foundation began with a Bachelor of Science in Biomedical Engineering at the University of Gondar, graduating with a 3.78/4.00 cumulative GPA. For my capstone thesis, I designed a simple, low-cost repetitive Transcranial Magnetic Stimulation (rTMS) system targeted for Major Depressive Disorder in resource-constrained clinics, earning Grade A distinction. This project established a core engineering conviction: that advanced therapeutic technology must be designed with simplicity, accessibility, and practical clinical feasibility at its core.',
       },
       {
         id: 'clinical-practice',
@@ -144,7 +283,7 @@ export const siteData = {
         period: '2024 – 2025',
         institution: 'Shine Business PLC, Addis Ababa',
         narrative:
-          'As Technical Manager at Shine Business PLC in Addis Ababa, I directed engineering operations, supervised technical service teams, and managed client healthcare technology portfolios. My responsibilities centered on technical pre-procurement evaluations, installation oversight, calibration quality assurance, and user training across clinical specialties. This leadership role consolidated a systems-level mastery of medical technology lifecycles—connecting clinical requirements, vendor specifications, regulatory compliance, and post-market maintenance.',
+          'As Technical Manager at Shine Business PLC in Addis Ababa, I directed engineering operations, supervised technical service teams, and managed client healthcare technology portfolios. My responsibilities centered on technical pre-procurement evaluations, installation oversight, calibration quality assurance, and user training across clinical specialties. This leadership role consolidated practical experience across medical technology lifecycles—connecting clinical requirements, vendor specifications, regulatory compliance, and post-market maintenance.',
       },
       {
         id: 'computational-transition',
@@ -152,7 +291,7 @@ export const siteData = {
         period: 'July 2025 – Present',
         institution: 'Anna University, Chennai, India',
         narrative:
-          'Recognizing that next-generation healthcare demands scalable medical devices and actionable digital health intelligence, I advanced into graduate engineering research at Anna University. My engineering focus unites biosignal processing, generative AI for adaptive rehabilitation, neuroimaging, and computer vision—building resilient, clinically usable technologies engineered for scale.',
+          'Recognizing that next-generation healthcare demands scalable medical devices and actionable digital health intelligence, I advanced into graduate engineering research at Anna University. My engineering focus unites biosignal processing, gait analysis, rehabilitation engineering, neuroimaging, and computer vision—building resilient, clinically usable technologies engineered for scale.',
       },
     ],
 
@@ -163,141 +302,83 @@ export const siteData = {
     },
 
     cvAccess: {
-      status: 'Available Upon Request',
-      note: 'A comprehensive academic curriculum vitae detailing clinical engineering certifications, technical specifications, and graduate coursework is available for researchers, academic collaborators, and prospective institutions.',
-      actionLabel: 'Request Academic CV via Email',
-      requestEmail: '2025254026@student.annauniv.edu',
+      status: 'Available Online & Verified',
+      note: 'Official academic curriculum vitae detailing verified clinical engineering experience, technical specifications, and graduate coursework is available for researchers, academic collaborators, and institutions.',
+      actionLabel: 'Download Verified Academic CV (PDF)',
+      fileUrl: './assets/documents/Marye_Agegn_Academic_CV.pdf',
     },
   },
 
   research: {
-    title: 'Engineering & Applied Research',
-    subtitle: 'Biosignal Processing • Generative AI & Rehabilitation • Neuroimaging • Computer Vision',
-    graduateResearchFocus: {
-      title: 'Biosignal Processing, Generative AI & Rehabilitation Engineering',
-      status: 'Active Engineering & Research Direction',
+    title: 'Research & Academic Focus',
+    subtitle: 'Current Research • Academic & Research Interests • Future Directions',
+
+    // 1. CURRENT RESEARCH
+    currentResearch: {
+      title: 'Lower-Back Inertial Sensing, Mobility Assessment & Explainable AI in Healthcare',
+      status: 'Current Research (In Progress)',
       institution: 'Anna University, Chennai, India',
+      laboratory: 'Graduate Research in Gait Analysis',
       commenced: 'July 2025',
-      researchDirections: [
-        'Biosignal Processing',
-        'Generative AI (gAI)',
-        'Rehabilitation Engineering',
-        'Neuroimaging',
-        'Computer Vision',
-        'Building Scalable Medical Devices',
-        'Digital Health',
-        'Healthcare Technology Management',
-      ],
-      conceptualFocus:
-        'Focused on translating advanced engineering into scalable healthcare technologies and digital health platforms. Research pursuits center on processing complex biosignals, leveraging generative AI to develop personalized rehabilitation and assistive systems, decoding neuroimaging datasets, and deploying computer vision for automated patient mobility and diagnostic tracking.',
+      highLevelSummary:
+        'Conducting graduate research in gait analysis and mobility assessment using lower-back inertial sensing, with an emphasis on single-task and dual-task walking and explainable machine learning at Anna University, developing transparent computational representations to quantify clinically meaningful mobility biomarkers.',
       pillars: [
         {
-          title: 'Biosignal Processing',
-          summary: 'Acquisition, conditioning, and advanced filtering of physiological signals (ECG, EMG, EEG, and kinematic data) to extract critical clinical biomarkers for real-time patient monitoring.',
+          title: 'Lower-Back Inertial Sensing',
+          summary: 'Ambulatory kinematic data acquisition, sensor drift compensation, and dynamic coordinate alignment using compact wearable inertial measurement units positioned at the lumbar spine.',
         },
         {
-          title: 'Generative AI & Rehabilitation Engineering',
-          summary: 'Developing generative AI models and adaptive algorithms for assistive robotics, smart rehabilitation devices, personalized recovery regimens, and motor function restoration.',
+          title: 'Mobility Assessment & Gait Analysis',
+          summary: 'Systematic temporal-spatial gait characterization across baseline walking, dual-task cognitive loading conditions, and continuous ambulatory bouts.',
         },
         {
-          title: 'Neuroimaging & Neuromodulation',
-          summary: 'Computational neuroimaging analysis, functional brain mapping, and accessible non-invasive brain stimulation hardware (such as rTMS) for neurological and mental healthcare.',
+          title: 'Explainable Deep Learning',
+          summary: 'Developing transparent, interpretable machine learning models that extract salient movement representations from complex sensor time-series data.',
         },
         {
-          title: 'Computer Vision in Healthcare',
-          summary: 'Applying computer vision, markerless spatial tracking, and deep visual representation for contactless clinical gait assessment, patient posture analysis, and diagnostic imaging.',
+          title: 'Clinically Meaningful Mobility Parameters',
+          summary: 'Translating model outputs into robust, reproducible biomechanical biomarkers (stride regularity, step symmetry, dynamic balance indices) for healthcare monitoring.',
         },
       ],
-      disclaimer:
-        'Focused on translational feasibility, practical clinical utility, and scalable digital health deployment.',
+      notice:
+        'Note: Public research overview is limited to high-level conceptual directions. Detailed experimental protocols, proprietary methodologies, and unpublished results are preserved in academic archives.',
     },
-    currentMasterResearch: {
-      title: 'Biosignal Processing, Generative AI & Rehabilitation Engineering',
-      status: 'Active Engineering & Research Direction',
-      institution: 'Anna University, Chennai, India',
-      commenced: 'July 2025',
-      researchDirections: [
-        'Biosignal Processing',
-        'Generative AI (gAI)',
-        'Rehabilitation Engineering',
-        'Neuroimaging',
-        'Computer Vision',
-        'Building Scalable Medical Devices',
-        'Digital Health',
-        'Healthcare Technology Management',
+
+    // 2. ACADEMIC & RESEARCH INTERESTS
+    academicInterests: {
+      intro: 'My academic and research interests encompass the following biomedical and healthcare technology domains:',
+      items: [
+        { name: 'Biosignal Processing', tag: 'Physiological Conditioning' },
+        { name: 'Gait Analysis', tag: 'Biomechanics & Kinematics' },
+        { name: 'Rehabilitation Engineering', tag: 'Assistive Technologies' },
+        { name: 'Neuroimaging', tag: 'Brain Mapping & Neuromodulation' },
+        { name: 'Healthcare AI', tag: 'Clinical Decision Support' },
+        { name: 'Healthcare Digitalization', tag: 'Digital Health Telemetry' },
+        { name: 'Biomedical Signal Analysis', tag: 'Wavelet & Spectral Methods' },
+        { name: 'Explainable AI in Healthcare', tag: 'Transparent Machine Learning' },
+        { name: 'Medical Technology', tag: 'Hardware Instrumentation' },
+        { name: 'Biomedical Research and Development', tag: 'Translational Engineering' },
       ],
-      conceptualFocus:
-        'Focused on translating advanced engineering into scalable healthcare technologies and digital health platforms. Research pursuits center on processing complex biosignals, leveraging generative AI to develop personalized rehabilitation and assistive systems, decoding neuroimaging datasets, and deploying computer vision for automated patient mobility and diagnostic tracking.',
-      pillars: [
-        {
-          title: 'Biosignal Processing',
-          summary: 'Acquisition, conditioning, and advanced filtering of physiological signals (ECG, EMG, EEG, and kinematic data) to extract critical clinical biomarkers for real-time patient monitoring.',
-        },
-        {
-          title: 'Generative AI & Rehabilitation Engineering',
-          summary: 'Developing generative AI models and adaptive algorithms for assistive robotics, smart rehabilitation devices, personalized recovery regimens, and motor function restoration.',
-        },
-        {
-          title: 'Neuroimaging & Neuromodulation',
-          summary: 'Computational neuroimaging analysis, functional brain mapping, and accessible non-invasive brain stimulation hardware (such as rTMS) for neurological and mental healthcare.',
-        },
-        {
-          title: 'Computer Vision in Healthcare',
-          summary: 'Applying computer vision, markerless spatial tracking, and deep visual representation for contactless clinical gait assessment, patient posture analysis, and diagnostic imaging.',
-        },
-      ],
-      disclaimer:
-        'Focused on translational feasibility, practical clinical utility, and scalable digital health deployment.',
     },
-    broaderInterests: [
+
+    // 3. FUTURE RESEARCH DIRECTIONS
+    futureDirections: [
       {
-        category: 'Scalable Medical Devices & Hardware',
-        topics: [
-          'Building scalable, low-cost medical devices',
-          'Repetitive Transcranial Magnetic Stimulation (rTMS) systems',
-          'Wearable sensor telemetry & hardware integration',
-          'IEC 60601 medical electrical safety standards & compliance',
-        ],
+        theme: 'Scalable Wearable Telemetry',
+        description: 'Engineering ultra-low-burden wearable sensor architectures for continuous ambulatory monitoring in decentralized healthcare settings.',
       },
       {
-        category: 'Digital Health & AI in Healthcare',
-        topics: [
-          'Biosignal processing & real-time telemetry pipelines',
-          'Generative AI for rehabilitation & assistive technologies',
-          'Neuroimaging diagnostics & computational brain modeling',
-          'Computer vision for patient mobility & contactless monitoring',
-        ],
+        theme: 'Adaptive Assistive Rehabilitation',
+        description: 'Exploring adaptive signal processing models for assistive devices and objective recovery tracking.',
       },
       {
-        category: 'Healthcare Technology Management (HTM)',
-        topics: [
-          'Hospital medical device lifecycle & asset governance',
-          'Pre-procurement technical specification formulation',
-          'Preventive & corrective maintenance frameworks',
-          'Digital health implementation & technical capacity building',
-        ],
+        theme: 'Non-Invasive Neuromodulation Hardware',
+        description: 'Translating low-cost rTMS pulse circuit concepts into safe, standardized hardware platforms for accessible psychiatric and neurological care.',
       },
     ],
-    thematicExplorations: [
-      {
-        theme: 'Generative AI in Adaptive Rehabilitation',
-        description: 'Building intelligent rehabilitation engineering tools that adapt exercises and assistive feedback in real-time to patient functional recovery.',
-      },
-      {
-        theme: 'Neuroimaging & Accessible Neuromodulation',
-        description: 'Integrating computational neuroimaging with scalable non-invasive brain stimulation technologies for depression and neurological disorders.',
-      },
-      {
-        theme: 'Scalable Digital Health & Remote Monitoring',
-        description: 'Engineering low-burden digital health architectures that deliver real-time biosignal insights and computer vision monitoring to resource-constrained settings.',
-      },
-    ],
-    futureProjectsTemplate: {
-      fields: ['title', 'status', 'problem', 'objective', 'methodology', 'data', 'technologies', 'outputs', 'publications', 'links'],
-      note: 'Architecture prepared for adding supplementary research investigations as they are formalized.',
-    },
+
     scopeNote:
-      'The topics listed above reflect active research interests and exploratory areas for future collaborative investigation, not claims of completed studies in every area.',
+      'Notice: The academic interests and future directions listed above represent areas of active graduate inquiry, scholarly interest, and potential collaboration, clearly distinguished from verified past clinical engineering and operational management.',
   },
 
   projects: [
@@ -321,7 +402,7 @@ export const siteData = {
       outcome:
         'Successfully completed and defended the design model, validating theoretical circuit feasibility and component selection for low-cost neuromodulation hardware. Evaluated and awarded Grade A by the Department of Biomedical Engineering, University of Gondar.',
       researchRelevance:
-        'Established foundational expertise in medical instrumentation, electromagnetic physics, and safety-critical hardware design, providing an essential engineering foundation that connects physical medical device engineering to current graduate research in computational neurotechnology and biomedical signal processing.',
+        'Established foundational grounding in medical instrumentation, electromagnetic physics, and safety-critical hardware design, providing an essential engineering foundation that connects physical medical device engineering to current graduate research in computational neurotechnology and biomedical signal processing.',
       technologies: [
         'Electromagnetic Field Modeling',
         'High-Voltage Pulse Circuit Design',
@@ -477,27 +558,119 @@ export const siteData = {
   education: [
     {
       id: 'anna-university-meng',
-      degree: 'Master of Engineering (M.Eng.)',
+      degree: 'Master of Engineering (M.E.)',
       field: 'Biomedical Engineering',
+      curriculum: 'Anna University Regulations 2023 (CBCS) — Department of Biomedical Engineering',
       institution: 'Anna University',
       location: 'Chennai, India',
       period: 'July 2025 – Present',
       status: 'Current / In Progress',
       grade: null,
+      labAffiliation: 'Graduate Research in Gait Analysis & Mobility Assessment',
+      labWorkDetail:
+        'Graduate research in gait analysis and mobility assessment using lower-back inertial sensing, with an emphasis on single-task and dual-task walking and explainable machine learning at Anna University.',
       thesis: {
-        title: 'Applied Biomedical Engineering & Scalable Healthcare Systems',
+        title: 'Lower-Back Inertial Sensing, Mobility Assessment & Gait Analysis',
         status: 'Graduate Engineering & Research (In Progress)',
         institution: 'Anna University, Chennai',
       },
       researchConnection:
-        'Focusing on translational biomedical engineering—advancing biosignal processing, generative AI & rehabilitation engineering, neuroimaging, and computer vision to build scalable medical devices and digital health solutions.',
+        'Connecting official M.E. core coursework in Biosignal Processing, Medical Image Processing, Medical Imaging Systems, and Rehabilitation Engineering directly with current research in gait analysis.',
+      coreCourses: [
+        {
+          code: 'BO3107',
+          name: 'Biosignal Processing',
+          type: 'Professional Core Course & Lab',
+          credits: '5 Credits (3-0-4)',
+          highlights: 'Pan-Tompkin QRS detection, HRV spectral estimation, EEG/EMG filtering, adaptive noise cancellation, wavelet denoising, PCA feature extraction',
+        },
+        {
+          code: 'BO3203',
+          name: 'Medical Image Processing',
+          type: 'Professional Core Course & Lab',
+          credits: '5 Credits (3-0-4)',
+          highlights: 'Python edge detection, ROI segmentation, DWT analysis, image registration & fusion, deep learning classification, CT/MRI/PET reconstruction',
+        },
+        {
+          code: 'BO3106',
+          name: 'Medical Imaging Systems and Radio Therapy',
+          type: 'Professional Core Course',
+          credits: '3 Credits',
+          highlights: 'Physics of radiography, CT generations & reconstruction, MRI/fMRI pulse sequencing & RF coils, ultrasound Doppler & thermography, radiation dosimetry',
+        },
+        {
+          code: 'BO3251',
+          name: 'Rehabilitation Engineering and Assistive Technology',
+          type: 'Professional Core Course',
+          credits: '3 Credits',
+          highlights: 'Gait analysis & mobility rehabilitation assessment, functional electrical stimulation (FES), neuromodulation techniques, bionic arm, sensory substitution',
+        },
+        {
+          code: 'BO3204',
+          name: 'Medical Embedded Systems',
+          type: 'Professional Core Course & Lab',
+          credits: '5 Credits (3-0-4)',
+          highlights: 'ARM Cortex-M architecture, Raspberry Pi vital sign monitoring, sensor interfacing, Bluetooth/WiFi telemetry, single & multi-channel ECG/EMG PCB design',
+        },
+        {
+          code: 'BO3102',
+          name: 'Diagnostic and Therapeutic Equipment',
+          type: 'Professional Core Course',
+          credits: '3 Credits',
+          highlights: 'Bio-potential recording (ECG, EEG, EMG), cardiac pacemakers & defibrillators, heart-lung machines & assist devices, medical stimulators, IEC 60601 safety',
+        },
+        {
+          code: 'BO3201',
+          name: 'Hospital Administration and Equipment Management',
+          type: 'Professional Core Course',
+          credits: '3 Credits',
+          highlights: 'Healthcare technology management (HTM), medical equipment life cycle, maintenance guidelines, 5S tools, hospital safety & SOPs',
+        },
+        {
+          code: 'BO3112',
+          name: 'Advanced Biomedical Instrumentation Laboratory',
+          type: 'Practical Laboratory Course',
+          credits: '2 Credits (0-0-4)',
+          highlights: 'Bio-amplifiers simulation & design, physiological signal recording, patient monitoring biotelemetry, surgical diathermy testing, electrical safety analyzers',
+        },
+        {
+          code: 'RM3151',
+          name: 'Research Methodology and IPR',
+          type: 'Research & Intellectual Property',
+          credits: '3 Credits',
+          highlights: 'Research problem formulation, statistical experimental design, data analysis, patent filing, intellectual property rights (IPR)',
+        },
+      ],
+      specializedElectives: [
+        {
+          code: 'BO3015',
+          name: 'Biomechanics of Human Movement and Wearable Robotic Systems',
+          desc: 'Lower-limb exoskeleton control based on learned gait patterns, human movement kinematics, stance stabilization',
+        },
+        {
+          code: 'BO3029',
+          name: 'Wearable Body Area Networks',
+          desc: 'Inertia movement sensors, wearable ground reaction force sensors, optimal signal processing for wearables, gait analysis',
+        },
+        {
+          code: 'BO3019',
+          name: 'Neural Networks and Deep Learning',
+          desc: 'Deep feed-forward networks, CNN simulation for biosignals and medical images, regularization, early stopping',
+        },
+        {
+          code: 'BO3022',
+          name: 'Medical Device Regulations and Standards',
+          desc: 'IEC 60601 safety standards, ISO 13485 quality management, ISO/IEC 17025 testing and calibration',
+        },
+      ],
       keyFocus: [
-        'Biosignal Processing & Filtering',
-        'Generative AI & Rehabilitation Engineering',
-        'Neuroimaging & Neuromodulation',
-        'Computer Vision in Healthcare',
-        'Building Scalable Medical Devices',
-        'Digital Health & Telemetry',
+        'Biosignal Processing & Filtering (BO3107)',
+        'Medical Image Processing (BO3203)',
+        'Medical Imaging Systems (BO3106)',
+        'Gait Analysis & Rehabilitation Engineering (BO3251)',
+        'Medical Embedded Systems (BO3204)',
+        'Diagnostic & Therapeutic Equipment (BO3102)',
+        'Hospital Administration & HTM (BO3201)',
       ],
     },
     {
@@ -516,6 +689,10 @@ export const siteData = {
       },
       researchConnection:
         'Established core competencies in medical device design, electromagnetic principles, circuit modeling, and physiological systems, culminating in an evaluated capstone design project on accessible neuromodulation technology.',
+      curriculum: {
+        ...GONDAR_BSC_CURRICULUM_METADATA,
+        courses: GONDAR_BSC_COURSES,
+      },
       keyFocus: [
         'Medical Device Design & Simulation',
         'Biomechanics & Physiological Modeling',
@@ -527,13 +704,13 @@ export const siteData = {
   ],
 
   educationTrajectoryNote:
-    'Academic trajectory spans from rigorous undergraduate biomedical hardware engineering and neuromodulation design at the University of Gondar to advanced applied engineering in biosignal processing, generative AI, neuroimaging, and computer vision at Anna University.',
+    'Academic trajectory spans from undergraduate biomedical hardware engineering and neuromodulation design at the University of Gondar to graduate research in biosignal processing, gait analysis, medical imaging, and rehabilitation engineering at Anna University.',
 
   // Publications data model: explicitly empty per strict truth-in-content principle
   publications: {
     statusNote: 'Applied engineering publications and conference contributions are in active preparation.',
     editorialContext:
-      'In accordance with professional integrity, this section highlights active applied research and translational technology developments across biosignal processing, generative AI for rehabilitation engineering, neuroimaging, and computer vision.',
+      'In accordance with professional and academic integrity, manuscripts and publications arising from current graduate coursework and gait analysis research at Anna University will be documented here as they are finalized and submitted.',
     items: [],
     // Fully typed schema ready for future publication ingest
     schemaFields: [
@@ -840,40 +1017,50 @@ Ambulatory inertial recordings present unique signal processing hurdles: drift c
     trajectoryFormula: 'Scalable Medical Devices → Healthcare Technology Management → Digital Health → Biosignals & GenAI → Global Healthcare Impact',
     bhnInitiative: {
       name: 'Biomedical Horizon Network (BHN)',
-      status: 'Entrepreneurial Vision & Ecosystem Initiative Under Development',
-      badge: 'Conceptual Project',
+      status: 'Developing Professional & Academic Network Under Active Formation',
+      badge: 'Developing Network',
       summary:
-        'A developing healthcare engineering ecosystem designed to bridge hospitals, biomedical engineers, researchers, and technology manufacturers to solve critical medical equipment uptime and technology adoption challenges in emerging markets.',
+        'A developing professional and academic network focused on biomedical engineering, healthcare technology, and interdisciplinary collaboration.',
+      areas: [
+        'Academic Collaboration',
+        'Biomedical Engineering',
+        'Healthcare Technology',
+        'Biomedical Research',
+        'Medical Technology',
+        'Digital Health',
+        'Professional Development',
+        'Interdisciplinary Networking',
+      ],
       coreProblem:
-        'In many developing healthcare environments, millions of dollars of critical diagnostic and life-support equipment sit idle due to fragmented procurement, absent local maintenance capacity, erratic supply chains, and lack of specialized technical training.',
+        'In many developing healthcare environments, critical diagnostic and therapeutic equipment faces premature downtime due to fragmented procurement, lack of local maintenance capacity, absent technical specifications, and limited interdisciplinary training.',
       pillars: [
         {
           number: '01',
-          title: 'Lifecycle Healthcare Technology Management',
+          title: 'Healthcare Technology Management (HTM)',
           description:
-            'Establishing structured preventive maintenance contracts, calibrated testing protocols, and electrical safety standards (IEC 60601) to maximize hospital device uptime.',
+            'Promoting structured preventive maintenance protocols, equipment safety standards (IEC 60601), and technical asset management to maximize healthcare equipment uptime.',
         },
         {
           number: '02',
           title: 'Evidence-Based Procurement Advisory',
           description:
-            'Providing independent pre-procurement technical specification drafting and tender evaluation to ensure medical devices match local clinical infrastructure and electrical power reliability.',
+            'Sharing technical guidance for pre-procurement specification formulation, comparative equipment evaluation, and facility electrical infrastructure readiness.',
         },
         {
           number: '03',
-          title: 'Frugal Innovation & Collaborative Prototyping',
+          title: 'Academic & Research Collaboration',
           description:
-            'Bridging academic researchers and clinical engineers to design, adapt, and validate low-cost, open-hardware medical technologies engineered for resource-limited environments.',
+            'Connecting researchers, engineers, and clinical professionals to explore accessible medical technology concepts, digital health solutions, and signal processing innovations.',
         },
         {
           number: '04',
-          title: 'Technical Capacity Building & Training',
+          title: 'Technical Capacity Building & Knowledge Sharing',
           description:
-            'Empowering hospital technicians, clinical engineers, and healthcare workers with hands-on training in equipment safety, daily calibration, and diagnostic troubleshooting.',
+            'Supporting continuous professional development, technical documentation exchange, and practical clinical engineering training for biomedical professionals.',
         },
       ],
       disclaimer:
-        'Notice: The Biomedical Horizon Network (BHN) is an entrepreneurial vision and collaborative concept currently under developmental planning. It is presented as an intentional future trajectory rather than an established commercial enterprise.',
+        'Notice: The Biomedical Horizon Network (BHN) is an academic and professional initiative under developmental organization. Membership applications are reviewed individually by network leadership prior to activation.',
     },
   },
 };

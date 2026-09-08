@@ -180,11 +180,14 @@ export function About({ about }) {
 
             <div>
               <a
-                href={`mailto:${cvAccess.requestEmail}?subject=Academic%20CV%20Request%20-%20Marye%20Agegn`}
-                className="btn btn-secondary"
+                href={cvAccess.fileUrl || './assets/documents/Marye_Agegn_Academic_CV.pdf'}
+                download="Marye_Agegn_Academic_CV.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary"
                 style={{ whiteSpace: 'nowrap', fontSize: 'var(--font-size-sm)' }}
               >
-                {cvAccess.actionLabel} &rarr;
+                {cvAccess.actionLabel || 'Download Verified Academic CV (PDF)'} ↓
               </a>
             </div>
           </div>

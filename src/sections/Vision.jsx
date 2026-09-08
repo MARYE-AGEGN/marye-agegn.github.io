@@ -1,17 +1,28 @@
 import React from 'react';
 import { siteData } from '../data/siteData';
 
-export function Vision() {
+export function Vision({ onOpenBhnApplication }) {
   const { vision } = siteData;
 
   if (!vision) return null;
+
+  const handleApply = () => {
+    if (typeof onOpenBhnApplication === 'function') {
+      onOpenBhnApplication();
+    } else {
+      const contactEl = document.getElementById('contact');
+      if (contactEl) {
+        contactEl.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   return (
     <section id="vision" className="section vision-section" aria-labelledby="vision-heading">
       <div className="container">
         {/* Section Header */}
         <div className="section-header text-center">
-          <span className="section-badge">Long-Term Ambition</span>
+          <span className="section-badge">Strategic Trajectory</span>
           <h2 id="vision-heading" className="section-title">
             {vision.title}
           </h2>
@@ -19,7 +30,7 @@ export function Vision() {
         </div>
 
         {/* Lead Statement & Trajectory Formula */}
-        <div className="vision-lead-box card text-center p-8 mb-10">
+        <div className="vision-lead-box card text-center p-8 mb-10" style={{ background: '#ffffff', borderRadius: 'var(--radius-lg)' }}>
           <p className="vision-lead-text">{vision.leadStatement}</p>
           <div className="trajectory-equation-pill mt-6">
             <span className="equation-label">Strategic Trajectory:</span>
@@ -27,9 +38,9 @@ export function Vision() {
           </div>
         </div>
 
-        {/* Entrepreneurial Initiative: Biomedical Horizon Network (BHN) */}
+        {/* Developing Initiative: Biomedical Horizon Network (BHN) */}
         {vision.bhnInitiative && (
-          <div className="bhn-container card p-8">
+          <div className="bhn-container card p-8" style={{ background: '#ffffff', borderRadius: 'var(--radius-lg)' }}>
             <div className="bhn-header">
               <div className="bhn-header-flex">
                 <div className="bhn-logo-wrapper">
@@ -51,6 +62,34 @@ export function Vision() {
                 </div>
               </div>
             </div>
+
+            {/* Focus Areas Chips */}
+            {vision.bhnInitiative.areas && (
+              <div style={{ marginTop: 'var(--space-6)' }}>
+                <h4 style={{ fontSize: 'var(--font-size-xs)', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted)', marginBottom: 'var(--space-2)' }}>
+                  Active Collaborative Focus Areas:
+                </h4>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {vision.bhnInitiative.areas.map((area, idx) => (
+                    <span
+                      key={idx}
+                      className="badge"
+                      style={{
+                        padding: '4px 10px',
+                        background: 'rgba(15, 118, 110, 0.08)',
+                        color: 'var(--color-secondary, #0f766e)',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        borderRadius: 'var(--radius-full)',
+                        border: '1px solid rgba(15, 118, 110, 0.2)',
+                      }}
+                    >
+                      {area}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Core Problem Callout */}
             <div className="bhn-problem-card card mt-6 p-6">
@@ -74,9 +113,23 @@ export function Vision() {
               <p className="text-muted text-sm italic">{vision.bhnInitiative.disclaimer}</p>
             </div>
 
-            <div className="bhn-cta-row text-center mt-6">
-              <a href="#contact" className="btn btn-primary">
-                Discuss Collaborative Opportunities in Health Tech →
+            {/* BHN Action Buttons */}
+            <div className="bhn-cta-row text-center mt-6 flex flex-wrap justify-center gap-4">
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleApply}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontWeight: 600,
+                }}
+              >
+                <span>Become a BHN Member ✨</span>
+              </button>
+              <a href="#contact" className="btn btn-secondary">
+                Discuss Interdisciplinary Opportunities →
               </a>
             </div>
           </div>
