@@ -23,8 +23,8 @@ export const generateDynamicResponse = async (query, context = {}, previousMessa
     return null; // Fallback to static mode seamlessly
   }
 
-  // Use gemini-1.5-flash for fast chat responses
-  const model = instance.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  // Use gemini-1.5-pro for advanced professional reasoning
+  const model = instance.getGenerativeModel({ model: 'gemini-1.5-pro' });
 
   // Construct system prompt enforcing strict AI_POLICY
   let systemPrompt = `You are Biomedical MARDA (Marye Agegn Realtime Digital Assistant), representing Marye Agegn.
