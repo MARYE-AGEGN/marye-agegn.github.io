@@ -24,7 +24,7 @@ export const generateDynamicResponse = async (query, context = {}, previousMessa
   }
 
   // Use gemini-1.5-pro for advanced professional reasoning
-  const model = instance.getGenerativeModel({ model: 'gemini-1.5-pro' });
+  const model = instance.getGenerativeModel({ model: 'gemini-3.1-pro' });
 
   // Construct system prompt enforcing strict AI_POLICY
   let systemPrompt = `You are Biomedical MARDA (Marye Agegn Realtime Digital Assistant), representing Marye Agegn.
