@@ -19,7 +19,8 @@ const getGeminiInstance = () => {
 export const generateDynamicResponse = async (query, context = {}, previousMessages = []) => {
   const instance = getGeminiInstance();
   if (!instance) {
-    return null; // Fallback to static text
+    console.error('Gemini API Key missing!');
+    return `[System: VITE_GEMINI_API_KEY is missing. Falling back to static mode.]\n\n` + context.staticFallbackText;
   }
 
   // Use gemini-1.5-flash for fast chat responses
@@ -90,6 +91,6 @@ Current Context:
     return result.response.text();
   } catch (err) {
     console.error('Gemini Generation Error:', err);
-    return null; // fallback
+    return `[System: Gemini API request failed. Error: ${err.message}. Falling back to static mode.]\n\n` + context.staticFallbackText;
   }
 };

@@ -307,7 +307,7 @@ export function ChatAssistant({ onOpenCollaboration, onOpenServiceRequest, onOpe
           aria-label="Open AI Technical Assistant"
         >
           <span style={{ fontSize: '1rem' }}>🩺</span>
-          <span>Technical Consultation AI</span>
+          <span>Biomedical MARDA</span>
           {adminResponseAlert && (
             <span
               style={{
@@ -355,7 +355,7 @@ export function ChatAssistant({ onOpenCollaboration, onOpenServiceRequest, onOpe
               <span style={{ fontSize: '1.2rem' }}>🩺</span>
               <div>
                 <h3 style={{ fontSize: '0.88rem', fontWeight: 700, margin: 0, color: '#ffffff' }}>
-                  AI Technical Consultation
+                  Biomedical MARDA
                 </h3>
                 <span style={{ fontSize: '0.65rem', opacity: 0.9 }}>
                   Biomedical Engineering &bull; Specifications &bull; Research

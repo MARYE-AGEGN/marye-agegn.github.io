@@ -406,7 +406,7 @@ export const SEED_WEBINARS = [
     isPublished: true,
     visibility: CONTENT_VISIBILITY.PUBLIC,
     thumbnail: './assets/images/webinar-imu-cover.jpg',
-    registrationUrl: 'https://forms.gle/sample-bme-career-session',
+    registrationUrl: '#registration',
     liveEventUrl: 'https://youtube.com/live/sample-bme-career-stream',
     recordingUrl: null,
     videoProvider: VIDEO_PROVIDERS.YOUTUBE,
