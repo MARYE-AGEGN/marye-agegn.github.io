@@ -45,6 +45,20 @@ export class ConsultationStore {
    */
   static async createThread(initialData = {}) {
     const sessionToken = this.getSessionToken();
+    let visitorIp = 'Unknown';
+    let visitorLocation = 'Unknown';
+
+    try {
+      const response = await fetch('https://ipapi.co/json/');
+      if (response.ok) {
+        const data = await response.json();
+        visitorIp = data.ip || 'Unknown';
+        visitorLocation = `${data.city || ''}, ${data.region || ''}, ${data.country_name || ''}`.replace(/^, | , | ,$/g, '').trim();
+      }
+    } catch (e) {
+      console.warn('Failed to fetch visitor location', e);
+    }
+
     const threadPayload = {
       session_token: sessionToken,
       user_name: initialData.userName || null,
@@ -64,6 +78,8 @@ export class ConsultationStore {
       evidence_status: initialData.evidenceStatus || 'UNVERIFIED',
       status: initialData.status || 'New',
       priority: initialData.priority || 'Normal',
+      visitor_ip: visitorIp,
+      visitor_location: visitorLocation,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -329,6 +345,39 @@ export class ConsultationStore {
         await query;
       } catch (e) {
         console.warn('Supabase updateThreadRequirements warning:', e);
+      }
+    }
+
+    const threads = this.getLocalThreads();
+    const idx = threads.findIndex((t) => t.id === threadId);
+    if (idx !== -1) {
+      threads[idx] = { ...threads[idx], ...payload };
+      this.saveLocalThreads(threads);
+    }
+    return true;
+  }
+
+  /**
+   * Updates consultation thread status
+   */
+  static async updateThreadStatus(threadId, status) {
+    if (!threadId) return null;
+    const sessionToken = this.getSessionToken();
+    const payload = {
+      status: status,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const query = supabase
+          .from('consultation_threads')
+          .update(payload)
+          .eq('id', threadId);
+        if (typeof query.setHeader === 'function') query.setHeader('x-session-token', sessionToken);
+        await query;
+      } catch (e) {
+        console.warn('Supabase updateThreadStatus warning:', e);
       }
     }
 

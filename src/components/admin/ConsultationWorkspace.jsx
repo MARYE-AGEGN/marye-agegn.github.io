@@ -96,6 +96,27 @@ export function ConsultationWorkspace() {
     }
   };
 
+  // Reject Request
+  const handleRejectRequest = async () => {
+    if (!selectedThread) return;
+    const confirm = window.confirm("Are you sure you want to reject this request?");
+    if (!confirm) return;
+
+    try {
+      await ConsultationStore.updateThreadStatus(selectedThread.id, 'Rejected');
+      await ConsultationStore.appendMessage(selectedThread.id, 'admin', 'This request has been reviewed and rejected by the administration.');
+      setActionNotice('Request successfully rejected.');
+      await loadThreads();
+      const updatedThread = { ...selectedThread, status: 'Rejected' };
+      setSelectedThread(updatedThread);
+      const msgs = await ConsultationStore.getThreadMessages(selectedThread.id);
+      setMessages(msgs);
+    } catch (e) {
+      console.error(e);
+      setActionNotice('Failed to reject the request.');
+    }
+  };
+
   const filteredThreads = threads.filter((t) => {
     if (statusFilter === 'All') return true;
     return t.status === statusFilter;
@@ -135,6 +156,7 @@ export function ConsultationWorkspace() {
             <option value="Awaiting Admin Review">Awaiting Admin Review</option>
             <option value="Admin Responded">Admin Responded</option>
             <option value="Resolved">Resolved</option>
+            <option value="Rejected">Rejected</option>
           </select>
         </div>
 
@@ -170,8 +192,8 @@ export function ConsultationWorkspace() {
                         padding: '2px 6px',
                         borderRadius: '10px',
                         fontWeight: 600,
-                        background: isAwaiting ? '#fef3c7' : t.status === 'Admin Responded' ? '#dcfce7' : '#e0f2fe',
-                        color: isAwaiting ? '#92400e' : t.status === 'Admin Responded' ? '#166534' : '#0369a1',
+                        background: isAwaiting ? '#fef3c7' : t.status === 'Admin Responded' ? '#dcfce7' : t.status === 'Rejected' ? '#fee2e2' : '#e0f2fe',
+                        color: isAwaiting ? '#92400e' : t.status === 'Admin Responded' ? '#166534' : t.status === 'Rejected' ? '#991b1b' : '#0369a1',
                       }}
                     >
                       {t.status}
@@ -204,8 +226,33 @@ export function ConsultationWorkspace() {
                   <div style={{ fontSize: '0.78rem', color: '#475569' }}>
                     <strong>Email:</strong> {selectedThread.email || 'Not provided'} &bull; <strong>Domain:</strong> {selectedThread.technical_domain}
                   </div>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '4px' }}>
+                    <strong>Submitted:</strong> {new Date(selectedThread.created_at).toLocaleString()} &bull; <strong>Location:</strong> {selectedThread.visitor_location || 'Unknown'} (IP: {selectedThread.visitor_ip || 'Unknown'})
+                  </div>
                 </div>
-                <button
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={handleRejectRequest}
+                    disabled={isInvestigating || selectedThread.status === 'Rejected'}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#fee2e2',
+                      color: '#991b1b',
+                      border: '1px solid #fecaca',
+                      borderRadius: '6px',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      cursor: (isInvestigating || selectedThread.status === 'Rejected') ? 'not-allowed' : 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <span>🚫</span>
+                    <span>Reject</span>
+                  </button>
+                  <button
                   type="button"
                   onClick={handleInvestigate}
                   disabled={isInvestigating}

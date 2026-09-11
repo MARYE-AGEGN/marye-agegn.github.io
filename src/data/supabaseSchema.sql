@@ -502,6 +502,8 @@ CREATE TABLE IF NOT EXISTS public.consultation_threads (
   priority TEXT DEFAULT 'Normal',
   admin_response TEXT,
   admin_responded_at TIMESTAMPTZ,
+  visitor_ip TEXT,
+  visitor_location TEXT,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );

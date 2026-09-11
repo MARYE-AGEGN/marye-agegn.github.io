@@ -19,6 +19,7 @@ import { defaultServiceRouter } from './serviceRouter.js';
 import { TechnicalSourceRetriever } from './technicalSourceRetriever.js';
 import { ConsultationStore } from './consultationStore.js';
 import { searchWebinarsAndVideos } from '../../data/contentStore.js';
+import { generateDynamicResponse } from './geminiService.js';
 
 export class BiomedicalConcierge {
   /**
@@ -26,6 +27,31 @@ export class BiomedicalConcierge {
    * structures consultation context, and routes to appropriate service.
    */
   static async processMessage(rawQuery = '', sessionContext = {}) {
+    const staticResult = await this._processMessageStatic(rawQuery, sessionContext);
+    
+    // Attempt dynamic generation using Gemini
+    let prevMessages = [];
+    if (sessionContext.activeThreadId) {
+      prevMessages = await ConsultationStore.getThreadMessages(sessionContext.activeThreadId);
+    }
+    
+    const context = {
+      detectedIntent: IntentEngine.analyzeMessage(rawQuery).detectedIntent,
+      technicalDomain: IntentEngine.analyzeMessage(rawQuery).technicalDomain,
+      requirements: staticResult.structuredRequirements,
+      staticFallbackText: staticResult.replyText,
+    };
+    
+    const dynamicText = await generateDynamicResponse(rawQuery, context, prevMessages);
+    
+    if (dynamicText) {
+      staticResult.replyText = dynamicText;
+    }
+    
+    return staticResult;
+  }
+
+  static async _processMessageStatic(rawQuery = '', sessionContext = {}) {
     const analysis = IntentEngine.analyzeMessage(rawQuery);
     const { detectedIntent, classification, technicalDomain, actionType, rawQuery: query } = analysis;
     const lower = query.toLowerCase();
