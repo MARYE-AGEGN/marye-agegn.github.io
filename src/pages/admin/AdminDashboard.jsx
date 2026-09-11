@@ -20,6 +20,9 @@ import {
   getBhnApplications,
   updateBhnApplicationStatus,
   uploadCvPdf,
+  getWebinars,
+  saveWebinar,
+  deleteWebinar,
 } from '../../data/contentStore';
 import { getMediaLibrary } from '../../data/mediaStore';
 import { UniversalFileUploader } from '../../components/common/UniversalFileUploader';
@@ -62,6 +65,8 @@ export function AdminDashboard() {
   const [editingResearch, setEditingResearch] = useState(null);
   const [editingDoc, setEditingDoc] = useState(null);
   const [editingMedia, setEditingMedia] = useState(null);
+  const [webinarList, setWebinarList] = useState([]);
+  const [editingWebinar, setEditingWebinar] = useState(null);
 
   // Media picker modal state for content editors
   const [pickerConfig, setPickerConfig] = useState(null); // { target: 'doc'|'media'|'postImage'|'researchFigure', filter: 'all'|'image'|'document'|'video' }
@@ -145,7 +150,7 @@ export function AdminDashboard() {
   useEffect(() => {
     if (!isAuthenticated) return;
     async function loadAll() {
-      const [allPosts, allResearch, allDocs, allMedia, allMsgs, allCollabs, allInq, allBhn] = await Promise.all([
+      const [allPosts, allResearch, allDocs, allMedia, allMsgs, allCollabs, allInq, allBhn, allWebinars] = await Promise.all([
         getPosts(true),
         getResearchUpdates(true),
         getDocuments(),
@@ -154,6 +159,7 @@ export function AdminDashboard() {
         getInboundCollaborations(),
         getInquiries(),
         getBhnApplications(),
+        getWebinars({ includeDrafts: true, includePrivate: true }),
       ]);
       setPosts(allPosts);
       setResearchUpdates(allResearch);
@@ -163,6 +169,7 @@ export function AdminDashboard() {
       setCollaborations(allCollabs);
       setInquiries(allInq);
       setBhnApplications(allBhn);
+      setWebinarList(allWebinars || []);
       setMediaLibraryItems(getMediaLibrary());
     }
     loadAll();
@@ -305,6 +312,21 @@ export function AdminDashboard() {
   async function handleDeleteMedia(id) {
     if (window.confirm('Delete this media item?')) {
       await deleteMediaItem(id);
+      setRefreshTrigger((prev) => prev + 1);
+    }
+  }
+
+  // Webinar & Educational Session Actions
+  async function handleSaveWebinar(e) {
+    e.preventDefault();
+    await saveWebinar(editingWebinar);
+    setEditingWebinar(null);
+    setRefreshTrigger((prev) => prev + 1);
+  }
+
+  async function handleDeleteWebinar(id) {
+    if (window.confirm('Are you sure you want to delete this webinar record?')) {
+      await deleteWebinar(id);
       setRefreshTrigger((prev) => prev + 1);
     }
   }
@@ -533,6 +555,7 @@ export function AdminDashboard() {
             { id: 'posts', label: `📝 Articles (${posts.length})` },
             { id: 'research', label: `🔬 Research Updates (${researchUpdates.length})` },
             { id: 'media', label: `🎥 Media Items (${mediaItems.length})` },
+            { id: 'webinars', label: `🎙️ Webinars (${webinarList.length})` },
             { id: 'messages', label: `📨 Collab Archive (${collaborations.length})` },
             { id: 'settings', label: '⚙️ Database Settings' },
           ];
@@ -2024,6 +2047,358 @@ export function AdminDashboard() {
                               type="button"
                               className="btn btn-outline-danger btn-xs"
                               onClick={() => handleDeleteMedia(item.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ------------------------------------------------------- */}
+        {/* TAB: WEBINARS & EDUCATIONAL SESSIONS MANAGEMENT */}
+        {/* ------------------------------------------------------- */}
+        {activeTab === 'webinars' && (
+          <div className="webinars-tab-view space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>
+                  Webinars &amp; Video Registry ({webinarList.length})
+                </h2>
+                <p className="text-sm text-muted">
+                  Schedule live masterclasses, publish recorded workshops, and manage video tutorial registries.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() =>
+                  setEditingWebinar({
+                    title: '',
+                    slug: '',
+                    description: '',
+                    speaker: 'Marye Agegn',
+                    speakerTitle: 'Biomedical Engineer & Researcher',
+                    topic: 'Biosignal Processing',
+                    category: 'Biosignals',
+                    date: new Date().toISOString().split('T')[0],
+                    startTime: '14:00 UTC',
+                    duration: '60 min',
+                    status: 'UPCOMING',
+                    isPublished: true,
+                    visibility: 'public',
+                    registrationUrl: '',
+                    liveEventUrl: '',
+                    recordingUrl: '',
+                    transcript: '',
+                  })
+                }
+              >
+                ➕ Schedule / Create Webinar
+              </button>
+            </div>
+
+            {/* Webinar Edit Form */}
+            {editingWebinar && (
+              <div
+                className="card p-6 border border-primary"
+                style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}
+              >
+                <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+                  <h3 className="text-lg font-bold" style={{ color: 'var(--color-text)' }}>
+                    {editingWebinar.id ? 'Edit Webinar / Video Session' : 'Schedule New Webinar'}
+                  </h3>
+                  <button
+                    type="button"
+                    className="text-slate-400 hover:text-slate-600 text-lg"
+                    onClick={() => setEditingWebinar(null)}
+                  >
+                    &times;
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveWebinar} className="space-y-4">
+                  <div className="form-grid-2">
+                    <div className="form-group">
+                      <label>Webinar Title *</label>
+                      <input
+                        type="text"
+                        required
+                        value={editingWebinar.title}
+                        onChange={(e) =>
+                          setEditingWebinar({
+                            ...editingWebinar,
+                            title: e.target.value,
+                            slug: editingWebinar.slug || e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                          })
+                        }
+                        placeholder="e.g. Real-Time Biosignal Conditioning"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>URL Slug</label>
+                      <input
+                        type="text"
+                        value={editingWebinar.slug || ''}
+                        onChange={(e) => setEditingWebinar({ ...editingWebinar, slug: e.target.value })}
+                        placeholder="e.g. real-time-biosignal-conditioning"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-grid-3">
+                    <div className="form-group">
+                      <label>Category / Topic *</label>
+                      <select
+                        value={editingWebinar.category || 'Biosignals'}
+                        onChange={(e) =>
+                          setEditingWebinar({ ...editingWebinar, category: e.target.value, topic: e.target.value })
+                        }
+                      >
+                        <option value="Biosignals">Biosignals &amp; Physiological Filtering</option>
+                        <option value="Biomechanics">Biomechanics &amp; Wearable Sensors</option>
+                        <option value="Medical Devices">Medical Device Electrical Safety &amp; Standards</option>
+                        <option value="Healthcare Infrastructure">Healthcare Infrastructure &amp; Telemetry</option>
+                        <option value="Neuroengineering">Neuroengineering &amp; EEG</option>
+                        <option value="Consultation">Clinical Specification &amp; Procurement</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Lifecycle Status *</label>
+                      <select
+                        value={editingWebinar.status}
+                        onChange={(e) => setEditingWebinar({ ...editingWebinar, status: e.target.value })}
+                      >
+                        <option value="UPCOMING">UPCOMING (Scheduled for Future)</option>
+                        <option value="LIVE">LIVE NOW (Active Broadcast)</option>
+                        <option value="RECORDED">RECORDED (Available on Demand)</option>
+                        <option value="ARCHIVED">ARCHIVED (Historical Reference)</option>
+                        <option value="DRAFT">DRAFT (Unpublished / In Planning)</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Visibility *</label>
+                      <select
+                        value={editingWebinar.visibility || 'public'}
+                        onChange={(e) => setEditingWebinar({ ...editingWebinar, visibility: e.target.value })}
+                      >
+                        <option value="public">Public (Visible to All Visitors)</option>
+                        <option value="private">Private (Admin / Partner Gated)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="form-grid-3">
+                    <div className="form-group">
+                      <label>Speaker Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={editingWebinar.speaker}
+                        onChange={(e) => setEditingWebinar({ ...editingWebinar, speaker: e.target.value })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Event Date *</label>
+                      <input
+                        type="date"
+                        required
+                        value={editingWebinar.date}
+                        onChange={(e) => setEditingWebinar({ ...editingWebinar, date: e.target.value })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Start Time &amp; Duration</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="e.g. 14:00 UTC"
+                          value={editingWebinar.startTime || ''}
+                          onChange={(e) => setEditingWebinar({ ...editingWebinar, startTime: e.target.value })}
+                        />
+                        <input
+                          type="text"
+                          placeholder="e.g. 60 min"
+                          value={editingWebinar.duration || ''}
+                          onChange={(e) => setEditingWebinar({ ...editingWebinar, duration: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="form-grid-2">
+                    <div className="form-group">
+                      <label>Live Stream / Event URL</label>
+                      <input
+                        type="text"
+                        placeholder="https://youtube.com/live/... or stream embed"
+                        value={editingWebinar.liveEventUrl || ''}
+                        onChange={(e) => setEditingWebinar({ ...editingWebinar, liveEventUrl: e.target.value })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Recording Embed URL (YouTube/Vimeo)</label>
+                      <input
+                        type="text"
+                        placeholder="https://www.youtube.com/embed/..."
+                        value={editingWebinar.recordingUrl || ''}
+                        onChange={(e) => setEditingWebinar({ ...editingWebinar, recordingUrl: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Registration URL (For Upcoming Sessions)</label>
+                    <input
+                      type="text"
+                      placeholder="https://forms.gle/... or registration page"
+                      value={editingWebinar.registrationUrl || ''}
+                      onChange={(e) => setEditingWebinar({ ...editingWebinar, registrationUrl: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Description &amp; Abstract *</label>
+                    <textarea
+                      rows="3"
+                      required
+                      value={editingWebinar.description}
+                      onChange={(e) => setEditingWebinar({ ...editingWebinar, description: e.target.value })}
+                      placeholder="Detailed technical session outline..."
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Session Transcript &amp; Timestamps</label>
+                    <textarea
+                      rows="3"
+                      value={editingWebinar.transcript || ''}
+                      onChange={(e) => setEditingWebinar({ ...editingWebinar, transcript: e.target.value })}
+                      placeholder="00:00 - Introduction&#10;15:30 - Digital Filter Pipeline..."
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2">
+                    <input
+                      type="checkbox"
+                      id="webinar-is-published"
+                      checked={editingWebinar.isPublished}
+                      onChange={(e) => setEditingWebinar({ ...editingWebinar, isPublished: e.target.checked })}
+                    />
+                    <label htmlFor="webinar-is-published" className="text-sm font-semibold">
+                      Published to Public Website (Uncheck for Draft status)
+                    </label>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button type="button" className="btn btn-secondary" onClick={() => setEditingWebinar(null)}>
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary">
+                      Save Webinar Event
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Webinars Table */}
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Title &amp; Speaker</th>
+                    <th>Date / Time</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Visibility</th>
+                    <th>Published</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {webinarList.length === 0 ? (
+                    <tr>
+                      <td colSpan="7" className="text-center py-6 text-muted">
+                        No webinars recorded yet. Click "Schedule / Create Webinar" to add an event.
+                      </td>
+                    </tr>
+                  ) : (
+                    webinarList.map((webinar) => (
+                      <tr key={webinar.id}>
+                        <td>
+                          <div className="font-bold text-slate-900">{webinar.title}</div>
+                          <div className="text-xs text-muted">{webinar.speaker}</div>
+                        </td>
+                        <td className="text-xs font-mono">
+                          {webinar.date}
+                          {webinar.startTime ? ` • ${webinar.startTime}` : ''}
+                        </td>
+                        <td>
+                          <span className="badge category-badge">{webinar.category}</span>
+                        </td>
+                        <td>
+                          <span
+                            className="badge font-bold text-xs"
+                            style={{
+                              background:
+                                webinar.status === 'LIVE'
+                                  ? '#fee2e2'
+                                  : webinar.status === 'UPCOMING'
+                                  ? '#eff6ff'
+                                  : webinar.status === 'RECORDED'
+                                  ? '#f0fdf4'
+                                  : '#f1f5f9',
+                              color:
+                                webinar.status === 'LIVE'
+                                  ? '#dc2626'
+                                  : webinar.status === 'UPCOMING'
+                                  ? '#1d4ed8'
+                                  : webinar.status === 'RECORDED'
+                                  ? '#15803d'
+                                  : '#475569',
+                            }}
+                          >
+                            {webinar.status}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className="badge text-xs"
+                            style={{
+                              background: webinar.visibility === 'private' ? '#fef3c7' : '#e0e7ff',
+                              color: webinar.visibility === 'private' ? '#b45309' : '#3730a3',
+                            }}
+                          >
+                            {webinar.visibility || 'public'}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`badge ${webinar.isPublished ? 'badge-success' : 'badge-warning'}`}>
+                            {webinar.isPublished ? '✓ Published' : 'Draft'}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="btn-group">
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-xs"
+                              onClick={() => setEditingWebinar(webinar)}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-outline-danger btn-xs"
+                              onClick={() => handleDeleteWebinar(webinar.id)}
                             >
                               Delete
                             </button>

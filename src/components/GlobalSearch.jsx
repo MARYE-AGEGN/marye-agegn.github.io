@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { siteData } from '../data/siteData';
-import { getPosts, getDocuments, getMediaItems } from '../data/contentStore';
+import { getPosts, getDocuments, getMediaItems, getWebinars } from '../data/contentStore';
 
 export function GlobalSearch({ isOpen, onClose }) {
   const [query, setQuery] = useState('');
@@ -10,7 +10,12 @@ export function GlobalSearch({ isOpen, onClose }) {
 
   useEffect(() => {
     async function buildSearchIndex() {
-      const [posts, docs, media] = await Promise.all([getPosts(), getDocuments(), getMediaItems()]);
+      const [posts, docs, media, webinars] = await Promise.all([
+        getPosts(),
+        getDocuments(),
+        getMediaItems(),
+        getWebinars({ includeDrafts: false, includePrivate: false }),
+      ]);
 
       const index = [];
 
@@ -67,6 +72,17 @@ export function GlobalSearch({ isOpen, onClose }) {
           snippet: m.description || '',
           url: '#media',
           category: m.category,
+        });
+      });
+
+      // 5.5 Webinars & Talks
+      webinars.forEach((w) => {
+        index.push({
+          type: 'Webinar',
+          title: `[${w.status}] ${w.title}`,
+          snippet: `${w.speaker} • ${w.date} • ${w.description || ''}`,
+          url: '#webinars',
+          category: w.category || w.topic,
         });
       });
 

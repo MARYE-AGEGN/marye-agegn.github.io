@@ -250,6 +250,88 @@ export function ConsultationWorkspace() {
               </div>
             </div>
 
+            {/* Structured Consultation Analysis (Requirement 28) */}
+            {(() => {
+              const reqs = selectedThread.important_requirements || {};
+              const identifiedList = Array.isArray(reqs.identified)
+                ? reqs.identified
+                : Array.isArray(reqs)
+                ? reqs
+                : [];
+              const missingList = Array.isArray(reqs.missing) ? reqs.missing : [];
+              const detectedNeed = reqs.technicalNeed || selectedThread.user_objective || 'Biomedical technical advisory';
+              const pricingReq = reqs.pricingRequested || selectedThread.detected_intent === 'pricing_inquiry' ? 'YES' : 'NO';
+              const adminVerif = reqs.adminVerificationRequired || selectedThread.evidence_status === 'ADMIN VERIFICATION REQUIRED' ? 'YES' : 'NO';
+
+              return (
+                <div style={{ background: '#ffffff', padding: '16px', borderRadius: '8px', border: '1px solid #cbd5e1', boxShadow: '0 2px 4px rgba(0,0,0,0.03)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <h4 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>📋</span>
+                      <span>Structured Consultation Context</span>
+                    </h4>
+                    <span style={{ fontSize: '0.68rem', padding: '2px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontWeight: 600 }}>
+                      Status: {selectedThread.status?.toUpperCase() || 'NEW CONSULTATION'}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', fontSize: '0.74rem', marginBottom: '12px' }}>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.68rem', fontWeight: 600 }}>DOMAIN</span>
+                      <strong style={{ color: '#0f172a' }}>{selectedThread.technical_domain || 'Biomedical Engineering'}</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.68rem', fontWeight: 600 }}>VISITOR OBJECTIVE</span>
+                      <strong style={{ color: '#0f172a' }}>{selectedThread.user_objective || selectedThread.conversation_summary || 'Technical exploration'}</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.68rem', fontWeight: 600 }}>DETECTED NEED</span>
+                      <strong style={{ color: '#0284c7' }}>{detectedNeed}</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.68rem', fontWeight: 600 }}>RECOMMENDED SERVICE</span>
+                      <strong style={{ color: '#166534' }}>{selectedThread.recommended_service || 'Technical Medical Technology Consultation'}</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.68rem', fontWeight: 600 }}>PRICING REQUESTED</span>
+                      <span style={{ fontWeight: 700, color: pricingReq === 'YES' ? '#b45309' : '#475569' }}>{pricingReq}</span>
+                    </div>
+                    <div>
+                      <span style={{ color: '#64748b', display: 'block', fontSize: '0.68rem', fontWeight: 600 }}>ADMIN VERIFICATION</span>
+                      <span style={{ fontWeight: 700, color: adminVerif === 'YES' ? '#dc2626' : '#475569' }}>{adminVerif}</span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.72rem', borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
+                    <div>
+                      <span style={{ color: '#166534', fontWeight: 700, display: 'block', marginBottom: '4px' }}>✓ Requirements Identified:</span>
+                      {identifiedList.length === 0 ? (
+                        <span style={{ color: '#94a3b8' }}>General exploration in progress</span>
+                      ) : (
+                        <ul style={{ margin: 0, paddingLeft: '16px', color: '#334155' }}>
+                          {identifiedList.map((req, i) => (
+                            <li key={i}>{typeof req === 'string' ? req : JSON.stringify(req)}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <div>
+                      <span style={{ color: '#b45309', fontWeight: 700, display: 'block', marginBottom: '4px' }}>⚠ Missing Requirements for Formalization:</span>
+                      {missingList.length === 0 ? (
+                        <span style={{ color: '#94a3b8' }}>No missing requirements flagged</span>
+                      ) : (
+                        <ul style={{ margin: 0, paddingLeft: '16px', color: '#334155' }}>
+                          {missingList.map((mis, i) => (
+                            <li key={i}>{typeof mis === 'string' ? mis : JSON.stringify(mis)}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Investigation Dossier (if run) */}
             {investigationReport && (
               <div style={{ background: '#ffffff', padding: '16px', borderRadius: '8px', border: '1px solid #0284c7', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)' }}>

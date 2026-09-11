@@ -15,6 +15,7 @@ import {
   Blog,
   Documents,
   Media,
+  Webinars,
   Vision,
 } from './sections';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -114,6 +115,7 @@ export function App() {
           <Blog />
           <Documents />
           <Media />
+          <Webinars />
           <Vision onOpenBhnApplication={handleOpenBhnApplication} />
           <Skills skills={skills} />
           <Contact contact={contact} onOpenCollaboration={handleOpenGeneralContact} />

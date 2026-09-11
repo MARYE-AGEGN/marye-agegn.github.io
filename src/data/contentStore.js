@@ -1,5 +1,13 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient.js';
 import { siteData } from './siteData.js';
+import {
+  getWebinars as getRegistryWebinars,
+  getWebinarBySlug as getRegistryWebinarBySlug,
+  saveWebinar as saveRegistryWebinar,
+  deleteWebinar as deleteRegistryWebinar,
+  searchPublicWebinarsAndVideos as searchRegistryWebinarsAndVideos,
+  SEED_WEBINARS,
+} from './webinarRegistry.js';
 
 /**
  * Unified Content Store
@@ -687,4 +695,95 @@ export async function uploadCvPdf(file, metadata = {}) {
   const result = await saveDocument(docRecord);
   return { success: true, document: result.document || docRecord, publicUrl };
 }
+
+// ------------------------------------------------------------------------------
+// 9. WEBINARS & EDUCATIONAL SESSIONS
+// ------------------------------------------------------------------------------
+export async function getWebinars(options = {}) {
+  const { status, category, includeDrafts = false, includePrivate = false } = options;
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      let query = supabase.from('webinars').select('*').order('date', { ascending: true });
+      if (!includeDrafts) {
+        query = query.eq('is_published', true);
+      }
+      if (!includePrivate) {
+        query = query.eq('visibility', 'public');
+      }
+      if (status && status !== 'ALL') {
+        query = query.eq('status', status);
+      }
+      if (category && category !== 'All') {
+        query = query.eq('category', category);
+      }
+      const { data, error } = await query;
+      if (!error && data && data.length > 0) {
+        return data;
+      }
+    } catch (err) {
+      console.warn('Supabase getWebinars error, falling back to registry:', err);
+    }
+  }
+
+  // Fallback to registry with strict privacy and status rules
+  return getRegistryWebinars(options);
+}
+
+export async function getWebinarBySlug(slugOrId, options = {}) {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('webinars')
+        .select('*')
+        .or(`slug.eq.${slugOrId},id.eq.${slugOrId}`)
+        .single();
+      if (!error && data) {
+        if (!options.includeDrafts && !data.is_published) return null;
+        if (!options.includePrivate && data.visibility === 'private') return null;
+        return data;
+      }
+    } catch (err) {
+      console.warn('Supabase getWebinarBySlug error, using registry:', err);
+    }
+  }
+  return getRegistryWebinarBySlug(slugOrId, options);
+}
+
+export async function saveWebinar(webinarData) {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      if (webinarData.id && !webinarData.id.startsWith('webinar-')) {
+        const { data, error } = await supabase
+          .from('webinars')
+          .update(webinarData)
+          .eq('id', webinarData.id)
+          .select()
+          .single();
+        if (!error && data) return { success: true, webinar: data };
+      } else {
+        const insertPayload = { ...webinarData };
+        delete insertPayload.id;
+        const { data, error } = await supabase.from('webinars').insert([insertPayload]).select().single();
+        if (!error && data) return { success: true, webinar: data };
+      }
+    } catch (err) {
+      console.error('Supabase saveWebinar error:', err);
+    }
+  }
+  return saveRegistryWebinar(webinarData);
+}
+
+export async function deleteWebinar(id) {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from('webinars').delete().eq('id', id);
+    } catch (err) {
+      console.error('Supabase deleteWebinar error:', err);
+    }
+  }
+  return deleteRegistryWebinar(id);
+}
+
+export { searchRegistryWebinarsAndVideos as searchWebinarsAndVideos };
 

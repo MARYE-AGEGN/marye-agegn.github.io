@@ -14,6 +14,7 @@ const dropdownGroups = {
     label: 'Media',
     items: [
       { id: 'media', label: 'Media' },
+      { id: 'webinars', label: 'Webinars & Talks' },
       { id: 'blog', label: 'Blog & Notes' },
       { id: 'documents', label: 'Documents & CV' },
     ],

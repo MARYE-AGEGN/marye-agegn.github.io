@@ -11,5 +11,6 @@ export { Contact } from './Contact';
 export { Blog } from './Blog';
 export { Documents } from './Documents';
 export { Media } from './Media';
+export { Webinars } from './Webinars';
 export { Vision } from './Vision';
 

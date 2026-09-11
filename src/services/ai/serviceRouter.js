@@ -61,9 +61,10 @@ export class ServiceRouter {
       this.addRecommendation(recommendations, 'technical-medical-technology-consultation', 0.88, 'Comprehensive hospital equipment inventory planning and facility readiness assessments.');
     }
 
-    // Rule 4: Device Development, Prototyping, or R&D
+    // Rule 4: Device Development, Prototyping, or Hardware Engineering
     else if (
       detectedIntent === 'medical_product_development' ||
+      detectedIntent === 'custom_technical_work' && (lower.includes('build') || lower.includes('develop') || lower.includes('device')) ||
       lower.includes('develop') ||
       lower.includes('prototype') ||
       lower.includes('design a device') ||
@@ -75,16 +76,23 @@ export class ServiceRouter {
       this.addRecommendation(recommendations, 'medical-device-regulations-and-standards', 0.88, 'IEC 60601 safety standard compliance guidance and ISO 14971 risk management review.');
     }
 
-    // Rule 5: Research Collaboration (Gait, Biosignals, Neuroimaging, AI)
+    // Rule 5: Research Collaboration & Data Analysis (Gait, Biosignals, Neuroimaging, AI, Datasets)
     else if (
       detectedIntent === 'research_collaboration' ||
+      lower.includes('dataset') ||
+      lower.includes('data analysis') ||
+      lower.includes('clean my data') ||
+      lower.includes('analyze my') ||
       lower.includes('research') ||
       lower.includes('collaborat') ||
       lower.includes('gait') ||
       lower.includes('biosignal') ||
+      lower.includes('ecg') ||
+      lower.includes('eeg') ||
       lower.includes('study')
     ) {
-      this.addRecommendation(recommendations, 'research-and-development', 0.95, 'Applied engineering collaboration in wearable inertial telemetry, biosignal filtering, and explainable deep learning.');
+      this.addRecommendation(recommendations, 'research-and-development', 0.96, 'Applied engineering collaboration in wearable inertial telemetry, biosignal filtering, and explainable deep learning.');
+      this.addRecommendation(recommendations, 'technical-specification', 0.85, 'Data capture protocols, signal filtering parameters, and standardized feature pipelines.');
       this.addRecommendation(recommendations, 'technical-medical-technology-consultation', 0.80, 'Interdisciplinary research methodology and clinical protocol formulation.');
     }
 
@@ -120,6 +128,22 @@ export class ServiceRouter {
         rationale,
       });
     }
+  }
+
+  /**
+   * Generates a direct actionable link/button object for a specific service
+   */
+  getServiceLink(serviceId) {
+    const service = this.services.find((s) => s.id === serviceId);
+    if (!service) {
+      return { label: 'Explore Services', href: '#services', serviceId: null };
+    }
+    return {
+      label: `Route to ${service.title}`,
+      href: `#services`,
+      serviceId: service.id,
+      category: service.category,
+    };
   }
 
   /**

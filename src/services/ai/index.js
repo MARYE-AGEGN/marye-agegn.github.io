@@ -11,3 +11,4 @@ export { RequirementsEngine } from './requirementsEngine.js';
 export { IntentEngine, INTENTS, DOMAINS } from './intentEngine.js';
 export { ConsultationStore } from './consultationStore.js';
 export { AdminResearchAssistant } from './adminResearchAssistant.js';
+export { BiomedicalConcierge } from './biomedicalConcierge.js';

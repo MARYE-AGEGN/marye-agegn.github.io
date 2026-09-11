@@ -20,7 +20,11 @@ export class EvidenceEvaluator {
       return AI_POLICY.evidenceStatuses.CONFLICTING;
     }
 
-    if (!sourceInfo || (!sourceTier && !isOfficialDoc && !isManufacturer)) {
+    if (sourceInfo.requiresAdminVerification) {
+      return AI_POLICY.evidenceStatuses.ADMIN_VERIFICATION_REQUIRED;
+    }
+
+    if (!sourceInfo || (!sourceTier && !isOfficialDoc && !isManufacturer && !isPeerReviewed)) {
       return AI_POLICY.evidenceStatuses.UNVERIFIED;
     }
 
@@ -29,11 +33,11 @@ export class EvidenceEvaluator {
     }
 
     if (sourceTier === 'TIER_2' || isPeerReviewed) {
-      return AI_POLICY.evidenceStatuses.SUPPORTED_SECONDARY;
+      return AI_POLICY.evidenceStatuses.SUPPORTED_SCIENTIFIC || AI_POLICY.evidenceStatuses.SUPPORTED_SECONDARY;
     }
 
     if (sourceTier === 'TIER_3' && hasDirectPageRef) {
-      return AI_POLICY.evidenceStatuses.SUPPORTED_SECONDARY;
+      return AI_POLICY.evidenceStatuses.SUPPORTED_SCIENTIFIC || AI_POLICY.evidenceStatuses.SUPPORTED_SECONDARY;
     }
 
     return AI_POLICY.evidenceStatuses.UNVERIFIED;

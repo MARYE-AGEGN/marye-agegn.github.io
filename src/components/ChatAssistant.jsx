@@ -9,6 +9,7 @@ import {
   defaultServiceRouter,
   RequirementsEngine,
   ConsultationStore,
+  BiomedicalConcierge,
 } from '../services/ai';
 
 export function ChatAssistant({ onOpenCollaboration, onOpenServiceRequest, onOpenBhnApplication }) {
@@ -34,7 +35,7 @@ export function ChatAssistant({ onOpenCollaboration, onOpenServiceRequest, onOpe
   const [messages, setMessages] = useState([
     {
       sender: 'assistant',
-      text: 'Welcome. I am Marye Agegn\'s Biomedical Engineering Technical Consultation Assistant. I can assist with technical specifications, medical equipment procurement planning, hospital requirements engineering, and graduate research inquiries.',
+      text: "Welcome. I am Marye Agegn's Biomedical Information & Service Concierge. I can answer biomedical technology and sensor questions, explain physiological signals, help identify medical equipment specifications, and guide you to the right technical service or consultation.",
       metadata: {},
       action: null,
     },
@@ -159,163 +160,91 @@ export function ChatAssistant({ onOpenCollaboration, onOpenServiceRequest, onOpe
       ConsultationStore.appendMessage(currentThreadId, 'user', query);
     }
 
-    // Step 3: Information Retrieval & Multi-Domain Reasoning
+    // Step 3: Information Retrieval & Multi-Domain Reasoning via BiomedicalConcierge
     setTimeout(async () => {
-      let replyText = '';
-      let replyMetadata = {};
-      let actionObj = null;
+      // Requirements Engineering interactive mode check
+      if (intentResult.detectedIntent === INTENTS.REQUIREMENTS_ENGINEERING) {
+        const analysis = RequirementsEngine.analyzeFacilityRequirements(query);
+        const replyText = `**Clinical Requirements Engineering Mode Activated:**\n\n` +
+          `I have identified the following initial parameters for your facility:\n` +
+          `• **Department:** ${analysis.currentRequirements.department || 'Under assessment'}\n` +
+          `• **Capacity:** ${analysis.currentRequirements.bedCount ? `${analysis.currentRequirements.bedCount} Beds` : 'To be specified'}\n` +
+          `• **Parameters:** ${analysis.currentRequirements.requiredParameters.length > 0 ? analysis.currentRequirements.requiredParameters.join(', ') : 'Standard Vital Signs'}\n\n` +
+          `To formulate a rigorous Preliminary Technical Requirement Specification, please consider:\n` +
+          analysis.followUpQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n') +
+          `\n\nWould you like me to generate a preliminary specification document or escalate this to Marye for formal institutional planning?`;
 
-      switch (intentResult.detectedIntent) {
-        case INTENTS.TECHNICAL_SPECIFICATION: {
-          const specResult = TechnicalSourceRetriever.getDeviceSpecification(
-            intentResult.requestedEquipment || query,
-            query
-          );
-          if (specResult.found) {
-            replyText = `**Technical Specification Retrieved:**\n\n` +
-              `• **Device:** ${specResult.spec.device} (${specResult.spec.manufacturer})\n` +
-              `• **Parameter:** ${specResult.spec.parameter}\n` +
-              `• **Value:** ${specResult.spec.value}\n` +
-              `• **Evidence Status:** [${specResult.spec.evidenceStatus}]\n` +
-              `• **Primary Source:** ${specResult.spec.source}\n` +
-              `• **Note:** ${specResult.spec.notes}`;
-            replyMetadata = {
-              type: 'specification',
-              spec: specResult.spec,
-              evidenceStatus: specResult.spec.evidenceStatus,
-              sources: [specResult.spec.source],
-            };
-            actionObj = { label: 'Explore Technical Services', href: '#services' };
-          } else {
-            replyText = specResult.message ||
-              `I searched verified technical sources for "${query}". Authoritative manufacturer datasheets were not found in the current verified baseline. I would not treat unconfirmed estimates as verified.\n\nWould you like me to route this specification request to Marye for formal investigation?`;
-            replyMetadata = {
-              evidenceStatus: AI_POLICY.evidenceStatuses.NOT_FOUND,
-              canEscalate: true,
-            };
-            actionObj = { label: 'Request Direct Specification Check', href: '#contact' };
-          }
-          break;
-        }
+        setIsThinking(false);
+        const assistantMsg = {
+          sender: 'assistant',
+          text: replyText,
+          metadata: { type: 'requirements_mode', requirements: analysis.currentRequirements },
+          action: { label: 'Open Requirements Formulator', actionType: 'mode_requirements' },
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
 
-        case INTENTS.PROCUREMENT_COMPARISON: {
-          const comparison = TechnicalSourceRetriever.compareDevices([
-            'GE B450',
-            'Philips MX450',
-            'Mindray N12',
-          ]);
-          replyText = `**Medical Equipment Specification Comparison:**\n\n` +
-            `| Parameter | GE B450 | Philips MX450 | Mindray N12 |\n` +
-            `| :--- | :--- | :--- | :--- |\n` +
-            comparison.matrix.map((row) => `| **${row.parameter}** | ${row['B450 Patient Monitor (CARESCAPE Platform)']?.value.substring(0, 35)}... | ${row['IntelliVue MX450']?.value.substring(0, 35)}... | ${row['BeneVision N12']?.value.substring(0, 35)}... |`).join('\n') +
-            `\n\n**Engineering Interpretation:**\n${comparison.engineeringInterpretation}\n\n*${comparison.caveat}*`;
-          replyMetadata = {
-            type: 'comparison_matrix',
-            sources: ['GE Healthcare Reference Manual', 'Philips Service Guide', 'Mindray Datasheet'],
-            evidenceStatus: AI_POLICY.evidenceStatuses.VERIFIED_PRIMARY,
-          };
-          const recs = defaultServiceRouter.routeRequest(intentResult);
-          actionObj = { label: 'Procurement & Purchasing Support', href: '#services' };
-          break;
+        if (currentThreadId) {
+          ConsultationStore.appendMessage(currentThreadId, 'ai', replyText, { type: 'requirements_mode' });
+          ConsultationStore.updateThreadRequirements(currentThreadId, {
+            importantRequirements: {
+              identified: ['hospital equipment requirements', `${analysis.currentRequirements.bedCount || 20} beds`],
+              missing: analysis.followUpQuestions,
+              technicalNeed: 'Hospital clinical equipment specification schedule',
+            },
+            recommendedService: 'Technical Specification',
+          });
         }
-
-        case INTENTS.REQUIREMENTS_ENGINEERING: {
-          const analysis = RequirementsEngine.analyzeFacilityRequirements(query);
-          replyText = `**Clinical Requirements Engineering Mode Activated:**\n\n` +
-            `I have identified the following initial parameters for your facility:\n` +
-            `• **Department:** ${analysis.currentRequirements.department || 'Under assessment'}\n` +
-            `• **Capacity:** ${analysis.currentRequirements.bedCount ? `${analysis.currentRequirements.bedCount} Beds` : 'To be specified'}\n` +
-            `• **Parameters:** ${analysis.currentRequirements.requiredParameters.length > 0 ? analysis.currentRequirements.requiredParameters.join(', ') : 'Standard Vital Signs'}\n\n` +
-            `To formulate a rigorous Preliminary Technical Requirement Specification, please consider:\n` +
-            analysis.followUpQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n') +
-            `\n\nWould you like me to generate a preliminary specification document or escalate this to Marye for formal institutional planning?`;
-          replyMetadata = {
-            type: 'requirements_mode',
-            requirements: analysis.currentRequirements,
-          };
-          actionObj = { label: 'Open Requirements Formulator', actionType: 'mode_requirements' };
-          break;
-        }
-
-        case INTENTS.RESEARCH_QUESTION:
-        case INTENTS.RESEARCH_COLLABORATION: {
-          replyText = `**Current Graduate Research (Anna University, Chennai):**\n\n` +
-            `Marye is conducting graduate research in gait analysis and mobility assessment using lower-back inertial sensing, with an emphasis on single-task and dual-task walking and explainable machine learning.\n\n` +
-            `• **Focus:** Ambulatory kinematic time-series telemetry, sensor drift compensation, and clinically meaningful movement biomarkers.\n` +
-            `• **Integrity Principle:** Research is actively in progress under university faculty supervision. It is presented as ongoing graduate research rather than a completed commercial product.\n\n` +
-            `For academic dataset exchange, joint benchmarking, or research collaboration, I can prepare an inquiry directly for Marye.`;
-          replyMetadata = {
-            type: 'research_overview',
-            evidenceStatus: AI_POLICY.evidenceStatuses.VERIFIED_PRIMARY,
-            sources: ['Anna University CEG Academic Trajectory', 'Verified Research Dossier'],
-          };
-          actionObj = { label: 'Discuss Research Collaboration', href: '#contact' };
-          break;
-        }
-
-        case INTENTS.ACADEMIC_BACKGROUND: {
-          replyText = defaultKnowledgeRetriever.formatCurriculumQueryResponse(query);
-          replyMetadata = {
-            evidenceStatus: 'VERIFIED — PRIMARY SOURCE',
-            sources: [
-              'University of Gondar Institute of Technology (https://iot.uog.edu.et/biomedical-engineering-bsc-program/)',
-              'Anna University Regulations 2023 (CBCS)',
-            ],
-          };
-          actionObj = { label: 'Inspect Education Section', href: '#education' };
-          break;
-        }
-
-        case INTENTS.CLINICAL_EXPERIENCE: {
-          replyText = `**Verified Clinical Engineering Leadership (Ethiopia):**\n\n` +
-            `• **Technical Manager** at Shine Business PLC, Addis Ababa (2024–2025): Directed biomedical engineering technical operations, procurement reviews, and clinical equipment calibration.\n` +
-            `• **Biomedical Officer** at Central Gondar Zone Health Department (2023–2024): Zonal technology planning, hospital equipment audits, and corrective maintenance across public health centers.\n` +
-            `• **Hospital Biomedical Engineer** at Amhara Regional Health Bureau (2022–2023): Frontline medical equipment repair, electrical safety verification, and clinical staff training at Debre Birhan and Debark hospitals.`;
-          actionObj = { label: 'View Clinical Experience', href: '#experience' };
-          break;
-        }
-
-        case INTENTS.DOCUMENT_CV_REQUEST: {
-          replyText = `An official, verified Academic Curriculum Vitae (PDF) detailing clinical engineering appointments, technical competencies, and graduate research is available for direct binary download in the Documents & CV section.`;
-          actionObj = { label: 'Download Academic CV (PDF)', href: '#documents' };
-          break;
-        }
-
-        case INTENTS.BHN_INQUIRY: {
-          replyText = `The **Biomedical Horizon Network (BHN)** is a developing academic and professional network focused on healthcare technology management (HTM), pre-procurement specification formulation, and medical technology collaboration across developing healthcare sectors.`;
-          actionObj = { label: 'View BHN Initiative', href: '#vision' };
-          break;
-        }
-
-        case INTENTS.HUMAN_ESCALATION_REQUEST: {
-          replyText = `This inquiry requires formal technical evaluation. I can bundle our conversation context and submit it directly to Marye so you do not have to repeat any technical details.`;
-          actionObj = { label: 'Prepare Direct Consultation', actionType: 'mode_escalate' };
-          break;
-        }
-
-        default: {
-          // Broad Intent Reasoning with Service Routing
-          const recs = defaultServiceRouter.routeRequest(intentResult);
-          replyText = defaultServiceRouter.formatRecommendationMessage(recs);
-          actionObj = { label: 'View Recommended Services', href: '#services' };
-          break;
-        }
+        return;
       }
+
+      // Academic curriculum query response check
+      if (intentResult.detectedIntent === INTENTS.ACADEMIC_BACKGROUND) {
+        const replyText = defaultKnowledgeRetriever.formatCurriculumQueryResponse(query);
+        const replyMetadata = {
+          evidenceStatus: 'VERIFIED — PRIMARY SOURCE',
+          sources: [
+            'University of Gondar Institute of Technology (https://iot.uog.edu.et/biomedical-engineering-bsc-program/)',
+            'Anna University Regulations 2023 (CBCS)',
+          ],
+        };
+        const actionObj = { label: 'Inspect Education Section', href: '#education' };
+        setIsThinking(false);
+        setMessages((prev) => [...prev, { sender: 'assistant', text: replyText, metadata: replyMetadata, action: actionObj }]);
+        if (currentThreadId) {
+          ConsultationStore.appendMessage(currentThreadId, 'ai', replyText, replyMetadata);
+        }
+        return;
+      }
+
+      // Primary: Biomedical Information & Service Concierge Engine
+      const conciergeRes = await BiomedicalConcierge.processMessage(query, {
+        activeThreadId: currentThreadId,
+      });
 
       setIsThinking(false);
       const assistantMsg = {
         sender: 'assistant',
-        text: replyText,
-        metadata: replyMetadata,
-        action: actionObj,
+        text: conciergeRes.replyText,
+        metadata: conciergeRes.replyMetadata,
+        action: conciergeRes.actionObj,
       };
       setMessages((prev) => [...prev, assistantMsg]);
 
-      // Record AI response in thread
       if (currentThreadId) {
-        ConsultationStore.appendMessage(currentThreadId, 'ai', replyText, replyMetadata);
+        ConsultationStore.appendMessage(
+          currentThreadId,
+          'ai',
+          conciergeRes.replyText,
+          conciergeRes.replyMetadata
+        );
+        if (conciergeRes.structuredRequirements) {
+          ConsultationStore.updateThreadRequirements(
+            currentThreadId,
+            conciergeRes.structuredRequirements
+          );
+        }
       }
-    }, 450);
+    }, 400);
   };
 
   /**
@@ -598,10 +527,39 @@ export function ChatAssistant({ onOpenCollaboration, onOpenServiceRequest, onOpe
                             <span>Send to Marye for Direct Review</span>
                             <span>✉ →</span>
                           </button>
+                        ) : m.action.serviceId && onOpenServiceRequest ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsOpen(false);
+                              onOpenServiceRequest(m.action.serviceId);
+                            }}
+                            style={{
+                              background: 'rgba(2, 132, 199, 0.08)',
+                              border: '1px solid var(--color-primary)',
+                              borderRadius: '4px',
+                              padding: '4px 8px',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              color: 'var(--color-primary)',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <span>{m.action.label}</span>
+                            <span>⚡ →</span>
+                          </button>
                         ) : (
                           <a
                             href={m.action.href}
-                            onClick={() => setIsOpen(false)}
+                            onClick={() => {
+                              if (m.action.href === '#contact' && onOpenCollaboration) {
+                                onOpenCollaboration();
+                              }
+                              setIsOpen(false);
+                            }}
                             style={{
                               fontSize: '0.72rem',
                               fontWeight: 600,
@@ -648,15 +606,15 @@ export function ChatAssistant({ onOpenCollaboration, onOpenServiceRequest, onOpe
                 </h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.75rem' }}>
                   <div>
-                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '2px' }}>Clinical Ward / Department:</label>
+                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '2px' }}>Department / Clinical Unit:</label>
                     <select
                       value={requirementsData.department}
                       onChange={(e) => setRequirementsData({ ...requirementsData, department: e.target.value })}
                       style={{ width: '100%', padding: '6px', fontSize: '0.75rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
                     >
                       <option>Intensive Care Unit (ICU)</option>
-                      <option>High-Dependency Unit (HDU)</option>
-                      <option>Emergency Department (ED)</option>
+                      <option>Neonatal ICU (NICU)</option>
+                      <option>Emergency Ward</option>
                       <option>Operating Room (OR)</option>
                       <option>General Inpatient Ward</option>
                     </select>
@@ -720,34 +678,33 @@ export function ChatAssistant({ onOpenCollaboration, onOpenServiceRequest, onOpe
                     placeholder="Your Name (Optional)"
                     value={escalationForm.userName}
                     onChange={(e) => setEscalationForm({ ...escalationForm, userName: e.target.value })}
-                    style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                    style={{ padding: '6px', fontSize: '0.75rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
                   />
                   <input
                     type="email"
                     required
-                    placeholder="Your Email Address *"
+                    placeholder="Email Address (Required for reply)"
                     value={escalationForm.email}
                     onChange={(e) => setEscalationForm({ ...escalationForm, email: e.target.value })}
-                    style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                    style={{ padding: '6px', fontSize: '0.75rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
                   />
                   <input
                     type="text"
-                    placeholder="Organization / Hospital (Optional)"
+                    placeholder="Organization / Hospital / University"
                     value={escalationForm.organization}
                     onChange={(e) => setEscalationForm({ ...escalationForm, organization: e.target.value })}
-                    style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                    style={{ padding: '6px', fontSize: '0.75rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
                   />
                   <textarea
-                    rows={2}
-                    placeholder="Specific questions or timeline constraints..."
+                    rows={3}
+                    placeholder="Specific questions or context for Marye..."
                     value={escalationForm.notes}
                     onChange={(e) => setEscalationForm({ ...escalationForm, notes: e.target.value })}
-                    style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', resize: 'none' }}
+                    style={{ padding: '6px', fontSize: '0.75rem', borderRadius: '4px', border: '1px solid #cbd5e1', resize: 'vertical' }}
                   />
                   <button
                     type="submit"
                     style={{
-                      marginTop: '4px',
                       padding: '8px',
                       background: 'var(--color-primary)',
                       color: '#ffffff',
@@ -778,11 +735,13 @@ export function ChatAssistant({ onOpenCollaboration, onOpenServiceRequest, onOpe
               }}
             >
               {[
-                { label: 'Compare Patient Monitors', q: 'Can you compare available patient monitor models?' },
-                { label: 'Specify 20-bed Ward', q: 'We need equipment specifications for a 20-bed hospital ward.' },
-                { label: 'Graduate Gait Research', q: 'What is your graduate research in gait analysis about?' },
-                { label: 'Procure Infusion Pumps', q: 'We are planning to purchase 30 infusion pumps. Can you help?' },
-                { label: 'Send to Marye', q: 'I would like to request a direct technical consultation with Marye.' },
+                { label: 'What is EEG?', q: 'What is EEG?' },
+                { label: 'Measure Movement', q: 'Which sensor can measure movement?' },
+                { label: 'Services Offered', q: 'What services do you offer?' },
+                { label: 'What is ECG?', q: 'What is an ECG?' },
+                { label: 'Sensor Selection', q: 'What should I consider before choosing a biomedical sensor?' },
+                { label: 'Compare Monitors', q: 'Can you compare available patient monitor models?' },
+                { label: 'Consultation', q: 'I would like to request a technical consultation.' },
               ].map((pill, idx) => (
                 <button
                   key={idx}
@@ -818,7 +777,7 @@ export function ChatAssistant({ onOpenCollaboration, onOpenServiceRequest, onOpe
             >
               <input
                 type="text"
-                placeholder="Ask a technical question, compare models, or describe equipment..."
+                placeholder="Ask a biomedical question, sensor guidance, or service consultation..."
                 value={inputQuery}
                 onChange={(e) => setInputQuery(e.target.value)}
                 onKeyDown={(e) => {

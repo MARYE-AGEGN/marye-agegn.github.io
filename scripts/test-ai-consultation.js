@@ -225,7 +225,10 @@ async function runTests() {
     'Row Level Security policy enforces tenant isolation via session token'
   );
   assert(
-    schemaFile.includes('TO authenticated') && schemaFile.includes('CREATE POLICY "Authenticated admin can manage all consultation threads"'),
+    schemaFile.includes('TO authenticated') && (
+      schemaFile.includes('CREATE POLICY "Admins can manage consultation threads"') ||
+      schemaFile.includes('CREATE POLICY "Authenticated admin can manage all consultation threads"')
+    ),
     'Administrative management strictly limited to authenticated Supabase accounts'
   );
 

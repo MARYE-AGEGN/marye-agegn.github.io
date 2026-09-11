@@ -754,3 +754,53 @@ CREATE POLICY "Admin access collaboration attachments"
   TO authenticated
   USING (bucket_id = 'collaboration-attachments' AND public.is_admin())
   WITH CHECK (bucket_id = 'collaboration-attachments' AND public.is_admin());
+
+-- ==============================================================================
+-- 7. WEBINARS & EDUCATIONAL MEDIA ARCHITECTURE
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS public.webinars (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT UNIQUE NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  speaker TEXT NOT NULL DEFAULT 'Marye Agegn',
+  speaker_title TEXT DEFAULT 'Biomedical Engineer & Researcher',
+  topic TEXT NOT NULL,
+  category TEXT NOT NULL,
+  date DATE NOT NULL,
+  start_time TEXT,
+  duration TEXT DEFAULT '60 min',
+  status TEXT NOT NULL DEFAULT 'UPCOMING',
+  thumbnail_url TEXT,
+  registration_url TEXT,
+  live_event_url TEXT,
+  recording_url TEXT,
+  video_provider TEXT DEFAULT 'youtube',
+  transcript TEXT,
+  captions_info TEXT,
+  resources JSONB DEFAULT '[]',
+  related_topics TEXT[] DEFAULT '{}',
+  qna_info TEXT,
+  is_published BOOLEAN DEFAULT true,
+  visibility TEXT NOT NULL DEFAULT 'public',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_webinars_status ON public.webinars(status, is_published, visibility);
+CREATE INDEX IF NOT EXISTS idx_webinars_date ON public.webinars(date);
+ALTER TABLE public.webinars ENABLE ROW LEVEL SECURITY;
+
+-- Anonymous and public visitors can read published public webinars only
+DROP POLICY IF EXISTS "Public visitors can view published webinars" ON public.webinars;
+CREATE POLICY "Public visitors can view published webinars"
+  ON public.webinars FOR SELECT
+  USING (is_published = true AND visibility = 'public');
+
+-- Administrators can view and manage all webinars (Draft, Private, Archived, Published)
+DROP POLICY IF EXISTS "Admins can manage all webinars" ON public.webinars;
+CREATE POLICY "Admins can manage all webinars"
+  ON public.webinars FOR ALL
+  TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());

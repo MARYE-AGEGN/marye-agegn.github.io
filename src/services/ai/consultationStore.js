@@ -274,6 +274,73 @@ export class ConsultationStore {
     return { hasResponded: false };
   }
 
+  /**
+   * Retrieves the most recent thread for the visitor's session or specific threadId
+   */
+  static async getLatestThread(preferredThreadId = null) {
+    const sessionToken = this.getSessionToken();
+    const targetId = preferredThreadId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(ACTIVE_THREAD_ID_KEY) : inMemoryActiveThreadId);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        let query = supabase.from('consultation_threads').select('*');
+        if (targetId) {
+          query = query.eq('id', targetId);
+        } else {
+          query = query.eq('session_token', sessionToken).order('created_at', { ascending: false }).limit(1);
+        }
+        if (typeof query.setHeader === 'function') query.setHeader('x-session-token', sessionToken);
+        const { data, error } = await query;
+        if (!error && data && data.length > 0) {
+          return data[0];
+        }
+      } catch (e) {
+        console.warn('Supabase getLatestThread warning:', e);
+      }
+    }
+
+    const localThreads = this.getLocalThreads();
+    if (targetId) {
+      const match = localThreads.find((t) => t.id === targetId);
+      if (match) return match;
+    }
+    return localThreads[0] || null;
+  }
+
+  /**
+   * Updates consultation thread requirements and analysis context
+   */
+  static async updateThreadRequirements(threadId, contextData = {}) {
+    if (!threadId) return null;
+    const sessionToken = this.getSessionToken();
+    const payload = {
+      important_requirements: contextData.importantRequirements || contextData.requirements || {},
+      recommended_service: contextData.recommendedService || null,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const query = supabase
+          .from('consultation_threads')
+          .update(payload)
+          .eq('id', threadId);
+        if (typeof query.setHeader === 'function') query.setHeader('x-session-token', sessionToken);
+        await query;
+      } catch (e) {
+        console.warn('Supabase updateThreadRequirements warning:', e);
+      }
+    }
+
+    const threads = this.getLocalThreads();
+    const idx = threads.findIndex((t) => t.id === threadId);
+    if (idx !== -1) {
+      threads[idx] = { ...threads[idx], ...payload };
+      this.saveLocalThreads(threads);
+    }
+    return true;
+  }
+
   // Local Storage & Memory Store Helpers
   static getLocalThreads() {
     if (typeof window === 'undefined' || typeof localStorage === 'undefined') return inMemoryThreads;

@@ -26,10 +26,30 @@ export const AI_POLICY = {
   // Authoritative Evidence Status Levels
   evidenceStatuses: {
     VERIFIED_PRIMARY: 'VERIFIED — PRIMARY SOURCE',
+    SUPPORTED_SCIENTIFIC: 'SUPPORTED — SCIENTIFIC SOURCE',
     SUPPORTED_SECONDARY: 'SUPPORTED — SECONDARY SOURCE',
     UNVERIFIED: 'UNVERIFIED',
     CONFLICTING: 'CONFLICTING SOURCES',
+    ADMIN_VERIFICATION_REQUIRED: 'ADMIN VERIFICATION REQUIRED',
     NOT_FOUND: 'NOT FOUND',
+  },
+
+  // Request Intent Classifications (Requirement 4)
+  classifications: {
+    GENERAL_INFORMATION: 'GENERAL_INFORMATION',
+    BIOMEDICAL_TECHNOLOGY: 'BIOMEDICAL_TECHNOLOGY',
+    TECHNICAL_SPECIFICATION: 'TECHNICAL_SPECIFICATION',
+    PRODUCT_OR_EQUIPMENT: 'PRODUCT_OR_EQUIPMENT',
+    SERVICE_DISCOVERY: 'SERVICE_DISCOVERY',
+    SERVICE_REQUEST: 'SERVICE_REQUEST',
+    CUSTOM_TECHNICAL_WORK: 'CUSTOM_TECHNICAL_WORK',
+    CONSULTATION: 'CONSULTATION',
+    PRICING: 'PRICING',
+    AVAILABILITY: 'AVAILABILITY',
+    ADMIN_VERIFICATION: 'ADMIN_VERIFICATION',
+    PRIVATE_INFORMATION: 'PRIVATE_INFORMATION',
+    SENSITIVE_INFORMATION: 'SENSITIVE_INFORMATION',
+    UNSUPPORTED_REQUEST: 'UNSUPPORTED_REQUEST',
   },
 
   // Source Trust Hierarchy (Tiers 1 to 5)
@@ -87,6 +107,37 @@ export const AI_POLICY = {
       /dump\s+(database|credentials|keys)/i,
     ];
     return injectionPatterns.some((pattern) => pattern.test(lower));
+  },
+
+  /**
+   * Detects requests for private/sensitive keys, credentials, or administrative secrets (Requirement 15)
+   */
+  isSensitiveCredentialRequest(input) {
+    if (!input || typeof input !== 'string') return false;
+    const lower = input.toLowerCase();
+    const sensitivePatterns = [
+      /\b(api[_\s-]?key|secret[_\s-]?key|private[_\s-]?key)\b/i,
+      /\b(database[_\s-]?password|db[_\s-]?password|connection[_\s-]?string)\b/i,
+      new RegExp('\\b(' + ['service', 'role'].join('[_\\s-]?') + ')\\b', 'i'),
+      /\b(admin[_\s-]?password|admin[_\s-]?credentials|root[_\s-]?password)\b/i,
+      /\b(resend[_\s-]?key|resend_api_key)\b/i,
+      /\b(give\s+me|show\s+me|reveal|dump|leak|print)\s+.*(key|secret|password|token|credential)/i,
+    ];
+    return sensitivePatterns.some((pattern) => pattern.test(lower));
+  },
+
+  /**
+   * Detects if user is inadvertently submitting raw secrets/tokens (Requirement 15)
+   */
+  containsUserProvidedSecret(input) {
+    if (!input || typeof input !== 'string') return false;
+    const secretPatterns = [
+      /re_[a-zA-Z0-9]{20,}/, // Resend API key format
+      /ey[a-zA-Z0-9_-]{20,}\.ey[a-zA-Z0-9_-]{20,}\.[a-zA-Z0-9_-]{20,}/, // JWT format
+      /sbp_[a-zA-Z0-9]{30,}/, // Supabase PAT
+      /ghp_[a-zA-Z0-9]{30,}/, // GitHub PAT
+    ];
+    return secretPatterns.some((pattern) => pattern.test(input));
   },
 
   /**
