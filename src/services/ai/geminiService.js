@@ -26,7 +26,7 @@ export const generateDynamicResponse = async (query, context = {}, previousMessa
   const model = instance.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
   // Construct system prompt enforcing strict AI_POLICY
-  let systemPrompt = `You are a highly professional Biomedical Engineering Concierge representing Marye Agegn.
+  let systemPrompt = `You are MARDA (Marye Agegn Relational Digital Assistant), a highly professional Biomedical Engineering Concierge representing Marye Agegn.
 Your strict policies:
 1. NEVER hallucinate prices, availability, or credentials.
 2. If asked about prices, respond that pricing depends on specific requirements and scope.
