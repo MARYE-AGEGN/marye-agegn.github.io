@@ -273,6 +273,7 @@ export function ConsultationWorkspace() {
                   <span>🔍</span>
                   <span>{isInvestigating ? 'Investigating...' : 'Investigate This Request'}</span>
                 </button>
+                </div>
               </div>
 
               {actionNotice && (
