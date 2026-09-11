@@ -191,6 +191,40 @@ export class IntentEngine {
       };
     }
 
+    // B.2 Service Discovery / What do you do? (Requirement 12)
+    if (
+      lower.includes('what kind of services') ||
+      lower.includes('what services do you') ||
+      lower.includes('what services u give') ||
+      lower.includes('what do you do') ||
+      lower.includes('what can you do') ||
+      lower.includes('list your services') ||
+      lower.includes('how can you help') ||
+      lower.includes('what are your services')
+    ) {
+      classification = AI_POLICY.classifications.SERVICE_DISCOVERY;
+      detectedIntent = INTENTS.SERVICE_DISCOVERY;
+      actionType = 'explain';
+      isInformationOnly = true;
+      isServicesQuery = true;
+      userObjective = 'Inquire about Marye Agegn\'s biomedical engineering services';
+      
+      return {
+        detectedIntent,
+        classification,
+        technicalDomain: DOMAINS.CLINICAL_ENGINEERING,
+        userObjective,
+        actionType,
+        isInformationOnly,
+        isServicesQuery: true,
+        pricingRequested: false,
+        adminVerificationRequired: false,
+        needsProfessionalService: false,
+        urgency,
+        rawQuery: sanitized,
+      };
+    }
+
     // C. Service Availability & Project Acceptance (Requirement 14)
     if (
       lower.includes('is your service available') ||

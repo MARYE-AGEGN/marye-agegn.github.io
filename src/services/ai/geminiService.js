@@ -20,14 +20,14 @@ export const generateDynamicResponse = async (query, context = {}, previousMessa
   const instance = getGeminiInstance();
   if (!instance) {
     console.error('Gemini API Key missing!');
-    return `[System: VITE_GEMINI_API_KEY is missing. Falling back to static mode.]\n\n` + context.staticFallbackText;
+    return null; // Fallback to static mode seamlessly
   }
 
   // Use gemini-1.5-flash for fast chat responses
   const model = instance.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
   // Construct system prompt enforcing strict AI_POLICY
-  let systemPrompt = `You are Biomedical MARDA (Marye Agegn Relational Digital Assistant), representing Marye Agegn.
+  let systemPrompt = `You are Biomedical MARDA (Marye Agegn Realtime Digital Assistant), representing Marye Agegn.
 You are a visionary assistant focused on Biomedical Services, Medical Technology, Healthcare Solutions, Career Growth, and Business Development.
 Your purpose is to help people, support business growth in healthcare, provide professional guidance on medical technology, and offer comprehensive biomedical solutions.
 
@@ -53,7 +53,7 @@ Current Context:
   // Format history for Gemini
   // previousMessages are from Supabase/ConsultationStore.
   let validMessages = [...previousMessages];
-  
+
   // 1. Remove the current query from the history if it was just appended
   if (validMessages.length > 0 && validMessages[validMessages.length - 1].message === query) {
     validMessages.pop();
@@ -94,6 +94,6 @@ Current Context:
     return result.response.text();
   } catch (err) {
     console.error('Gemini Generation Error:', err);
-    return `[System: Gemini API request failed. Error: ${err.message}. Falling back to static mode.]\n\n` + context.staticFallbackText;
+    return null; // Fallback to static mode seamlessly without throwing ugly errors
   }
 };
