@@ -47,18 +47,46 @@ Current Context:
   }
 
   // Format history for Gemini
-  // previousMessages are from Supabase/ConsultationStore. Sender type is 'user', 'ai', 'admin', 'system'
-  const history = previousMessages.slice(-5).map((msg) => ({
-    role: msg.sender_type === 'user' ? 'user' : 'model',
-    parts: [{ text: msg.message }]
-  }));
+  // previousMessages are from Supabase/ConsultationStore.
+  let validMessages = [...previousMessages];
+  
+  // 1. Remove the current query from the history if it was just appended
+  if (validMessages.length > 0 && validMessages[validMessages.length - 1].message === query) {
+    validMessages.pop();
+  }
+
+  // 2. Group consecutive messages by the same role
+  const formattedHistory = [];
+  for (const msg of validMessages) {
+    const role = msg.sender_type === 'user' ? 'user' : 'model';
+    if (formattedHistory.length === 0) {
+      formattedHistory.push({ role, parts: [{ text: msg.message }] });
+    } else {
+      const last = formattedHistory[formattedHistory.length - 1];
+      if (last.role === role) {
+        last.parts[0].text += '\n\n' + msg.message;
+      } else {
+        formattedHistory.push({ role, parts: [{ text: msg.message }] });
+      }
+    }
+  }
+
+  // 3. Gemini requires the last message in history to be from 'model' before sendMessage()
+  let currentQuery = query;
+  if (formattedHistory.length > 0 && formattedHistory[formattedHistory.length - 1].role === 'user') {
+    const lastUserMsg = formattedHistory.pop();
+    currentQuery = lastUserMsg.parts[0].text + '\n\n' + currentQuery;
+  }
+
+  // Limit history size
+  const finalHistory = formattedHistory.slice(-6);
 
   try {
     const chat = model.startChat({
-      history: history,
+      history: finalHistory,
       systemInstruction: systemPrompt,
     });
-    const result = await chat.sendMessage(query);
+    const result = await chat.sendMessage(currentQuery);
     return result.response.text();
   } catch (err) {
     console.error('Gemini Generation Error:', err);
