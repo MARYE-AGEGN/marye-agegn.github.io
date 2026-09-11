@@ -35,7 +35,7 @@ export function ChatAssistant({ onOpenCollaboration, onOpenServiceRequest, onOpe
   const [messages, setMessages] = useState([
     {
       sender: 'assistant',
-      text: "Welcome. I am MARDA (Marye Agegn Relational Digital Assistant). I can answer biomedical technology and sensor questions, explain physiological signals, help identify medical equipment specifications, and guide you to the right technical service or consultation.",
+      text: "Welcome. I am Biomedical MARDA (Marye Agegn Realtime Digital Assistant). I am here to professionally assist you with Marye's biomedical engineering services, medical technology solutions, and clinical operations. How can I help you grow your healthcare business or solve a technical challenge today?",
       metadata: {},
       action: null,
     },
