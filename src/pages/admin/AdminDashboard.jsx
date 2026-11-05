@@ -574,7 +574,7 @@ export function AdminDashboard() {
       title: 'System & Controls',
       items: [
         { id: 'messages', icon: '📨', label: 'Collab Archive', badge: collaborations.length },
-        { id: 'settings', icon: '⚙️', label: 'System & AI Config', badge: null },
+        { id: 'settings', icon: '⚙️', label: 'Platform Settings', badge: null },
       ],
     },
   ];
@@ -582,31 +582,31 @@ export function AdminDashboard() {
   const getActiveTabTitle = (tabId) => {
     switch (tabId) {
       case 'overview':
-        return 'Executive Overview & Real-Time Metrics';
+        return 'Executive Overview';
       case 'ai_consultations':
-        return 'AI Consultations & Live Gemini Logs';
+        return 'AI Consultations';
       case 'inquiries':
-        return 'Direct Client & Service Inquiries';
+        return 'Client Inquiries';
       case 'bhn':
-        return 'Biomedical Horizon Network (BHN) Membership';
+        return 'BHN Network Members';
       case 'docs':
-        return 'Documents & Academic CV Management';
+        return 'Documents & Academic CV';
       case 'media_library':
-        return 'Cloud Media & Asset Repository';
+        return 'Media Asset Library';
       case 'posts':
-        return 'Biomedical Engineering Articles & Insights';
+        return 'Articles & Publications';
       case 'research':
-        return 'Research Updates & Milestones';
+        return 'Research Updates';
       case 'media':
-        return 'Podcasts, Keynotes & Media Features';
+        return 'Media Features & Press';
       case 'webinars':
-        return 'Webinars, Masterclasses & Technical Events';
+        return 'Webinars & Masterclasses';
       case 'messages':
-        return 'Archived Collaboration Correspondence';
+        return 'Archived Messages';
       case 'settings':
-        return 'Database, Supabase RLS & Gemini 3.5 AI Settings';
+        return 'Platform & Database Settings';
       default:
-        return 'Platform CMS Dashboard';
+        return 'Platform CMS';
     }
   };
 
@@ -636,11 +636,6 @@ export function AdminDashboard() {
               <span className="admin-brand-name">Marye Agegn</span>
               <span className="admin-brand-role">Platform CMS</span>
             </div>
-          </div>
-
-          <div className={`admin-sidebar-status-banner ${isSupabaseConfigured ? 'online' : 'local'}`}>
-            <span>{isSupabaseConfigured ? '🟢 Supabase Online' : '🟡 Local Mode'}</span>
-            <span style={{ fontWeight: 600, fontSize: '0.675rem' }}>Active</span>
           </div>
         </div>
 
@@ -730,27 +725,8 @@ export function AdminDashboard() {
           <div className="admin-topbar-actions">
             <span className={`admin-status-pill ${isSupabaseConfigured ? 'online' : 'local'}`}>
               <span className="status-dot" />
-              {isSupabaseConfigured ? 'Supabase RLS Active' : 'Local Storage Mode'}
+              {isSupabaseConfigured ? 'Cloud Connected' : 'Local Storage'}
             </span>
-            <span className="admin-status-pill ai-pill">
-              <span className="status-dot pulse" />
-              Gemini 3.5 AI Active
-            </span>
-            <a
-              href="./#home"
-              className="btn btn-secondary btn-sm"
-              title="Preview public website"
-            >
-              Live Site ↗
-            </a>
-            <button
-              type="button"
-              className="btn btn-outline-danger btn-sm"
-              onClick={handleLogout}
-              title="Sign out of administration"
-            >
-              Sign Out ⎋
-            </button>
           </div>
         </header>
 
@@ -2865,9 +2841,9 @@ export function AdminDashboard() {
         {activeTab === 'settings' && (
           <div className="settings-tab-view max-w-2xl mx-auto space-y-6">
             <div className="card p-8 shadow-sm" style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}>
-              <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>Backend Synchronization (Supabase)</h2>
+              <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>Database Cloud Synchronization</h2>
               <p className="text-sm text-muted mb-6">
-                Connect your Supabase project to enable persistent PostgreSQL cloud storage, multi-device management, and file storage buckets.
+                Connect your PostgreSQL project to enable persistent cloud storage, multi-device management, and file storage buckets.
               </p>
 
               {settingsNotice && (
@@ -2934,7 +2910,7 @@ export function AdminDashboard() {
               <div className="flex items-center gap-2 mb-2">
                 <span style={{ fontSize: '1.4rem' }}>🤖</span>
                 <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)', margin: 0 }}>
-                  Google Gemini Live AI Assistant Configuration
+                  AI Concierge Configuration
                 </h2>
               </div>
               <p className="text-sm text-muted mb-4">
@@ -2952,7 +2928,7 @@ export function AdminDashboard() {
 
               <form onSubmit={handleSaveGeminiKey} className="space-y-4">
                 <div className="form-group">
-                  <label htmlFor="gemini-key">Google Gemini API Key</label>
+                  <label htmlFor="gemini-key">Google AI Studio API Key</label>
                   <input
                     id="gemini-key"
                     type="password"
@@ -2961,7 +2937,7 @@ export function AdminDashboard() {
                     onChange={(e) => setGeminiKeyInput(e.target.value)}
                   />
                   <span className="text-xs text-muted mt-1 block">
-                    ⚡ Live AI Mode: Active (<code>gemini-3.5-flash-lite</code>). If the API is ever unreachable, the assistant seamlessly falls back to your verified local career knowledge base.
+                    ⚡ Engine: <code>gemini-3.5-flash-lite</code> (Live). Fallback: verified local knowledge base.
                   </span>
                 </div>
 
@@ -2973,10 +2949,10 @@ export function AdminDashboard() {
                     className="text-sm font-medium"
                     style={{ color: 'var(--color-primary)' }}
                   >
-                    Get / Manage Gemini API Key in Google AI Studio ↗
+                    Get API Key in Google AI Studio ↗
                   </a>
                   <button type="submit" className="btn btn-primary" style={{ background: '#0284c7', borderColor: '#0284c7' }}>
-                    Save Gemini AI Key
+                    Save AI Key
                   </button>
                 </div>
               </form>

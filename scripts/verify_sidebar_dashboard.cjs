@@ -5,7 +5,7 @@ const path = require('path');
 
 const ARTIFACTS_DIR = 'C:\\Users\\Marye\\.gemini\\antigravity\\brain\\61b9a01b-a81b-47c1-85dc-3af53069d68d';
 const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-const PORT = 9224;
+const PORT = 9225;
 
 function wait(ms) {
   return new Promise((res) => setTimeout(res, ms));
@@ -30,8 +30,8 @@ function sendCDP(ws, method, params = {}) {
 }
 
 async function run() {
-  console.log('Launching Chrome for Sidebar Layout Verification...');
-  const tmpDir = path.join(ARTIFACTS_DIR, 'scratch', 'chrome_prof_' + Date.now());
+  console.log('Launching Chrome for Cleaned Layout Verification...');
+  const tmpDir = path.join(ARTIFACTS_DIR, 'scratch', 'chrome_clean_' + Date.now());
   fs.mkdirSync(tmpDir, { recursive: true });
 
   const chromeProc = spawn(CHROME_PATH, [
@@ -65,7 +65,7 @@ async function run() {
     await sendCDP(ws, 'Runtime.enable');
     await sendCDP(ws, 'DOM.enable');
 
-    console.log('Enabling dev admin bypass in sessionStorage...');
+    console.log('Navigating to http://localhost:5173/#admin');
     await sendCDP(ws, 'Page.navigate', { url: 'http://localhost:5173/#admin' });
     await wait(1500);
 
@@ -78,84 +78,27 @@ async function run() {
 
     await wait(3000);
 
-    // 1. Overview Tab with Sidebar
-    console.log('Capturing Screenshot: 1. Overview Tab with Executive Sidebar');
+    // 1. Overview Tab
+    console.log('Capturing Screenshot: 1. Clean Overview Tab');
     let shot1 = await sendCDP(ws, 'Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync(path.join(ARTIFACTS_DIR, 'admin_sidebar_1_overview.png'), Buffer.from(shot1.data, 'base64'));
+    fs.writeFileSync(path.join(ARTIFACTS_DIR, 'clean_admin_1_overview.png'), Buffer.from(shot1.data, 'base64'));
 
-    // 2. Click Documents & CV tab
-    console.log('Navigating to Documents & CV tab...');
+    // 2. Click Settings Tab (Platform Settings)
+    console.log('Navigating to Platform Settings tab...');
     await sendCDP(ws, 'Runtime.evaluate', {
       expression: `
         (() => {
           const btns = Array.from(document.querySelectorAll('.admin-nav-btn'));
-          const docBtn = btns.find(b => b.textContent.includes('Documents & CV'));
-          if (docBtn) docBtn.click();
+          const setBtn = btns.find(b => b.textContent.includes('Platform Settings'));
+          if (setBtn) setBtn.click();
         })()
       `,
     });
     await wait(1500);
 
-    console.log('Capturing Screenshot: 2. Documents & CV Tab with Fixed Card Spacing');
+    console.log('Capturing Screenshot: 2. Clean Platform Settings Tab (No duplicate words)');
     let shot2 = await sendCDP(ws, 'Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync(path.join(ARTIFACTS_DIR, 'admin_sidebar_2_docs_cv.png'), Buffer.from(shot2.data, 'base64'));
-
-    // 3. Click Inquiries tab
-    console.log('Navigating to Client Inquiries tab...');
-    await sendCDP(ws, 'Runtime.evaluate', {
-      expression: `
-        (() => {
-          const btns = Array.from(document.querySelectorAll('.admin-nav-btn'));
-          const inqBtn = btns.find(b => b.textContent.includes('Client Inquiries'));
-          if (inqBtn) inqBtn.click();
-        })()
-      `,
-    });
-    await wait(1500);
-
-    console.log('Capturing Screenshot: 3. Client Inquiries Tab');
-    let shot3 = await sendCDP(ws, 'Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync(path.join(ARTIFACTS_DIR, 'admin_sidebar_3_inquiries.png'), Buffer.from(shot3.data, 'base64'));
-
-    // 4. Click Webinars tab
-    console.log('Navigating to Webinars tab...');
-    await sendCDP(ws, 'Runtime.evaluate', {
-      expression: `
-        (() => {
-          const btns = Array.from(document.querySelectorAll('.admin-nav-btn'));
-          const webBtn = btns.find(b => b.textContent.includes('Webinars'));
-          if (webBtn) webBtn.click();
-        })()
-      `,
-    });
-    await wait(1500);
-
-    console.log('Capturing Screenshot: 4. Webinars Tab');
-    let shot4 = await sendCDP(ws, 'Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync(path.join(ARTIFACTS_DIR, 'admin_sidebar_4_webinars.png'), Buffer.from(shot4.data, 'base64'));
-
-    // 5. Test Mobile Viewport & Offcanvas Drawer
-    console.log('Testing Mobile Responsiveness (390x844 iPhone resolution)...');
-    await sendCDP(ws, 'Emulation.setDeviceMetricsOverride', {
-      width: 390,
-      height: 844,
-      deviceScaleFactor: 2,
-      mobile: true,
-    });
-    await wait(1000);
-
-    let shot5 = await sendCDP(ws, 'Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync(path.join(ARTIFACTS_DIR, 'admin_sidebar_5_mobile_collapsed.png'), Buffer.from(shot5.data, 'base64'));
-
-    // Click hamburger button to open drawer
-    console.log('Opening mobile sidebar drawer...');
-    await sendCDP(ws, 'Runtime.evaluate', {
-      expression: `document.querySelector('.admin-mobile-menu-btn')?.click()`,
-    });
-    await wait(800);
-
-    let shot6 = await sendCDP(ws, 'Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync(path.join(ARTIFACTS_DIR, 'admin_sidebar_6_mobile_drawer_open.png'), Buffer.from(shot6.data, 'base64'));
+    fs.writeFileSync(path.join(ARTIFACTS_DIR, 'clean_admin_2_settings.png'), Buffer.from(shot2.data, 'base64'));
 
     console.log('All screenshots captured successfully!');
     ws.close();
