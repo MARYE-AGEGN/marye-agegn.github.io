@@ -9,7 +9,9 @@ export const getGeminiApiKey = () => {
     const local = localStorage.getItem('marye_gemini_api_key');
     if (local && local.trim()) return local.trim();
   }
-  return import.meta.env.VITE_GEMINI_API_KEY || '';
+  const metaEnv = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_GEMINI_API_KEY : '';
+  const procEnv = typeof process !== 'undefined' && process.env ? process.env.VITE_GEMINI_API_KEY : '';
+  return metaEnv || procEnv || '';
 };
 
 export const setGeminiApiKey = (newKey) => {
@@ -43,9 +45,6 @@ export const generateDynamicResponse = async (query, context = {}, previousMessa
   if (!instance) {
     return null; // Fallback to verified local concierge seamlessly
   }
-
-  // Use gemini-3.5-flash-lite for instantaneous, high-fidelity responses
-  const model = instance.getGenerativeModel({ model: 'gemini-3.5-flash-lite' });
 
   // System Prompt: Strictly professional biomedical career, field solutions, and service concierge
   const systemPrompt = `You are Biomedical MARDA (Marye Agegn Realtime Digital Assistant), the official AI concierge representing Marye Agegn.
@@ -115,21 +114,38 @@ ${context.staticFallbackText ? `- Verified Core Grounding Data: ${context.static
 
   const finalHistory = formattedHistory.slice(-8);
 
-  try {
-    const chat = model.startChat({
-      history: finalHistory,
-      systemInstruction: systemPrompt,
-    });
-    const sendPromise = chat.sendMessage(currentQuery);
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Gemini API request timed out')), 7500)
-    );
-    const result = await Promise.race([sendPromise, timeoutPromise]);
-    const text = result?.response?.text();
-    return text || null;
-  } catch (err) {
-    console.warn('Gemini dynamic fallback to verified concierge:', err?.message || err);
-    return null; // Fallback to verified local concierge seamlessly
+  // Primary & fallback models for maximum uptime
+  const candidateModels = [
+    'gemini-3.5-flash-lite',
+    'gemini-3.5-flash',
+    'gemini-3.6-flash',
+    'gemini-3.1-flash-lite',
+  ];
+
+  for (const modelName of candidateModels) {
+    try {
+      const model = instance.getGenerativeModel({
+        model: modelName,
+        systemInstruction: systemPrompt,
+      });
+      const chat = model.startChat({
+        history: finalHistory,
+      });
+      const sendPromise = chat.sendMessage(currentQuery);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Gemini API request timed out')), 9000)
+      );
+      const result = await Promise.race([sendPromise, timeoutPromise]);
+      const text = result?.response?.text();
+      if (text && text.trim()) {
+        return text.trim();
+      }
+    } catch (err) {
+      console.warn(`Gemini (${modelName}) failed, attempting next model:`, err?.message || err);
+    }
   }
+
+  // If all live models fail or rate-limit, seamlessly fall back to local knowledge base
+  return null;
 };
 
