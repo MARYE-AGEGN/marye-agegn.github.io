@@ -40,6 +40,10 @@ export function AdminDashboard() {
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
+  const [authMode, setAuthMode] = useState('login'); // 'login' | 'register' | 'forgot' | 'magic'
+  const [showPassword, setShowPassword] = useState(false);
+  const [authSuccessMsg, setAuthSuccessMsg] = useState('');
+  const [newAdminName, setNewAdminName] = useState('');
 
   // Dashboard active tab & navigation layout
   const [activeTab, setActiveTab] = useState('overview'); // overview, inquiries, bhn, docs, media_library, posts, research, media, settings
@@ -271,9 +275,10 @@ export function AdminDashboard() {
     e.preventDefault();
     setAuthLoading(true);
     setAuthError('');
+    setAuthSuccessMsg('');
 
     if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       if (error) {
         setAuthError(error.message || 'Invalid credentials. Please verify your email and password.');
         setAuthLoading(false);
@@ -281,6 +286,88 @@ export function AdminDashboard() {
       }
     } else {
       setAuthError('Supabase is not configured. Please ensure your project URL and keys are configured.');
+    }
+    setAuthLoading(false);
+  }
+
+  // Request Admin Access (Multi-Admin Onboarding)
+  async function handleRequestAdminAccess(e) {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError('');
+    setAuthSuccessMsg('');
+
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          data: {
+            full_name: newAdminName.trim(),
+            requested_role: 'admin',
+          },
+        },
+      });
+      if (error) {
+        setAuthError(error.message || 'Failed to submit registration. Please check credentials.');
+      } else {
+        setAuthSuccessMsg(
+          `Registration submitted for ${email}. Your access is pending approval by Marye Agegn in Supabase.`
+        );
+      }
+    } else {
+      setAuthError('Supabase is not configured. Please ensure your project URL and keys are configured.');
+    }
+    setAuthLoading(false);
+  }
+
+  // Forgot Password Recovery Handler
+  async function handleForgotPassword(e) {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError('');
+    setAuthSuccessMsg('');
+
+    if (isSupabaseConfigured && supabase) {
+      const redirectUrl = typeof window !== 'undefined'
+        ? window.location.origin + window.location.pathname + '#admin'
+        : undefined;
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: redirectUrl,
+      });
+      if (error) {
+        setAuthError(error.message || 'Unable to send password reset email.');
+      } else {
+        setAuthSuccessMsg(`Password reset instructions sent to ${email}. Please check your inbox.`);
+      }
+    } else {
+      setAuthError('Supabase is not configured.');
+    }
+    setAuthLoading(false);
+  }
+
+  // Magic Link Handler
+  async function handleMagicLink(e) {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError('');
+    setAuthSuccessMsg('');
+
+    if (isSupabaseConfigured && supabase) {
+      const redirectUrl = typeof window !== 'undefined'
+        ? window.location.origin + window.location.pathname + '#admin'
+        : undefined;
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: { emailRedirectTo: redirectUrl },
+      });
+      if (error) {
+        setAuthError(error.message || 'Unable to send magic sign-in link.');
+      } else {
+        setAuthSuccessMsg(`Magic sign-in link sent to ${email}. Click the link in your email to authenticate.`);
+      }
+    } else {
+      setAuthError('Supabase is not configured.');
     }
     setAuthLoading(false);
   }
@@ -464,64 +551,294 @@ export function AdminDashboard() {
   }
 
   // -------------------------------------------------------------
-  // If NOT authenticated, show Professional Light Login View
+  // If NOT authenticated, show Enhanced Professional Authentication View
   // -------------------------------------------------------------
   if (!isAuthenticated) {
     return (
-      <div className="admin-main-container flex items-center justify-center min-h-screen py-16" style={{ background: 'var(--color-surface-subtle)' }}>
-        <div className="container" style={{ maxWidth: '440px' }}>
-          <div className="card p-8 shadow-md" style={{ background: '#ffffff', borderRadius: 'var(--radius-lg)' }}>
+      <div className="admin-main-container flex items-center justify-center min-h-screen py-16" style={{ background: '#f8fafc' }}>
+        <div className="container" style={{ maxWidth: '460px' }}>
+          <div className="card p-8 shadow-lg" style={{ background: '#ffffff', borderRadius: 'var(--radius-lg)', border: '1px solid #e2e8f0' }}>
+            {/* Header Badge & Title */}
             <div className="text-center mb-6">
-              <span className="section-badge mb-2">Platform Administration</span>
-              <h2 className="text-2xl font-bold mt-2" style={{ color: 'var(--color-text)' }}>Administrator Access</h2>
-              <p className="text-muted text-sm mt-1">Authorized control console for Marye Agegn</p>
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '12px', background: '#eff6ff', marginBottom: '0.75rem', border: '1px solid #bfdbfe' }}>
+                <span style={{ fontSize: '1.5rem' }}>🛡️</span>
+              </div>
+              <h2 className="text-2xl font-bold" style={{ color: '#0f172a', margin: '0 0 0.25rem 0' }}>
+                {authMode === 'login' && 'Administrator Access'}
+                {authMode === 'register' && 'Request Admin Access'}
+                {authMode === 'forgot' && 'Reset Password'}
+                {authMode === 'magic' && 'Passwordless Sign In'}
+              </h2>
+              <p className="text-muted text-sm mt-1">
+                {authMode === 'login' && 'Authorized control console for Marye Agegn'}
+                {authMode === 'register' && 'Register credentials for Marye Agegn’s authorization'}
+                {authMode === 'forgot' && 'Receive a password recovery email from Supabase'}
+                {authMode === 'magic' && 'Receive an instant 1-click login link via email'}
+              </p>
             </div>
 
-            {authError && (
-              <div
-                className="p-3 mb-4 text-sm rounded"
-                style={{ background: 'var(--color-error-bg)', color: 'var(--color-error)', border: '1px solid var(--color-error-border)' }}
-              >
-                {authError}
+            {/* Segmented Auth Mode Switcher (Login vs Request Access) */}
+            {(authMode === 'login' || authMode === 'register') && (
+              <div className="admin-auth-tabs">
+                <button
+                  type="button"
+                  className={`admin-auth-tab ${authMode === 'login' ? 'active' : ''}`}
+                  onClick={() => { setAuthMode('login'); setAuthError(''); setAuthSuccessMsg(''); }}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  className={`admin-auth-tab ${authMode === 'register' ? 'active' : ''}`}
+                  onClick={() => { setAuthMode('register'); setAuthError(''); setAuthSuccessMsg(''); }}
+                >
+                  Request Admin Access
+                </button>
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="form-group">
-                <label htmlFor="admin-email">Administrator Email</label>
-                <input
-                  id="admin-email"
-                  type="email"
-                  placeholder="2025254026@student.annauniv.edu"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+            {/* Error Message Alert */}
+            {authError && (
+              <div
+                className="p-3 mb-4 text-sm rounded flex items-start gap-2"
+                style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca' }}
+              >
+                <span>⚠️</span>
+                <span>{authError}</span>
               </div>
+            )}
 
-              <div className="form-group">
-                <label htmlFor="admin-password">Password / Admin Key</label>
-                <input
-                  id="admin-password"
-                  type="password"
-                  placeholder="••••••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+            {/* Success Message Alert */}
+            {authSuccessMsg && (
+              <div
+                className="p-3 mb-4 text-sm rounded flex items-start gap-2"
+                style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0' }}
+              >
+                <span>✓</span>
+                <span>{authSuccessMsg}</span>
               </div>
+            )}
 
-              <button type="submit" className="btn btn-primary w-full mt-4" disabled={authLoading}>
-                {authLoading ? 'Authenticating...' : 'Sign In to Dashboard →'}
-              </button>
-            </form>
+            {/* Form 1: Password Sign In */}
+            {authMode === 'login' && (
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="form-group">
+                  <label htmlFor="admin-email">Administrator Email</label>
+                  <input
+                    id="admin-email"
+                    type="email"
+                    placeholder="2025254026@student.annauniv.edu"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
 
+                <div className="form-group">
+                  <div className="flex justify-between items-center mb-1">
+                    <label htmlFor="admin-password" style={{ margin: 0 }}>Password / Admin Key</label>
+                    <button
+                      type="button"
+                      className="admin-auth-switch-link"
+                      onClick={() => { setAuthMode('forgot'); setAuthError(''); setAuthSuccessMsg(''); }}
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                  <div className="password-input-wrap">
+                    <input
+                      id="admin-password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowPassword(!showPassword)}
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                          <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <button type="submit" className="btn btn-primary w-full mt-4" disabled={authLoading}>
+                  {authLoading ? 'Authenticating...' : 'Sign In to Dashboard →'}
+                </button>
+
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    className="admin-auth-switch-link"
+                    onClick={() => { setAuthMode('magic'); setAuthError(''); setAuthSuccessMsg(''); }}
+                  >
+                    ✉️ Sign in with email Magic Link instead
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Form 2: Request Administrator Access (Multi-Admin Onboarding) */}
+            {authMode === 'register' && (
+              <form onSubmit={handleRequestAdminAccess} className="space-y-4">
+                <div className="p-3 rounded text-xs" style={{ background: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe' }}>
+                  🛡️ <strong>Authorization Required:</strong> Secondary accounts registered here remain strictly locked until explicitly authorized with admin privileges by Marye Agegn in Supabase.
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="reg-name">Full Name &amp; Professional Role</label>
+                  <input
+                    id="reg-name"
+                    type="text"
+                    placeholder="e.g. Dr. Alex Vance / Co-Researcher"
+                    value={newAdminName}
+                    onChange={(e) => setNewAdminName(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="reg-email">Administrator Email</label>
+                  <input
+                    id="reg-email"
+                    type="email"
+                    placeholder="colleague@institution.edu"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="reg-password">Create Password</label>
+                  <div className="password-input-wrap">
+                    <input
+                      id="reg-password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowPassword(!showPassword)}
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                          <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <button type="submit" className="btn btn-primary w-full mt-4" disabled={authLoading}>
+                  {authLoading ? 'Submitting Registration...' : 'Submit Access Request →'}
+                </button>
+              </form>
+            )}
+
+            {/* Form 3: Forgot Password Recovery */}
+            {authMode === 'forgot' && (
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="form-group">
+                  <label htmlFor="forgot-email">Administrator Email</label>
+                  <input
+                    id="forgot-email"
+                    type="email"
+                    placeholder="maryeagegn2022@gmail.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                  <span className="text-xs text-muted mt-1 block">
+                    We will send a password reset link to this email address via Supabase Authentication.
+                  </span>
+                </div>
+
+                <button type="submit" className="btn btn-primary w-full mt-4" disabled={authLoading}>
+                  {authLoading ? 'Sending Recovery Email...' : 'Send Password Reset Link →'}
+                </button>
+
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    className="admin-auth-switch-link"
+                    onClick={() => { setAuthMode('login'); setAuthError(''); setAuthSuccessMsg(''); }}
+                  >
+                    ← Back to Sign In
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Form 4: Magic Link Sign In */}
+            {authMode === 'magic' && (
+              <form onSubmit={handleMagicLink} className="space-y-4">
+                <div className="form-group">
+                  <label htmlFor="magic-email">Administrator Email</label>
+                  <input
+                    id="magic-email"
+                    type="email"
+                    placeholder="maryeagegn2022@gmail.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                  <span className="text-xs text-muted mt-1 block">
+                    We will email you a secure 1-click login link. No password required.
+                  </span>
+                </div>
+
+                <button type="submit" className="btn btn-primary w-full mt-4" disabled={authLoading}>
+                  {authLoading ? 'Sending Magic Link...' : 'Send Magic Sign-In Link →'}
+                </button>
+
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    className="admin-auth-switch-link"
+                    onClick={() => { setAuthMode('login'); setAuthError(''); setAuthSuccessMsg(''); }}
+                  >
+                    ← Sign In with Password instead
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Return to Public Website (Vibrant Blue Styled Button) */}
             <div
               className="mt-6 pt-4 text-center text-xs text-muted"
-              style={{ borderTop: '1px solid var(--color-border)' }}
+              style={{ borderTop: '1px solid #e2e8f0' }}
             >
-              <p>🔒 Authenticated via PostgreSQL Row Level Security (RLS).</p>
-              <a href="#home" className="inline-block mt-2 font-medium" style={{ color: 'var(--color-primary)' }}>
+              <p style={{ margin: '0 0 0.5rem 0', color: '#64748b' }}>
+                🔒 Secured by PostgreSQL Row Level Security (RLS)
+              </p>
+              <a href="./#home" className="admin-return-btn">
                 ← Return to Public Website
               </a>
             </div>
