@@ -22,7 +22,7 @@ import { AdminDashboard } from './pages/admin/AdminDashboard';
 
 export function App() {
   const { home, personal, about, research, projects, experience, education, publications, skills, contact } = siteData;
-  const [currentHash, setCurrentHash] = useState(() => (typeof window !== 'undefined' ? window.location.hash.replace('#', '') : ''));
+  const [currentHash, setCurrentHash] = useState(() => (typeof window !== 'undefined' ? window.location.hash.replace(/^#+/, '') : ''));
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCollabOpen, setIsCollabOpen] = useState(false);
   const [collabContext, setCollabContext] = useState({
@@ -33,14 +33,15 @@ export function App() {
 
   useEffect(() => {
     function handleHashChange() {
-      const hash = window.location.hash.replace('#', '');
+      const hash = window.location.hash.replace(/^#+/, '');
       setCurrentHash(hash);
     }
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const isAdminRoute = currentHash === 'admin';
+  const routeName = currentHash.split('?')[0].split('&')[0].replace(/^\//, '');
+  const isAdminRoute = routeName === 'admin';
 
   const handleOpenGeneralContact = (category = 'General inquiry') => {
     setCollabContext({

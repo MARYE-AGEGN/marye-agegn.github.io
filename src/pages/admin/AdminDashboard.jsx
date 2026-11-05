@@ -45,6 +45,29 @@ export function AdminDashboard() {
   const [authSuccessMsg, setAuthSuccessMsg] = useState('');
   const [newAdminName, setNewAdminName] = useState('');
 
+  // Password Recovery state
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [recoveryPassword, setRecoveryPassword] = useState('');
+  const [recoveryConfirmPassword, setRecoveryConfirmPassword] = useState('');
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+
+  // Multi-Admin Management state
+  const [adminUsersList, setAdminUsersList] = useState([]);
+  const [loadingAdminUsers, setLoadingAdminUsers] = useState(false);
+  const [newAdminEmail, setNewAdminEmail] = useState('');
+  const [newAdminRole, setNewAdminRole] = useState('admin');
+  const [adminUserMsg, setAdminUserMsg] = useState(null);
+
+  // Global Toast Feedback
+  const [toast, setToast] = useState(null);
+
+  function showToast(text, type = 'success') {
+    setToast({ text, type });
+    setTimeout(() => {
+      setToast(null);
+    }, 3500);
+  }
+
   // Dashboard active tab & navigation layout
   const [activeTab, setActiveTab] = useState('overview'); // overview, inquiries, bhn, docs, media_library, posts, research, media, settings
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -100,7 +123,7 @@ export function AdminDashboard() {
   const [geminiKeyInput, setGeminiKeyInput] = useState(() => getGeminiApiKey());
   const [geminiNotice, setGeminiNotice] = useState('');
 
-  // Check auth session
+  // Check auth session & Password Recovery triggers
   useEffect(() => {
     // Local development verification mode for automated testing on localhost only
     if (typeof window !== 'undefined' && window.location.hostname === 'localhost' && window.sessionStorage.getItem('__dev_admin_bypass__') === 'true') {
@@ -111,12 +134,19 @@ export function AdminDashboard() {
     }
 
     if (supabase && isSupabaseConfigured) {
+      if (typeof window !== 'undefined' && (window.location.hash.includes('type=recovery') || window.location.search.includes('type=recovery'))) {
+        setIsPasswordRecovery(true);
+      }
+
       supabase.auth.getSession().then(({ data: { session } }) => {
         setSession(session);
       });
       const {
         data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, session) => {
+      } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsPasswordRecovery(true);
+        }
         setSession(session);
       });
       return () => subscription.unsubscribe();
@@ -202,6 +232,13 @@ export function AdminDashboard() {
     loadAll();
   }, [isAuthenticated, refreshTrigger]);
 
+  // Fetch admin roster when viewing Settings
+  useEffect(() => {
+    if (activeTab === 'settings' && isAuthenticated) {
+      fetchAdminUsers();
+    }
+  }, [activeTab, isAuthenticated]);
+
   // CV Upload Handler (Strict %PDF- Validation & Binary Storage)
   async function handleCvFileUpload(e) {
     const file = e.target.files?.[0];
@@ -221,6 +258,7 @@ export function AdminDashboard() {
         type: 'success',
         text: `CV binary successfully stored and activated (${result.document.file_size}). The public "Download CV" button now serves this exact file.`,
       });
+      showToast(`CV binary activated: ${cvVersionInput || 'v2.2'}`);
 
       const updatedDocs = await getDocuments();
       setDocuments(updatedDocs);
@@ -228,6 +266,7 @@ export function AdminDashboard() {
     } catch (err) {
       console.error('CV upload error:', err);
       setCvUploadMsg({ type: 'error', text: err.message || 'Failed to upload CV. Only genuine binary PDF files are accepted.' });
+      showToast(err.message || 'Failed to upload CV', 'error');
     } finally {
       setCvUploading(false);
       if (cvFileInputRef.current) cvFileInputRef.current.value = '';
@@ -239,6 +278,7 @@ export function AdminDashboard() {
     await updateInquiryStatus(id, status, notes);
     const updated = await getInquiries();
     setInquiries(updated);
+    showToast(`Inquiry marked as ${status}`);
   }
 
   // BHN Application Status Handler
@@ -246,6 +286,7 @@ export function AdminDashboard() {
     await updateBhnApplicationStatus(id, status, notes);
     const updated = await getBhnApplications();
     setBhnApplications(updated);
+    showToast(`BHN member status updated to ${status}`);
   }
 
   // Direct BHN Member Onboarding Handler (Auto-stamps joined_at = current time)
@@ -268,6 +309,7 @@ export function AdminDashboard() {
     });
     const updated = await getBhnApplications();
     setBhnApplications(updated);
+    showToast('Member enrolled directly into BHN network');
   }
 
   // Handle Login (Strict Supabase Auth without hardcoded credentials)
@@ -346,6 +388,94 @@ export function AdminDashboard() {
     setAuthLoading(false);
   }
 
+  // Set New Password Handler (from Supabase Password Recovery Link)
+  async function handleUpdatePassword(e) {
+    e.preventDefault();
+    if (!recoveryPassword || recoveryPassword.length < 6) {
+      setAuthError('Password must be at least 6 characters.');
+      return;
+    }
+    if (recoveryPassword !== recoveryConfirmPassword) {
+      setAuthError('Passwords do not match. Please verify.');
+      return;
+    }
+
+    setRecoveryLoading(true);
+    setAuthError('');
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.auth.updateUser({ password: recoveryPassword });
+      if (error) {
+        setAuthError(error.message);
+      } else {
+        setIsPasswordRecovery(false);
+        setAuthSuccessMsg('Password updated successfully! You may now sign in.');
+        showToast('Password updated successfully!');
+      }
+    } else {
+      setAuthError('Supabase is not configured.');
+    }
+    setRecoveryLoading(false);
+  }
+
+  // Multi-Admin Management Handlers
+  async function fetchAdminUsers() {
+    if (!isSupabaseConfigured || !supabase) return;
+    setLoadingAdminUsers(true);
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (!error && data) {
+        setAdminUsersList(data);
+      }
+    } catch (err) {
+      console.warn('Could not fetch admin_users roster:', err);
+    } finally {
+      setLoadingAdminUsers(false);
+    }
+  }
+
+  async function handleAuthorizeAdmin(e) {
+    e.preventDefault();
+    if (!newAdminEmail) return;
+    const cleanEmail = newAdminEmail.trim().toLowerCase();
+
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase
+        .from('admin_users')
+        .insert([{ email: cleanEmail, role: newAdminRole }]);
+      if (error) {
+        setAdminUserMsg({ type: 'error', text: error.message });
+        showToast(error.message, 'error');
+      } else {
+        setAdminUserMsg({ type: 'success', text: `Authorized ${cleanEmail} as ${newAdminRole}.` });
+        showToast(`Authorized ${cleanEmail}`);
+        setNewAdminEmail('');
+        fetchAdminUsers();
+      }
+    }
+  }
+
+  async function handleRevokeAdmin(adminId, email) {
+    if (email === 'maryeagegn2022@gmail.com') {
+      alert('Primary owner account cannot be revoked.');
+      return;
+    }
+    if (window.confirm(`Revoke administrative access for ${email}?`)) {
+      if (isSupabaseConfigured && supabase) {
+        const { error } = await supabase
+          .from('admin_users')
+          .delete()
+          .eq('id', adminId);
+        if (!error) {
+          showToast(`Revoked access for ${email}`);
+          fetchAdminUsers();
+        }
+      }
+    }
+  }
+
   // Magic Link Handler
   async function handleMagicLink(e) {
     e.preventDefault();
@@ -385,12 +515,14 @@ export function AdminDashboard() {
     await savePost(editingPost);
     setEditingPost(null);
     setRefreshTrigger((prev) => prev + 1);
+    showToast('Article saved successfully');
   }
 
   async function handleDeletePost(id) {
     if (window.confirm('Are you sure you want to delete this post?')) {
       await deletePost(id);
       setRefreshTrigger((prev) => prev + 1);
+      showToast('Article removed');
     }
   }
 
@@ -409,12 +541,14 @@ export function AdminDashboard() {
     setEditingResearch(null);
     setIpModalData(null);
     setRefreshTrigger((prev) => prev + 1);
+    showToast('Research milestone updated');
   }
 
   async function handleDeleteResearch(id) {
     if (window.confirm('Delete this research update?')) {
       await deleteResearchUpdate(id);
       setRefreshTrigger((prev) => prev + 1);
+      showToast('Research milestone removed');
     }
   }
 
@@ -424,12 +558,14 @@ export function AdminDashboard() {
     await saveDocument(editingDoc);
     setEditingDoc(null);
     setRefreshTrigger((prev) => prev + 1);
+    showToast('Document record saved');
   }
 
   async function handleDeleteDoc(id) {
     if (window.confirm('Delete this document entry?')) {
       await deleteDocument(id);
       setRefreshTrigger((prev) => prev + 1);
+      showToast('Document record removed');
     }
   }
 
@@ -439,12 +575,14 @@ export function AdminDashboard() {
     await saveMediaItem(editingMedia);
     setEditingMedia(null);
     setRefreshTrigger((prev) => prev + 1);
+    showToast('Media item saved');
   }
 
   async function handleDeleteMedia(id) {
     if (window.confirm('Delete this media item?')) {
       await deleteMediaItem(id);
       setRefreshTrigger((prev) => prev + 1);
+      showToast('Media item removed');
     }
   }
 
@@ -454,12 +592,14 @@ export function AdminDashboard() {
     await saveWebinar(editingWebinar);
     setEditingWebinar(null);
     setRefreshTrigger((prev) => prev + 1);
+    showToast('Webinar session saved');
   }
 
   async function handleDeleteWebinar(id) {
     if (window.confirm('Are you sure you want to delete this webinar record?')) {
       await deleteWebinar(id);
       setRefreshTrigger((prev) => prev + 1);
+      showToast('Webinar session removed');
     }
   }
 
@@ -468,12 +608,14 @@ export function AdminDashboard() {
     e.preventDefault();
     updateSupabaseConfig(supabaseUrlInput.trim(), supabaseAnonKeyInput.trim());
     setSettingsNotice('Supabase configuration updated. Please refresh the page to apply.');
+    showToast('Supabase settings saved');
   }
 
   function handleSaveGeminiKey(e) {
     e.preventDefault();
     setGeminiApiKey(geminiKeyInput.trim());
     setGeminiNotice('Gemini AI API Key saved successfully. Live AI chat with Gemini 3.5 Flash Lite is now active for all visitors!');
+    showToast('AI API Key saved successfully!');
   }
 
   // Handle asset chosen from Media Library Picker Modal
@@ -545,6 +687,102 @@ export function AdminDashboard() {
           <button onClick={handleLogout} className="btn btn-secondary w-full">
             Sign Out of This Account
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // If in Password Recovery Mode, render Set New Password View
+  // -------------------------------------------------------------
+  if (isPasswordRecovery) {
+    return (
+      <div className="admin-main-container flex items-center justify-center min-h-screen py-16" style={{ background: '#f8fafc' }}>
+        <div className="container" style={{ maxWidth: '460px' }}>
+          <div className="card p-8 shadow-lg" style={{ background: '#ffffff', borderRadius: 'var(--radius-lg)', border: '1px solid #e2e8f0' }}>
+            <div className="text-center mb-6">
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '12px', background: '#ecfdf5', marginBottom: '0.75rem', border: '1px solid #a7f3d0' }}>
+                <span style={{ fontSize: '1.5rem' }}>🔑</span>
+              </div>
+              <h2 className="text-2xl font-bold" style={{ color: '#0f172a', margin: '0 0 0.25rem 0' }}>
+                Set New Password
+              </h2>
+              <p className="text-muted text-sm mt-1">
+                Enter your new secure administrator password below.
+              </p>
+            </div>
+
+            {authError && (
+              <div className="p-3 mb-4 text-sm rounded flex items-start gap-2" style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca' }}>
+                <span>⚠️</span>
+                <span>{authError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleUpdatePassword} className="space-y-4">
+              <div className="form-group">
+                <label htmlFor="rec-pass">New Password</label>
+                <div className="password-input-wrap">
+                  <input
+                    id="rec-pass"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="At least 6 characters"
+                    value={recoveryPassword}
+                    onChange={(e) => setRecoveryPassword(e.target.value)}
+                    required
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="rec-confirm">Confirm New Password</label>
+                <div className="password-input-wrap">
+                  <input
+                    id="rec-confirm"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Repeat new password"
+                    value={recoveryConfirmPassword}
+                    onChange={(e) => setRecoveryConfirmPassword(e.target.value)}
+                    required
+                    minLength={6}
+                  />
+                </div>
+              </div>
+
+              <button type="submit" className="btn btn-primary w-full mt-4" disabled={recoveryLoading}>
+                {recoveryLoading ? 'Updating Password...' : 'Save New Password & Sign In →'}
+              </button>
+
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  className="admin-auth-switch-link"
+                  onClick={() => setIsPasswordRecovery(false)}
+                >
+                  Cancel Recovery
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     );
@@ -3274,6 +3512,128 @@ export function AdminDashboard() {
                 </div>
               </form>
             </div>
+
+            {/* Team & Administrator Management Card */}
+            <div className="card p-8 shadow-sm" style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span style={{ fontSize: '1.4rem' }}>👥</span>
+                  <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)', margin: 0 }}>
+                    Administrator Accounts &amp; Permissions
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={fetchAdminUsers}
+                  disabled={loadingAdminUsers}
+                >
+                  {loadingAdminUsers ? 'Refreshing...' : 'Refresh Roster ⟳'}
+                </button>
+              </div>
+              <p className="text-sm text-muted mb-4">
+                Manage authorized administrator accounts. Anyone who registers via <em>Request Admin Access</em> remains locked out until their email is authorized here in PostgreSQL Row Level Security.
+              </p>
+
+              {adminUserMsg && (
+                <div
+                  className="p-3 mb-4 text-sm rounded"
+                  style={{
+                    background: adminUserMsg.type === 'success' ? '#ecfdf5' : '#fef2f2',
+                    color: adminUserMsg.type === 'success' ? '#065f46' : '#991b1b',
+                    border: `1px solid ${adminUserMsg.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+                  }}
+                >
+                  {adminUserMsg.type === 'success' ? '✓ ' : '⚠️ '}
+                  {adminUserMsg.text}
+                </div>
+              )}
+
+              {/* Authorize New Admin Form */}
+              <form onSubmit={handleAuthorizeAdmin} className="mb-6 p-4 rounded-md" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <span className="text-xs font-semibold block mb-2" style={{ color: '#0f172a' }}>
+                  + Authorize New Administrator or Editor
+                </span>
+                <div className="flex flex-wrap gap-3 items-end">
+                  <div className="flex-1" style={{ minWidth: '220px' }}>
+                    <label className="text-xs text-muted block mb-1">User Email Address</label>
+                    <input
+                      type="email"
+                      placeholder="co-researcher@institution.edu"
+                      value={newAdminEmail}
+                      onChange={(e) => setNewAdminEmail(e.target.value)}
+                      required
+                      style={{ padding: '0.45rem 0.75rem', fontSize: '0.85rem' }}
+                    />
+                  </div>
+                  <div style={{ width: '130px' }}>
+                    <label className="text-xs text-muted block mb-1">Access Role</label>
+                    <select
+                      value={newAdminRole}
+                      onChange={(e) => setNewAdminRole(e.target.value)}
+                      style={{ padding: '0.45rem 0.75rem', fontSize: '0.85rem' }}
+                    >
+                      <option value="admin">Admin</option>
+                      <option value="superadmin">Superadmin</option>
+                    </select>
+                  </div>
+                  <button type="submit" className="btn btn-primary btn-sm" style={{ padding: '0.55rem 1rem' }}>
+                    Grant Access
+                  </button>
+                </div>
+              </form>
+
+              {/* Authorized Admins Table */}
+              <div className="admin-table-container">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Account Email</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style={{ background: '#f0fdf4' }}>
+                      <td>
+                        <strong>maryeagegn2022@gmail.com</strong>
+                        <span className="badge badge-sm ml-2" style={{ background: '#dcfce7', color: '#166534', fontWeight: 600 }}>Primary Owner</span>
+                      </td>
+                      <td><span className="badge badge-sm font-mono">superadmin</span></td>
+                      <td><span className="text-xs font-semibold" style={{ color: '#16a34a' }}>● Active</span></td>
+                      <td><span className="text-xs text-muted">Permanent</span></td>
+                    </tr>
+                    {adminUsersList
+                      .filter((u) => u.email !== 'maryeagegn2022@gmail.com')
+                      .map((admin) => (
+                        <tr key={admin.id || admin.email}>
+                          <td><strong>{admin.email}</strong></td>
+                          <td><span className="badge badge-sm font-mono">{admin.role || 'admin'}</span></td>
+                          <td><span className="text-xs font-semibold" style={{ color: '#16a34a' }}>● Authorized</span></td>
+                          <td>
+                            <button
+                              type="button"
+                              className="btn btn-outline-danger btn-sm"
+                              onClick={() => handleRevokeAdmin(admin.id, admin.email)}
+                              style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+                            >
+                              Revoke
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    {adminUsersList.filter((u) => u.email !== 'maryeagegn2022@gmail.com').length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="text-center text-muted text-xs py-3">
+                          No secondary administrators yet. When users submit "Request Admin Access", enter their email above to grant access.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
@@ -3383,6 +3743,17 @@ export function AdminDashboard() {
                 onClosePicker={() => setPickerConfig(null)}
               />
             </div>
+          </div>
+        )}
+        {/* Global Floating Toast Notification */}
+        {toast && (
+          <div
+            className={`admin-floating-toast ${toast.type}`}
+            role="status"
+            aria-live="polite"
+          >
+            <span className="toast-icon">{toast.type === 'success' ? '✓' : '⚠️'}</span>
+            <span className="toast-text">{toast.text}</span>
           </div>
         )}
       </div>
