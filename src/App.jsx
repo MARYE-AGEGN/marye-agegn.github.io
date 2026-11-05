@@ -84,20 +84,22 @@ export function App() {
         Skip to main content
       </a>
 
-      {/* Global Application Navigation Bar */}
-      <Navbar
-        navigation={siteData.navigation}
-        personal={personal}
-        onOpenSearch={() => setIsSearchOpen(true)}
-        onOpenCollaboration={() => handleOpenGeneralContact('General inquiry')}
-        currentRoute={currentHash}
-      />
+      {/* Global Application Navigation Bar (Public Views Only) */}
+      {!isAdminRoute && (
+        <Navbar
+          navigation={siteData.navigation}
+          personal={personal}
+          onOpenSearch={() => setIsSearchOpen(true)}
+          onOpenCollaboration={() => handleOpenGeneralContact('General inquiry')}
+          currentRoute={currentHash}
+        />
+      )}
 
-      {/* Main View: Conditional Admin Dashboard or Full Portfolio */}
+      {/* Main View: Dedicated Full-Screen Admin Portal or Public Portfolio */}
       {isAdminRoute ? (
-        <main id="main-content" className="admin-main-container">
+        <div id="main-content" className="admin-viewport-wrapper">
           <AdminDashboard />
-        </main>
+        </div>
       ) : (
         <main id="main-content" className="main-content">
           <Home
@@ -122,8 +124,8 @@ export function App() {
         </main>
       )}
 
-      {/* Global Application Footer */}
-      <Footer personal={personal} contact={contact} />
+      {/* Global Application Footer (Public Views Only) */}
+      {!isAdminRoute && <Footer personal={personal} contact={contact} />}
 
       {/* Floating Controlled Knowledge Assistant (Public Views Only) */}
       {!isAdminRoute && (
