@@ -18,6 +18,7 @@ import {
   getInquiries,
   updateInquiryStatus,
   getBhnApplications,
+  submitBhnApplication,
   updateBhnApplicationStatus,
   uploadCvPdf,
   getWebinars,
@@ -28,6 +29,7 @@ import { getMediaLibrary } from '../../data/mediaStore';
 import { UniversalFileUploader } from '../../components/common/UniversalFileUploader';
 import { MediaLibrary } from '../../components/admin/MediaLibrary';
 import { ConsultationWorkspace } from '../../components/admin/ConsultationWorkspace';
+import { getGeminiApiKey, setGeminiApiKey } from '../../services/ai/geminiService';
 
 export function AdminDashboard() {
   // Authentication & Admin Authorization state
@@ -54,6 +56,16 @@ export function AdminDashboard() {
   const [bhnApplications, setBhnApplications] = useState([]);
   const [inquiryStatusFilter, setInquiryStatusFilter] = useState('All');
   const [bhnStatusFilter, setBhnStatusFilter] = useState('All');
+  const [isAddingBhnMember, setIsAddingBhnMember] = useState(false);
+  const [newBhnForm, setNewBhnForm] = useState({
+    name: '',
+    email: '',
+    organization: '',
+    role: '',
+    country: 'Ethiopia',
+    background: '',
+    statement_of_interest: '',
+  });
   const [cvUploading, setCvUploading] = useState(false);
   const [cvUploadMsg, setCvUploadMsg] = useState(null);
   const [cvVersionInput, setCvVersionInput] = useState('v2.2');
@@ -80,6 +92,8 @@ export function AdminDashboard() {
   const [supabaseUrlInput, setSupabaseUrlInput] = useState(currentConfig.url);
   const [supabaseAnonKeyInput, setSupabaseAnonKeyInput] = useState(currentConfig.anonKey);
   const [settingsNotice, setSettingsNotice] = useState('');
+  const [geminiKeyInput, setGeminiKeyInput] = useState(() => getGeminiApiKey());
+  const [geminiNotice, setGeminiNotice] = useState('');
 
   // Check auth session
   useEffect(() => {
@@ -221,6 +235,28 @@ export function AdminDashboard() {
     setBhnApplications(updated);
   }
 
+  // Direct BHN Member Onboarding Handler (Auto-stamps joined_at = current time)
+  async function handleCreateDirectBhnMember(e) {
+    e.preventDefault();
+    if (!newBhnForm.name || !newBhnForm.email) return;
+    await submitBhnApplication({
+      ...newBhnForm,
+      status: 'Active', // Direct addition as an active member
+    });
+    setIsAddingBhnMember(false);
+    setNewBhnForm({
+      name: '',
+      email: '',
+      organization: '',
+      role: '',
+      country: 'Ethiopia',
+      background: '',
+      statement_of_interest: '',
+    });
+    const updated = await getBhnApplications();
+    setBhnApplications(updated);
+  }
+
   // Handle Login (Strict Supabase Auth without hardcoded credentials)
   async function handleLogin(e) {
     e.preventDefault();
@@ -336,6 +372,12 @@ export function AdminDashboard() {
     e.preventDefault();
     updateSupabaseConfig(supabaseUrlInput.trim(), supabaseAnonKeyInput.trim());
     setSettingsNotice('Supabase configuration updated. Please refresh the page to apply.');
+  }
+
+  function handleSaveGeminiKey(e) {
+    e.preventDefault();
+    setGeminiApiKey(geminiKeyInput.trim());
+    setGeminiNotice('Gemini AI API Key saved successfully. Live AI chat with Gemini 3.5 Flash Lite is now active for all visitors!');
   }
 
   // Handle asset chosen from Media Library Picker Modal
@@ -875,36 +917,132 @@ export function AdminDashboard() {
         {/* ------------------------------------------------------- */}
         {activeTab === 'bhn' && (
           <div className="bhn-tab-view space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>
-                  Biomedical Horizon Network (BHN) Applications ({bhnApplications.length})
+                  Biomedical Horizon Network (BHN) Member Registry &amp; Applications ({bhnApplications.length})
                 </h2>
                 <p className="text-sm text-muted">
-                  Membership and collaboration applications for the developing Biomedical Horizon Network initiative.
-                  A visitor is <strong>NOT</strong> publicly considered a BHN member until an administrator formally approves and activates their application.
+                  Membership network connecting healthcare engineers, clinicians, and researchers.
+                  When a member joins or is approved, the system automatically tracks and preserves the exact join timestamp.
                 </p>
               </div>
 
-              {/* Status Filter Buttons */}
-              <div className="flex gap-2">
-                {['All', 'Pending', 'Approved', 'Active', 'Declined', 'Archived'].map((status) => (
-                  <button
-                    key={status}
-                    type="button"
-                    className={`btn btn-xs ${bhnStatusFilter === status ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => setBhnStatusFilter(status)}
-                  >
-                    {status}
-                    {status === 'Pending' && bhnApplications.filter((b) => b.status === 'Pending').length > 0 && (
-                      <span className="ml-1 badge badge-sm" style={{ background: '#0f766e', color: '#fff' }}>
-                        {bhnApplications.filter((b) => b.status === 'Pending').length}
-                      </span>
-                    )}
-                  </button>
-                ))}
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  style={{ background: '#0f766e', borderColor: '#0f766e' }}
+                  onClick={() => setIsAddingBhnMember(!isAddingBhnMember)}
+                >
+                  {isAddingBhnMember ? '✕ Cancel' : '+ Directly Onboard BHN Member'}
+                </button>
+
+                {/* Status Filter Buttons */}
+                <div className="flex gap-1 flex-wrap">
+                  {['All', 'Pending', 'Approved', 'Active', 'Declined', 'Archived'].map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      className={`btn btn-xs ${bhnStatusFilter === status ? 'btn-primary' : 'btn-secondary'}`}
+                      onClick={() => setBhnStatusFilter(status)}
+                    >
+                      {status}
+                      {status === 'Pending' && bhnApplications.filter((b) => b.status === 'Pending').length > 0 && (
+                        <span className="ml-1 badge badge-sm" style={{ background: '#0f766e', color: '#fff' }}>
+                          {bhnApplications.filter((b) => b.status === 'Pending').length}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
+
+            {/* Direct Member Onboarding Drawer */}
+            {isAddingBhnMember && (
+              <div className="card p-6 border-2 border-emerald-600" style={{ background: '#f0fdf4', borderRadius: 'var(--radius-md)' }}>
+                <h3 className="font-bold text-lg text-emerald-950 mb-2">Direct BHN Member Onboarding</h3>
+                <p className="text-xs text-emerald-800 mb-4">
+                  Register a verified biomedical colleague or partner directly into BHN. The current exact date and time will be automatically recorded as their joined timestamp.
+                </p>
+                <form onSubmit={handleCreateDirectBhnMember} className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1">Full Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Dr. Abebe Bikila"
+                        value={newBhnForm.name}
+                        onChange={(e) => setNewBhnForm({ ...newBhnForm, name: e.target.value })}
+                        className="form-control text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1">Email Address *</label>
+                      <input
+                        type="email"
+                        required
+                        placeholder="colleague@institution.org"
+                        value={newBhnForm.email}
+                        onChange={(e) => setNewBhnForm({ ...newBhnForm, email: e.target.value })}
+                        className="form-control text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1">Institution / Organization</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Tikur Anbessa Hospital"
+                        value={newBhnForm.organization}
+                        onChange={(e) => setNewBhnForm({ ...newBhnForm, organization: e.target.value })}
+                        className="form-control text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1">Professional Role / Title</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Lead Clinical Engineer"
+                        value={newBhnForm.role}
+                        onChange={(e) => setNewBhnForm({ ...newBhnForm, role: e.target.value })}
+                        className="form-control text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1">Country</label>
+                      <input
+                        type="text"
+                        value={newBhnForm.country}
+                        onChange={(e) => setNewBhnForm({ ...newBhnForm, country: e.target.value })}
+                        className="form-control text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-700 block mb-1">Specialization &amp; Background</label>
+                    <textarea
+                      rows="2"
+                      placeholder="Specialization area, equipment expertise, or clinical focus..."
+                      value={newBhnForm.background}
+                      onChange={(e) => setNewBhnForm({ ...newBhnForm, background: e.target.value })}
+                      className="form-control text-sm"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2 pt-2">
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => setIsAddingBhnMember(false)}>
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary btn-sm" style={{ background: '#16a34a', borderColor: '#16a34a' }}>
+                      ✓ Save &amp; Auto-Stamp Member Join Date
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
 
             {(() => {
               const filteredBhn = bhnApplications.filter((b) =>
@@ -921,140 +1059,165 @@ export function AdminDashboard() {
 
               return (
                 <div className="space-y-4">
-                  {filteredBhn.map((bhn) => (
-                    <div
-                      key={bhn.id}
-                      className="card p-6"
-                      style={{
-                        background: '#ffffff',
-                        borderRadius: 'var(--radius-md)',
-                        borderLeft:
-                          bhn.status === 'Active'
-                            ? '4px solid #16a34a'
-                            : bhn.status === 'Approved'
-                            ? '4px solid #0284c7'
-                            : bhn.status === 'Pending'
-                            ? '4px solid #0f766e'
-                            : '4px solid var(--color-border)',
-                      }}
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-2">
-                        <div>
+                  {filteredBhn.map((bhn) => {
+                    const applicantName = bhn.full_name || bhn.name || 'Anonymous Applicant';
+                    const organization = bhn.institution || bhn.organization || 'Independent Professional';
+                    const specialization = bhn.specialization || bhn.role || bhn.background || 'Biomedical Engineering';
+                    const background = bhn.professional_background || bhn.background;
+                    const statement = bhn.statement_of_interest || bhn.message;
+                    const focusArea = bhn.focus_area || (Array.isArray(bhn.areas_of_interest) && bhn.areas_of_interest.length > 0 ? bhn.areas_of_interest.join(', ') : 'Biomedical Innovation');
+                    const isJoined = bhn.status === 'Active' || bhn.status === 'Approved' || Boolean(bhn.joined_at);
+                    const joinDate = bhn.joined_at || bhn.approved_at || (bhn.status === 'Active' ? bhn.created_at : null);
+
+                    return (
+                      <div
+                        key={bhn.id}
+                        className="card p-6"
+                        style={{
+                          background: '#ffffff',
+                          borderRadius: 'var(--radius-md)',
+                          borderLeft:
+                            bhn.status === 'Active'
+                              ? '4px solid #16a34a'
+                              : bhn.status === 'Approved'
+                              ? '4px solid #0284c7'
+                              : bhn.status === 'Pending'
+                              ? '4px solid #0f766e'
+                              : '4px solid var(--color-border)',
+                        }}
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-bold text-lg" style={{ color: 'var(--color-text)', margin: 0 }}>
+                                {applicantName}
+                              </h3>
+                              <span
+                                className="badge"
+                                style={{
+                                  background:
+                                    bhn.status === 'Active'
+                                      ? '#dcfce7'
+                                      : bhn.status === 'Approved'
+                                      ? '#e0f2fe'
+                                      : bhn.status === 'Pending'
+                                      ? '#ccfbf1'
+                                      : '#f3f4f6',
+                                  color:
+                                    bhn.status === 'Active'
+                                      ? '#15803d'
+                                      : bhn.status === 'Approved'
+                                      ? '#0369a1'
+                                      : bhn.status === 'Pending'
+                                      ? '#0f766e'
+                                      : '#4b5563',
+                                  fontWeight: 700,
+                                }}
+                              >
+                                Status: {bhn.status}
+                              </span>
+
+                              {/* Prominent Joined Timestamp */}
+                              {isJoined && joinDate && (
+                                <span className="badge badge-success" style={{ fontWeight: 700, background: '#dcfce7', color: '#166534', border: '1px solid #86efac' }}>
+                                  🎉 Joined BHN: {new Date(joinDate).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-sm mt-1 flex items-center gap-2 flex-wrap">
+                              <span className="font-medium" style={{ color: 'var(--color-primary)' }}>
+                                {organization}
+                              </span>
+                              <span className="text-muted">•</span>
+                              <span className="text-muted">Role / Specialization: <strong>{specialization}</strong></span>
+                              <span className="text-muted">•</span>
+                              <span className="text-muted">✉️ <a href={`mailto:${bhn.email}`} style={{ color: 'inherit' }}>{bhn.email}</a></span>
+                            </div>
+                          </div>
+
                           <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-lg" style={{ color: 'var(--color-text)', margin: 0 }}>
-                              {bhn.full_name}
-                            </h3>
-                            <span
-                              className="badge"
-                              style={{
-                                background:
-                                  bhn.status === 'Active'
-                                    ? '#dcfce7'
-                                    : bhn.status === 'Approved'
-                                    ? '#e0f2fe'
-                                    : bhn.status === 'Pending'
-                                    ? '#ccfbf1'
-                                    : '#f3f4f6',
-                                color:
-                                  bhn.status === 'Active'
-                                    ? '#15803d'
-                                    : bhn.status === 'Approved'
-                                    ? '#0369a1'
-                                    : bhn.status === 'Pending'
-                                    ? '#0f766e'
-                                    : '#4b5563',
-                                fontWeight: 700,
-                              }}
+                            <span className="badge category-badge">{focusArea}</span>
+                            <select
+                              value={bhn.status}
+                              onChange={(e) => handleUpdateBhn(bhn.id, e.target.value)}
+                              className="text-xs p-1 rounded border"
+                              style={{ borderColor: 'var(--color-border)' }}
                             >
-                              Status: {bhn.status}
-                            </span>
-                          </div>
-                          <div className="text-sm mt-1">
-                            <span className="font-medium" style={{ color: 'var(--color-primary)' }}>
-                              {bhn.institution}
-                            </span>
-                            <span className="text-muted ml-3">Specialization: <strong>{bhn.specialization}</strong></span>
-                            <span className="text-muted ml-3">✉️ <a href={`mailto:${bhn.email}`} style={{ color: 'inherit' }}>{bhn.email}</a></span>
+                              <option value="Pending">Pending</option>
+                              <option value="Approved">Approved</option>
+                              <option value="Active">Active (Official Member)</option>
+                              <option value="Declined">Declined</option>
+                              <option value="Archived">Archived</option>
+                            </select>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                          <span className="badge category-badge">{bhn.focus_area || 'Biomedical Innovation'}</span>
-                          <select
-                            value={bhn.status}
-                            onChange={(e) => handleUpdateBhn(bhn.id, e.target.value)}
-                            className="text-xs p-1 rounded border"
-                            style={{ borderColor: 'var(--color-border)' }}
-                          >
-                            <option value="Pending">Pending</option>
-                            <option value="Approved">Approved</option>
-                            <option value="Active">Active (Official Member)</option>
-                            <option value="Declined">Declined</option>
-                            <option value="Archived">Archived</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 text-sm">
-                        {bhn.professional_background && (
-                          <div className="p-3 rounded" style={{ background: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)' }}>
-                            <strong className="block text-xs text-muted mb-1">Professional Background:</strong>
-                            <p style={{ margin: 0 }}>{bhn.professional_background}</p>
-                          </div>
-                        )}
-                        {bhn.statement_of_interest && (
-                          <div className="p-3 rounded" style={{ background: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)' }}>
-                            <strong className="block text-xs text-muted mb-1">Statement of Interest &amp; Collaborative Goals:</strong>
-                            <p style={{ margin: 0 }}>{bhn.statement_of_interest}</p>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="mt-3 flex flex-wrap items-center justify-between text-xs text-muted gap-2">
-                        <span>Applied: {new Date(bhn.created_at).toLocaleString()}</span>
-
-                        <div className="flex gap-2">
-                          {bhn.status !== 'Active' && (
-                            <button
-                              type="button"
-                              className="btn btn-primary btn-xs"
-                              style={{ background: '#16a34a', borderColor: '#16a34a' }}
-                              onClick={() => handleUpdateBhn(bhn.id, 'Active')}
-                            >
-                              ✓ Approve &amp; Activate Member
-                            </button>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 text-sm">
+                          {background && (
+                            <div className="p-3 rounded" style={{ background: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)' }}>
+                              <strong className="block text-xs text-muted mb-1">Professional Background:</strong>
+                              <p style={{ margin: 0 }}>{background}</p>
+                            </div>
                           )}
-                          {bhn.status !== 'Approved' && bhn.status !== 'Active' && (
-                            <button
-                              type="button"
-                              className="btn btn-secondary btn-xs"
-                              onClick={() => handleUpdateBhn(bhn.id, 'Approved')}
-                            >
-                              Approve
-                            </button>
-                          )}
-                          {bhn.status !== 'Declined' && (
-                            <button
-                              type="button"
-                              className="btn btn-secondary btn-xs"
-                              onClick={() => handleUpdateBhn(bhn.id, 'Declined')}
-                            >
-                              Decline
-                            </button>
-                          )}
-                          {bhn.status !== 'Archived' && (
-                            <button
-                              type="button"
-                              className="btn btn-outline-danger btn-xs"
-                              onClick={() => handleUpdateBhn(bhn.id, 'Archived')}
-                            >
-                              Archive
-                            </button>
+                          {statement && (
+                            <div className="p-3 rounded" style={{ background: 'var(--color-surface-subtle)', border: '1px solid var(--color-border)' }}>
+                              <strong className="block text-xs text-muted mb-1">Statement of Interest &amp; Collaborative Goals:</strong>
+                              <p style={{ margin: 0 }}>{statement}</p>
+                            </div>
                           )}
                         </div>
+
+                        <div className="mt-3 flex flex-wrap items-center justify-between text-xs text-muted gap-2 pt-2 border-t border-slate-100">
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <span>📅 <strong>Submitted:</strong> {new Date(bhn.created_at || bhn.submitted_at || Date.now()).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                            {bhn.status_updated_at && (
+                              <span>⏱️ <strong>Last Status Update:</strong> {new Date(bhn.status_updated_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                            )}
+                          </div>
+
+                          <div className="flex gap-2">
+                            {bhn.status !== 'Active' && (
+                              <button
+                                type="button"
+                                className="btn btn-primary btn-xs"
+                                style={{ background: '#16a34a', borderColor: '#16a34a' }}
+                                onClick={() => handleUpdateBhn(bhn.id, 'Active')}
+                              >
+                                ✓ Approve &amp; Stamp Join Date
+                              </button>
+                            )}
+                            {bhn.status !== 'Approved' && bhn.status !== 'Active' && (
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-xs"
+                                onClick={() => handleUpdateBhn(bhn.id, 'Approved')}
+                              >
+                                Approve
+                              </button>
+                            )}
+                            {bhn.status !== 'Declined' && (
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-xs"
+                                onClick={() => handleUpdateBhn(bhn.id, 'Declined')}
+                              >
+                                Decline
+                              </button>
+                            )}
+                            {bhn.status !== 'Archived' && (
+                              <button
+                                type="button"
+                                className="btn btn-outline-danger btn-xs"
+                                onClick={() => handleUpdateBhn(bhn.id, 'Archived')}
+                              >
+                                Archive
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               );
             })()}
@@ -2124,6 +2287,22 @@ export function AdminDashboard() {
                 </div>
 
                 <form onSubmit={handleSaveWebinar} className="space-y-4">
+                  {/* Automated Timestamps Indicator */}
+                  <div className="p-3 rounded" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                    <div className="font-semibold text-slate-800 text-xs mb-1">⏱️ Automatic Event Timestamps &amp; Activity Tracking Active</div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs text-muted">
+                      <div>
+                        <strong>Announced:</strong> {editingWebinar.announcedAt ? new Date(editingWebinar.announcedAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : 'Will auto-record on publish/schedule'}
+                      </div>
+                      <div>
+                        <strong>Recorded / Uploaded:</strong> {editingWebinar.uploadedAt ? new Date(editingWebinar.uploadedAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : 'Will auto-record when recording URL entered'}
+                      </div>
+                      <div>
+                        <strong>Last Modified:</strong> {editingWebinar.updatedAt ? new Date(editingWebinar.updatedAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : 'Will auto-update on save'}
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="form-grid-2">
                     <div className="form-group">
                       <label>Webinar Title *</label>
@@ -2317,6 +2496,7 @@ export function AdminDashboard() {
                   <tr>
                     <th>Title &amp; Speaker</th>
                     <th>Date / Time</th>
+                    <th>Auto-Tracked Timestamps</th>
                     <th>Category</th>
                     <th>Status</th>
                     <th>Visibility</th>
@@ -2327,7 +2507,7 @@ export function AdminDashboard() {
                 <tbody>
                   {webinarList.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="text-center py-6 text-muted">
+                      <td colSpan="8" className="text-center py-6 text-muted">
                         No webinars recorded yet. Click "Schedule / Create Webinar" to add an event.
                       </td>
                     </tr>
@@ -2341,6 +2521,26 @@ export function AdminDashboard() {
                         <td className="text-xs font-mono">
                           {webinar.date}
                           {webinar.startTime ? ` • ${webinar.startTime}` : ''}
+                        </td>
+                        <td className="text-xs">
+                          {webinar.announcedAt && (
+                            <div style={{ color: '#1d4ed8', fontWeight: 600 }}>
+                              📢 Announced: {new Date(webinar.announcedAt).toLocaleDateString()}
+                            </div>
+                          )}
+                          {webinar.uploadedAt && (
+                            <div style={{ color: '#15803d', fontWeight: 600 }}>
+                              🎬 Uploaded: {new Date(webinar.uploadedAt).toLocaleDateString()}
+                            </div>
+                          )}
+                          {webinar.updatedAt && (
+                            <div className="text-muted" style={{ fontSize: '0.7rem' }}>
+                              ⏱️ Modified: {new Date(webinar.updatedAt).toLocaleDateString()}
+                            </div>
+                          )}
+                          {!webinar.announcedAt && !webinar.uploadedAt && (
+                            <span className="text-muted">Draft / Untracked</span>
+                          )}
                         </td>
                         <td>
                           <span className="badge category-badge">{webinar.category}</span>
@@ -2591,6 +2791,59 @@ export function AdminDashboard() {
               <p className="text-sm text-muted">
                 To initialize or verify your PostgreSQL tables, copy the migration script from <code>src/data/supabaseSchema.sql</code> and execute it in your Supabase SQL Editor.
               </p>
+            </div>
+
+            {/* Google Gemini AI Configuration Card */}
+            <div className="card p-8 shadow-sm" style={{ background: '#ffffff', borderRadius: 'var(--radius-md)' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <span style={{ fontSize: '1.4rem' }}>🤖</span>
+                <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)', margin: 0 }}>
+                  Google Gemini Live AI Assistant Configuration
+                </h2>
+              </div>
+              <p className="text-sm text-muted mb-4">
+                Biomedical MARDA uses <strong>Gemini 3.5 Flash Lite</strong> to dynamically browse and intelligently respond to visitor requests regarding your biomedical engineering career, hospital consulting, equipment lifecycle advisory, and BHN collaboration.
+              </p>
+
+              {geminiNotice && (
+                <div
+                  className="p-3 mb-4 text-sm rounded"
+                  style={{ background: '#dcfce7', color: '#166534', border: '1px solid #86efac' }}
+                >
+                  ✓ {geminiNotice}
+                </div>
+              )}
+
+              <form onSubmit={handleSaveGeminiKey} className="space-y-4">
+                <div className="form-group">
+                  <label htmlFor="gemini-key">Google Gemini API Key</label>
+                  <input
+                    id="gemini-key"
+                    type="password"
+                    placeholder="AQ... or AIzaSy..."
+                    value={geminiKeyInput}
+                    onChange={(e) => setGeminiKeyInput(e.target.value)}
+                  />
+                  <span className="text-xs text-muted mt-1 block">
+                    ⚡ Live AI Mode: Active (<code>gemini-3.5-flash-lite</code>). If the API is ever unreachable, the assistant seamlessly falls back to your verified local career knowledge base.
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center pt-2">
+                  <a
+                    href="https://aistudio.google.com/app/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium"
+                    style={{ color: 'var(--color-primary)' }}
+                  >
+                    Get / Manage Gemini API Key in Google AI Studio ↗
+                  </a>
+                  <button type="submit" className="btn btn-primary" style={{ background: '#0284c7', borderColor: '#0284c7' }}>
+                    Save Gemini AI Key
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

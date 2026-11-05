@@ -30,6 +30,8 @@ export const INTENTS = {
   PRICING_INQUIRY: 'pricing_inquiry',
   AVAILABILITY_INQUIRY: 'availability_inquiry',
   CONTINUE_CONSULTATION: 'continue_consultation',
+  GREETING: 'greeting',
+  CONTACT_INQUIRY: 'contact_inquiry',
   SECURITY_ALERT: 'SECURITY_ALERT',
 };
 
@@ -125,6 +127,47 @@ export class IntentEngine {
     // =========================================================================
     // DETECTION PASS: Specific Intent Patterns
     // =========================================================================
+
+    // 0. Greetings & Friendly Inquiries
+    const isGreetingQuery =
+      /^(hi|hello|hey|good morning|good afternoon|good evening|greetings|howdy|hi there|hello there)[\s!.,?]*$/i.test(lower) ||
+      /^(hi|hello|hey)\s+(marda|marye|there|assistant|biomedical)/i.test(lower);
+
+    if (isGreetingQuery) {
+      return {
+        detectedIntent: INTENTS.GREETING,
+        classification: AI_POLICY.classifications.GENERAL_INFORMATION,
+        technicalDomain: DOMAINS.MARYE_PROFILE,
+        userObjective: 'Friendly greeting and introduction',
+        actionType: 'explain',
+        isInformationOnly: true,
+        isGreeting: true,
+        rawQuery: sanitized,
+      };
+    }
+
+    // 0.1 Direct Contact Inquiries
+    if (
+      lower.includes('how to contact') ||
+      lower.includes('how can i contact') ||
+      lower.includes('contact information') ||
+      lower.includes('email address') ||
+      lower.includes('phone number') ||
+      lower.includes('reach marye') ||
+      lower.includes('get in touch') ||
+      lower === 'contact'
+    ) {
+      return {
+        detectedIntent: INTENTS.CONTACT_INQUIRY,
+        classification: AI_POLICY.classifications.GENERAL_INFORMATION,
+        technicalDomain: DOMAINS.MARYE_PROFILE,
+        userObjective: 'Inquire about Marye Agegn direct contact channels',
+        actionType: 'explain',
+        isInformationOnly: true,
+        isContactInquiry: true,
+        rawQuery: sanitized,
+      };
+    }
 
     // A. Continue Previous Consultation (Requirement 16)
     if (

@@ -281,116 +281,140 @@ export function Webinars() {
           </div>
         ) : (
           /* Webinars & Events Grid */
-          <div className="webinars-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="webinars-grid">
             {filteredWebinars.map((webinar) => {
               const isLive = webinar.status === WEBINAR_STATUSES.LIVE;
               const isUpcoming = webinar.status === WEBINAR_STATUSES.UPCOMING;
               const isRecorded = webinar.status === WEBINAR_STATUSES.RECORDED;
 
+              const formatTimestamp = (isoStr) => {
+                if (!isoStr) return null;
+                try {
+                  const d = new Date(isoStr);
+                  return d.toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  });
+                } catch {
+                  return isoStr;
+                }
+              };
+
               return (
                 <div
                   key={webinar.id}
-                  className={`webinar-card card p-5 flex flex-col justify-between ${
-                    isLive ? 'border-primary shadow-md' : ''
-                  }`}
+                  className={`webinar-card ${isLive ? 'border-primary' : ''}`}
                   style={{
                     borderTop: isLive
                       ? '3px solid #dc2626'
                       : isUpcoming
                       ? '3px solid var(--color-primary)'
-                      : '1px solid var(--color-border)',
+                      : '3px solid #16a34a',
                   }}
                 >
                   <div>
-                    {/* Header Badges */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2 flex-wrap">
+                    {/* Header Badges with explicit spacing */}
+                    <div className="webinar-card-header">
+                      <div className="webinar-badges-wrap">
                         {/* Content Type Badge */}
-                        <span className="badge text-xs font-semibold" style={{ background: '#f1f5f9', color: '#334155' }}>
+                        <span className="badge webinar-badge-type">
                           {webinar.contentType || 'Webinar'}
                         </span>
 
                         {/* Status Badge */}
                         {isLive ? (
-                          <span
-                            className="badge flex items-center gap-1 font-bold text-xs"
-                            style={{ background: '#fee2e2', color: '#dc2626' }}
-                          >
-                            <span className="live-dot-pulse" /> LIVE NOW
+                          <span className="badge webinar-badge-live">
+                            <span className="live-dot-pulse" style={{ marginRight: '4px' }} /> LIVE NOW
                           </span>
                         ) : isUpcoming ? (
-                          <span
-                            className="badge font-semibold text-xs"
-                            style={{ background: '#eff6ff', color: '#1d4ed8' }}
-                          >
+                          <span className="badge webinar-badge-upcoming">
                             UPCOMING
                           </span>
                         ) : isRecorded ? (
-                          <span
-                            className="badge font-semibold text-xs"
-                            style={{ background: '#f0fdf4', color: '#15803d' }}
-                          >
+                          <span className="badge webinar-badge-recorded">
                             RECORDED
                           </span>
                         ) : (
-                          <span className="badge text-muted text-xs">ARCHIVED</span>
+                          <span className="badge webinar-badge-archived">ARCHIVED</span>
                         )}
                       </div>
-                      <span className="text-xs text-muted font-mono">{webinar.duration}</span>
+                      <span className="webinar-duration">{webinar.duration}</span>
                     </div>
 
                     {/* Title & Subtitle */}
-                    <h3 className="text-lg font-bold mb-1 text-slate-900 leading-snug">
+                    <h3 className="webinar-title">
                       {webinar.title}
                     </h3>
                     {webinar.subtitle && (
-                      <p className="text-xs font-medium text-slate-500 mb-2 italic">
+                      <p className="webinar-subtitle">
                         {webinar.subtitle}
                       </p>
                     )}
-                    <p className="text-sm text-muted mb-4 line-clamp-3">{webinar.description}</p>
+                    <p className="webinar-description">{webinar.description}</p>
 
                     {/* Category Tag & Lifecycle */}
-                    <div className="mb-3 flex flex-wrap gap-1">
-                      <span className="badge text-[10px]" style={{ background: 'var(--color-primary-bg)', color: 'var(--color-primary)' }}>
+                    <div className="webinar-tags-wrap">
+                      <span className="webinar-category-badge">
                         {webinar.category}
                       </span>
                       {webinar.lifecycleStages && webinar.lifecycleStages.length > 0 && (
-                        <span className="badge text-[10px] bg-amber-50 text-amber-800 border border-amber-200">
+                        <span className="webinar-lifecycle-badge">
                           Lifecycle: {webinar.lifecycleStages[0]} → {webinar.lifecycleStages[webinar.lifecycleStages.length - 1]}
                         </span>
                       )}
                     </div>
 
-                    {/* Metadata Specs */}
-                    <div className="webinar-meta-block p-3 rounded mb-3 text-xs space-y-1" style={{ background: 'var(--color-surface-subtle)' }}>
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted">Speaker:</span>
-                        <span className="font-semibold text-slate-800">{webinar.speaker}</span>
+                    {/* Metadata Specs & Automatic System Timestamps */}
+                    <div className="webinar-meta-block">
+                      <div className="webinar-meta-row">
+                        <span className="webinar-meta-label">Speaker:</span>
+                        <span className="webinar-meta-val">{webinar.speaker}</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted">Date &amp; Time:</span>
-                        <span className="font-semibold text-slate-800">{webinar.date} • {webinar.startTime}</span>
+                      <div className="webinar-meta-row">
+                        <span className="webinar-meta-label">Event Schedule:</span>
+                        <span className="webinar-meta-val">{webinar.date} • {webinar.startTime}</span>
                       </div>
                       {webinar.networking?.enabled && (
-                        <div className="text-[11px] text-emerald-700 font-medium pt-1 flex items-center gap-1">
+                        <div style={{ fontSize: '0.725rem', color: '#047857', fontWeight: 600, paddingTop: '0.2rem' }}>
                           🤝 Interactive Q&amp;A / Networking Enabled
                         </div>
                       )}
+
+                      {/* Automatically Tracked Activity Timestamps */}
+                      <div className="webinar-timestamps-block">
+                        {isUpcoming && (webinar.announcedAt || webinar.createdAt) && (
+                          <div>
+                            📢 <strong>Announced:</strong> {formatTimestamp(webinar.announcedAt || webinar.createdAt)}
+                          </div>
+                        )}
+                        {isRecorded && (webinar.uploadedAt || webinar.recordedAt) && (
+                          <div>
+                            🎬 <strong>Recording Uploaded:</strong> {formatTimestamp(webinar.uploadedAt || webinar.recordedAt)}
+                          </div>
+                        )}
+                        {webinar.updatedAt && (
+                          <div>
+                            ⏱️ <strong>Last Verified:</strong> {formatTimestamp(webinar.updatedAt)}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Target Audience Pills */}
                     {webinar.targetAudience && webinar.targetAudience.length > 0 && (
-                      <div className="mb-4 text-xs">
-                        <span className="text-slate-400 text-[11px] block mb-1">Audience:</span>
-                        <div className="flex flex-wrap gap-1">
+                      <div className="webinar-audience-wrap">
+                        <span className="webinar-audience-title">Target Audience:</span>
+                        <div className="webinar-audience-chips">
                           {webinar.targetAudience.slice(0, 3).map((aud, i) => (
-                            <span key={i} className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px]">
+                            <span key={i} className="webinar-audience-chip">
                               {aud}
                             </span>
                           ))}
                           {webinar.targetAudience.length > 3 && (
-                            <span className="text-[10px] text-slate-400">+{webinar.targetAudience.length - 3}</span>
+                            <span style={{ fontSize: '0.725rem', color: 'var(--color-text-muted)', alignSelf: 'center' }}>
+                              +{webinar.targetAudience.length - 3} more
+                            </span>
                           )}
                         </div>
                       </div>

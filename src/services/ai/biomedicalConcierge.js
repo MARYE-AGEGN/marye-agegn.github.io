@@ -123,6 +123,45 @@ export class BiomedicalConcierge {
     }
 
     // =========================================================================
+    // 1.5 GREETINGS & DIRECT CONTACT INQUIRIES
+    // =========================================================================
+    if (detectedIntent === INTENTS.GREETING || analysis.isGreeting) {
+      replyText = `Hello! I am **Biomedical MARDA** (Marye Agegn Realtime Digital Assistant), representing Marye Agegn.\n\n` +
+        `I am here to professionally assist you with Marye's biomedical engineering services, medical technology solutions, and clinical operations.\n\n` +
+        `**How I can help you today:**\n` +
+        `• **Biomedical Services:** Explore equipment specification, HTM planning, procurement advisory, and device prototyping.\n` +
+        `• **Sensors & Biosignals:** Inquire about ECG/EEG/EMG filtering, IMU kinematic motion analysis, and sensor selection.\n` +
+        `• **Research Collaboration:** Learn about Marye's graduate gait analysis and AI mobility research at Anna University.\n` +
+        `• **Direct Consultation:** Submit a structured technical inquiry or request a collaboration proposal.\n\n` +
+        `What technical question or healthcare project can I help you with today?`;
+
+      replyMetadata = {
+        classification: AI_POLICY.classifications.GENERAL_INFORMATION,
+        evidenceStatus: AI_POLICY.evidenceStatuses.VERIFIED_PRIMARY,
+      };
+      actionObj = { label: 'Explore Biomedical Services', href: '#services' };
+      return { replyText, replyMetadata, actionObj, structuredRequirements };
+    }
+
+    if (detectedIntent === INTENTS.CONTACT_INQUIRY || analysis.isContactInquiry) {
+      replyText = `**Direct Contact Details for Marye Agegn:**\n\n` +
+        `• **Email:** maryeagegn2022@gmail.com\n` +
+        `• **Academic Email:** 2025254026@student.annauniv.edu\n` +
+        `• **Institutional Affiliation:** Anna University, College of Engineering Guindy (CEG), Chennai, India\n` +
+        `• **Professional Network:** Founder & Lead, Biomedical Horizon Network (BHN)\n` +
+        `• **Collaboration Desk:** You can send direct messages, request professional services, or discuss research partnerships through the Collaboration Desk right on this site.\n\n` +
+        `Would you like to open the Collaboration Desk to send a message directly to Marye?`;
+
+      replyMetadata = {
+        classification: AI_POLICY.classifications.GENERAL_INFORMATION,
+        evidenceStatus: AI_POLICY.evidenceStatuses.VERIFIED_PRIMARY,
+        sources: ['Official Curriculum Vitae', 'Site Profile'],
+      };
+      actionObj = { label: 'Open Collaboration Desk', href: '#contact' };
+      return { replyText, replyMetadata, actionObj, structuredRequirements };
+    }
+
+    // =========================================================================
     // 2. CONSULTATION CONTINUATION & MEMORY (Requirement 16)
     // =========================================================================
     if (analysis.isContinueConsultation) {
@@ -443,7 +482,7 @@ export class BiomedicalConcierge {
         lower.includes('hospital') ||
         lower.includes('management') ||
         lower.includes('htm') ||
-        serviceTarget === 'procurement-and-purchasing'
+        analysis.serviceTarget === 'procurement-and-purchasing'
       ) {
         structuredRequirements.identified = ['hospital medical equipment management', 'healthcare technology infrastructure', 'operational planning'];
         structuredRequirements.missing = ['facility scale / bed count', 'target equipment modalities (imaging, critical care, surgical)', 'existing CMMS software', 'procurement / replacement budget cycle'];

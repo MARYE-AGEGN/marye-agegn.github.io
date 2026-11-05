@@ -14,6 +14,10 @@ const ACTIVE_THREAD_ID_KEY = 'marye_active_thread_id';
 const LOCAL_THREADS_KEY = 'marye_local_consultation_threads';
 const LOCAL_MESSAGES_KEY = 'marye_local_consultation_messages';
 
+const isUuid = (str) =>
+  typeof str === 'string' &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
+
 let inMemoryThreads = [];
 let inMemoryMessages = [];
 let inMemoryActiveThreadId = null;
@@ -49,14 +53,17 @@ export class ConsultationStore {
     let visitorLocation = 'Unknown';
 
     try {
-      const response = await fetch('https://ipapi.co/json/');
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 800);
+      const response = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (response.ok) {
         const data = await response.json();
         visitorIp = data.ip || 'Unknown';
         visitorLocation = `${data.city || ''}, ${data.region || ''}, ${data.country_name || ''}`.replace(/^, | , | ,$/g, '').trim();
       }
-    } catch (e) {
-      console.warn('Failed to fetch visitor location', e);
+    } catch {
+      // Ignore location fetch error gracefully
     }
 
     const threadPayload = {
@@ -134,7 +141,7 @@ export class ConsultationStore {
 
     const sessionToken = this.getSessionToken();
 
-    if (isSupabaseConfigured && supabase) {
+    if (isSupabaseConfigured && supabase && isUuid(threadId)) {
       try {
         const query = supabase
           .from('consultation_messages')
@@ -165,7 +172,7 @@ export class ConsultationStore {
     if (!threadId) return [];
     const sessionToken = this.getSessionToken();
 
-    if (isSupabaseConfigured && supabase) {
+    if (isSupabaseConfigured && supabase && isUuid(threadId)) {
       try {
         const query = supabase
           .from('consultation_messages')
@@ -212,7 +219,7 @@ export class ConsultationStore {
         status: 'Awaiting Admin Review',
       });
       currentThreadId = created.thread?.id;
-    } else if (isSupabaseConfigured && supabase) {
+    } else if (isSupabaseConfigured && supabase && isUuid(currentThreadId)) {
       try {
         const query = supabase
           .from('consultation_threads')
@@ -226,7 +233,7 @@ export class ConsultationStore {
     }
 
     // Also record an audit action
-    if (isSupabaseConfigured && supabase && currentThreadId) {
+    if (isSupabaseConfigured && supabase && isUuid(currentThreadId)) {
       try {
         const actionQuery = supabase.from('consultation_actions').insert([
           {
@@ -254,7 +261,7 @@ export class ConsultationStore {
     if (!threadId) return null;
     const sessionToken = this.getSessionToken();
 
-    if (isSupabaseConfigured && supabase) {
+    if (isSupabaseConfigured && supabase && isUuid(threadId)) {
       try {
         const query = supabase
           .from('consultation_threads')
@@ -297,7 +304,7 @@ export class ConsultationStore {
     const sessionToken = this.getSessionToken();
     const targetId = preferredThreadId || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(ACTIVE_THREAD_ID_KEY) : inMemoryActiveThreadId);
 
-    if (isSupabaseConfigured && supabase) {
+    if (isSupabaseConfigured && supabase && (!targetId || isUuid(targetId))) {
       try {
         let query = supabase.from('consultation_threads').select('*');
         if (targetId) {
@@ -335,7 +342,7 @@ export class ConsultationStore {
       updated_at: new Date().toISOString(),
     };
 
-    if (isSupabaseConfigured && supabase) {
+    if (isSupabaseConfigured && supabase && isUuid(threadId)) {
       try {
         const query = supabase
           .from('consultation_threads')

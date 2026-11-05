@@ -801,15 +801,36 @@ export const SEED_VIDEOS = [
 
 const LOCAL_STORAGE_WEBINARS_KEY = 'marye_custom_webinars';
 
+function normalizeWebinarTimestamps(item) {
+  if (!item) return item;
+  const now = new Date().toISOString();
+  const isAnnounced = item.status === WEBINAR_STATUSES.UPCOMING || item.isPublished;
+  const isRecordedOrUploaded =
+    item.status === WEBINAR_STATUSES.RECORDED ||
+    Boolean(item.recordingUrl && String(item.recordingUrl).trim()) ||
+    Boolean(item.videoUrl && String(item.videoUrl).trim());
+
+  const createdAt = item.createdAt || item.created_at || (item.date ? `${item.date}T09:00:00.000Z` : now);
+  return {
+    ...item,
+    createdAt,
+    announcedAt: item.announcedAt || (isAnnounced ? createdAt : null),
+    recordedAt: item.recordedAt || (isRecordedOrUploaded ? (item.date ? `${item.date}T13:00:00.000Z` : createdAt) : null),
+    uploadedAt: item.uploadedAt || (isRecordedOrUploaded ? (item.date ? `${item.date}T15:00:00.000Z` : createdAt) : null),
+    updatedAt: item.updatedAt || item.updated_at || createdAt,
+  };
+}
+
 function getStoredWebinars() {
-  if (typeof window === 'undefined') return SEED_WEBINARS;
+  if (typeof window === 'undefined') return SEED_WEBINARS.map(normalizeWebinarTimestamps);
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_WEBINARS_KEY);
-    if (!raw) return SEED_WEBINARS;
+    if (!raw) return SEED_WEBINARS.map(normalizeWebinarTimestamps);
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : SEED_WEBINARS;
+    const list = Array.isArray(parsed) && parsed.length > 0 ? parsed : SEED_WEBINARS;
+    return list.map(normalizeWebinarTimestamps);
   } catch {
-    return SEED_WEBINARS;
+    return SEED_WEBINARS.map(normalizeWebinarTimestamps);
   }
 }
 
@@ -920,27 +941,59 @@ export function searchPublicWebinarsAndVideos(query = '') {
 }
 
 /**
- * Saves or updates an event in the registry (admin action)
+ * Saves or updates an event in the registry (admin action) with automated timestamp tracking
  */
 export function saveWebinar(webinarData) {
   const current = getStoredWebinars();
+  const now = new Date().toISOString();
   let updated;
+  let savedItem;
+
+  const isAnnounced = webinarData.status === WEBINAR_STATUSES.UPCOMING || webinarData.isPublished;
+  const isRecordedOrUploaded =
+    webinarData.status === WEBINAR_STATUSES.RECORDED ||
+    Boolean(webinarData.recordingUrl && String(webinarData.recordingUrl).trim()) ||
+    Boolean(webinarData.videoUrl && String(webinarData.videoUrl).trim());
+
   if (webinarData.id) {
-    updated = current.map((w) =>
-      w.id === webinarData.id ? { ...w, ...webinarData, updatedAt: new Date().toISOString() } : w
-    );
+    const existing = current.find((w) => w.id === webinarData.id) || {};
+    const hasNewRecording =
+      webinarData.recordingUrl &&
+      String(webinarData.recordingUrl).trim() &&
+      webinarData.recordingUrl !== existing.recordingUrl;
+
+    const announcedAt = webinarData.announcedAt || existing.announcedAt || (isAnnounced ? now : null);
+    const recordedAt = webinarData.recordedAt || existing.recordedAt || (isRecordedOrUploaded ? now : null);
+    const uploadedAt = hasNewRecording
+      ? now
+      : (webinarData.uploadedAt || existing.uploadedAt || (isRecordedOrUploaded ? now : null));
+
+    savedItem = {
+      ...existing,
+      ...webinarData,
+      createdAt: existing.createdAt || webinarData.createdAt || now,
+      announcedAt,
+      recordedAt,
+      uploadedAt,
+      updatedAt: now,
+    };
+
+    updated = current.map((w) => (w.id === webinarData.id ? savedItem : w));
   } else {
-    const newWebinar = {
+    savedItem = {
       ...webinarData,
       id: `event-${Date.now()}`,
       slug: webinarData.slug || (webinarData.title || 'event').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      announcedAt: isAnnounced ? now : null,
+      recordedAt: isRecordedOrUploaded ? now : null,
+      uploadedAt: isRecordedOrUploaded ? now : null,
+      updatedAt: now,
     };
-    updated = [newWebinar, ...current];
+    updated = [savedItem, ...current];
   }
   saveStoredWebinars(updated);
-  return { success: true, webinar: webinarData };
+  return { success: true, webinar: savedItem };
 }
 
 /**

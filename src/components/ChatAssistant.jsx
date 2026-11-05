@@ -35,7 +35,7 @@ export function ChatAssistant({ onOpenCollaboration, onOpenServiceRequest, onOpe
   const [messages, setMessages] = useState([
     {
       sender: 'assistant',
-      text: "Welcome. I am Biomedical MARDA (Marye Agegn Realtime Digital Assistant). I am here to professionally assist you with Marye's biomedical engineering services, medical technology solutions, and clinical operations. How can I help you grow your healthcare business or solve a technical challenge today?",
+      text: "Welcome. I am Biomedical MARDA, the digital concierge for Marye Agegn (Biomedical Engineer & Healthcare Technology Consultant).\n\nHow can I professionally assist you with Marye's career background, clinical engineering services, hospital equipment lifecycle advisory, or Biomedical Horizon Network (BHN) collaboration?",
       metadata: {},
       action: null,
     },
@@ -162,89 +162,105 @@ export function ChatAssistant({ onOpenCollaboration, onOpenServiceRequest, onOpe
 
     // Step 3: Information Retrieval & Multi-Domain Reasoning via BiomedicalConcierge
     setTimeout(async () => {
-      // Requirements Engineering interactive mode check
-      if (intentResult.detectedIntent === INTENTS.REQUIREMENTS_ENGINEERING) {
-        const analysis = RequirementsEngine.analyzeFacilityRequirements(query);
-        const replyText = `**Clinical Requirements Engineering Mode Activated:**\n\n` +
-          `I have identified the following initial parameters for your facility:\n` +
-          `• **Department:** ${analysis.currentRequirements.department || 'Under assessment'}\n` +
-          `• **Capacity:** ${analysis.currentRequirements.bedCount ? `${analysis.currentRequirements.bedCount} Beds` : 'To be specified'}\n` +
-          `• **Parameters:** ${analysis.currentRequirements.requiredParameters.length > 0 ? analysis.currentRequirements.requiredParameters.join(', ') : 'Standard Vital Signs'}\n\n` +
-          `To formulate a rigorous Preliminary Technical Requirement Specification, please consider:\n` +
-          analysis.followUpQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n') +
-          `\n\nWould you like me to generate a preliminary specification document or escalate this to Marye for formal institutional planning?`;
+      try {
+        // Requirements Engineering interactive mode check
+        if (intentResult.detectedIntent === INTENTS.REQUIREMENTS_ENGINEERING) {
+          const analysis = RequirementsEngine.analyzeFacilityRequirements(query);
+          const replyText = `**Clinical Requirements Engineering Mode Activated:**\n\n` +
+            `I have identified the following initial parameters for your facility:\n` +
+            `• **Department:** ${analysis.currentRequirements.department || 'Under assessment'}\n` +
+            `• **Capacity:** ${analysis.currentRequirements.bedCount ? `${analysis.currentRequirements.bedCount} Beds` : 'To be specified'}\n` +
+            `• **Parameters:** ${analysis.currentRequirements.requiredParameters.length > 0 ? analysis.currentRequirements.requiredParameters.join(', ') : 'Standard Vital Signs'}\n\n` +
+            `To formulate a rigorous Preliminary Technical Requirement Specification, please consider:\n` +
+            analysis.followUpQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n') +
+            `\n\nWould you like me to generate a preliminary specification document or escalate this to Marye for formal institutional planning?`;
 
-        setIsThinking(false);
+          const assistantMsg = {
+            sender: 'assistant',
+            text: replyText,
+            metadata: { type: 'requirements_mode', requirements: analysis.currentRequirements },
+            action: { label: 'Open Requirements Formulator', actionType: 'mode_requirements' },
+          };
+          setMessages((prev) => [...prev, assistantMsg]);
+
+          if (currentThreadId) {
+            ConsultationStore.appendMessage(currentThreadId, 'ai', replyText, { type: 'requirements_mode' });
+            ConsultationStore.updateThreadRequirements(currentThreadId, {
+              importantRequirements: {
+                identified: ['hospital equipment requirements', `${analysis.currentRequirements.bedCount || 20} beds`],
+                missing: analysis.followUpQuestions,
+                technicalNeed: 'Hospital clinical equipment specification schedule',
+              },
+              recommendedService: 'Technical Specification',
+            });
+          }
+          return;
+        }
+
+        // Academic curriculum query response check
+        if (intentResult.detectedIntent === INTENTS.ACADEMIC_BACKGROUND) {
+          const replyText = defaultKnowledgeRetriever.formatCurriculumQueryResponse(query);
+          const replyMetadata = {
+            evidenceStatus: 'VERIFIED — PRIMARY SOURCE',
+            sources: [
+              'University of Gondar Institute of Technology (https://iot.uog.edu.et/biomedical-engineering-bsc-program/)',
+              'Anna University Regulations 2023 (CBCS)',
+            ],
+          };
+          const actionObj = { label: 'Inspect Education Section', href: '#education' };
+          setMessages((prev) => [...prev, { sender: 'assistant', text: replyText, metadata: replyMetadata, action: actionObj }]);
+          if (currentThreadId) {
+            ConsultationStore.appendMessage(currentThreadId, 'ai', replyText, replyMetadata);
+          }
+          return;
+        }
+
+        // Primary: Biomedical Information & Service Concierge Engine
+        const conciergeRes = await BiomedicalConcierge.processMessage(query, {
+          activeThreadId: currentThreadId,
+        });
+
+        const replyText = conciergeRes?.replyText || 'I have analyzed your inquiry. How else can I assist your medical technology planning today?';
+        const replyMetadata = conciergeRes?.replyMetadata || {};
+        const actionObj = conciergeRes?.actionObj || null;
+
         const assistantMsg = {
           sender: 'assistant',
           text: replyText,
-          metadata: { type: 'requirements_mode', requirements: analysis.currentRequirements },
-          action: { label: 'Open Requirements Formulator', actionType: 'mode_requirements' },
+          metadata: replyMetadata,
+          action: actionObj,
         };
         setMessages((prev) => [...prev, assistantMsg]);
 
         if (currentThreadId) {
-          ConsultationStore.appendMessage(currentThreadId, 'ai', replyText, { type: 'requirements_mode' });
-          ConsultationStore.updateThreadRequirements(currentThreadId, {
-            importantRequirements: {
-              identified: ['hospital equipment requirements', `${analysis.currentRequirements.bedCount || 20} beds`],
-              missing: analysis.followUpQuestions,
-              technicalNeed: 'Hospital clinical equipment specification schedule',
-            },
-            recommendedService: 'Technical Specification',
-          });
-        }
-        return;
-      }
-
-      // Academic curriculum query response check
-      if (intentResult.detectedIntent === INTENTS.ACADEMIC_BACKGROUND) {
-        const replyText = defaultKnowledgeRetriever.formatCurriculumQueryResponse(query);
-        const replyMetadata = {
-          evidenceStatus: 'VERIFIED — PRIMARY SOURCE',
-          sources: [
-            'University of Gondar Institute of Technology (https://iot.uog.edu.et/biomedical-engineering-bsc-program/)',
-            'Anna University Regulations 2023 (CBCS)',
-          ],
-        };
-        const actionObj = { label: 'Inspect Education Section', href: '#education' };
-        setIsThinking(false);
-        setMessages((prev) => [...prev, { sender: 'assistant', text: replyText, metadata: replyMetadata, action: actionObj }]);
-        if (currentThreadId) {
-          ConsultationStore.appendMessage(currentThreadId, 'ai', replyText, replyMetadata);
-        }
-        return;
-      }
-
-      // Primary: Biomedical Information & Service Concierge Engine
-      const conciergeRes = await BiomedicalConcierge.processMessage(query, {
-        activeThreadId: currentThreadId,
-      });
-
-      setIsThinking(false);
-      const assistantMsg = {
-        sender: 'assistant',
-        text: conciergeRes.replyText,
-        metadata: conciergeRes.replyMetadata,
-        action: conciergeRes.actionObj,
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-
-      if (currentThreadId) {
-        ConsultationStore.appendMessage(
-          currentThreadId,
-          'ai',
-          conciergeRes.replyText,
-          conciergeRes.replyMetadata
-        );
-        if (conciergeRes.structuredRequirements) {
-          ConsultationStore.updateThreadRequirements(
+          ConsultationStore.appendMessage(
             currentThreadId,
-            conciergeRes.structuredRequirements
+            'ai',
+            replyText,
+            replyMetadata
           );
+          if (conciergeRes?.structuredRequirements) {
+            ConsultationStore.updateThreadRequirements(
+              currentThreadId,
+              conciergeRes.structuredRequirements
+            );
+          }
         }
+      } catch (err) {
+        console.error('ChatAssistant processing error:', err);
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: 'assistant',
+            text: 'I am here to assist with Marye Agegn’s biomedical engineering services, medical equipment specifications, and research inquiries. Please let me know how I can help, or connect directly through the Collaboration Desk below.',
+            metadata: {},
+            action: { label: 'Open Collaboration Desk', href: '#contact' },
+          },
+        ]);
+      } finally {
+        setIsThinking(false);
       }
-    }, 400);
+    }, 350);
   };
 
   /**
@@ -358,7 +374,7 @@ export function ChatAssistant({ onOpenCollaboration, onOpenServiceRequest, onOpe
                   Biomedical MARDA
                 </h3>
                 <span style={{ fontSize: '0.65rem', opacity: 0.9 }}>
-                  Biomedical Engineering &bull; Specifications &bull; Research
+                  Biomedical Engineering &bull; Healthcare Technology &bull; Career &amp; Services
                 </span>
               </div>
             </div>
@@ -735,13 +751,12 @@ export function ChatAssistant({ onOpenCollaboration, onOpenServiceRequest, onOpe
               }}
             >
               {[
-                { label: 'What is EEG?', q: 'What is EEG?' },
-                { label: 'Measure Movement', q: 'Which sensor can measure movement?' },
-                { label: 'Services Offered', q: 'What services do you offer?' },
-                { label: 'What is ECG?', q: 'What is an ECG?' },
-                { label: 'Sensor Selection', q: 'What should I consider before choosing a biomedical sensor?' },
-                { label: 'Compare Monitors', q: 'Can you compare available patient monitor models?' },
-                { label: 'Consultation', q: 'I would like to request a technical consultation.' },
+                { label: '💼 Professional Services', q: 'What professional biomedical engineering and consulting services do you offer?' },
+                { label: '📋 Equipment Lifecycle Advisory', q: 'Tell me about your clinical engineering and medical equipment lifecycle advisory.' },
+                { label: '🎓 Career & Experience', q: 'What is Marye Agegn’s professional background, education, and clinical experience?' },
+                { label: '🌐 Biomedical Horizon Network', q: 'What is the Biomedical Horizon Network (BHN) and how can I collaborate or join?' },
+                { label: '🔬 Research & Projects', q: 'What are Marye’s research projects and technical focus areas?' },
+                { label: '📩 Request Consultation / Quote', q: 'I would like to request a professional consultation or project proposal.' },
               ].map((pill, idx) => (
                 <button
                   key={idx}
@@ -777,7 +792,7 @@ export function ChatAssistant({ onOpenCollaboration, onOpenServiceRequest, onOpe
             >
               <input
                 type="text"
-                placeholder="Ask a biomedical question, sensor guidance, or service consultation..."
+                placeholder="Ask about Marye's career, professional services, equipment advisory, or collaboration..."
                 value={inputQuery}
                 onChange={(e) => setInputQuery(e.target.value)}
                 onKeyDown={(e) => {

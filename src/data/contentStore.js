@@ -568,25 +568,36 @@ export async function updateInquiryStatus(id, newStatus, adminNotes = null) {
 const LOCAL_STORAGE_BHN_KEY = 'marye_bhn_applications';
 
 export async function submitBhnApplication(applicationData) {
+  const now = new Date().toISOString();
+  const isAutoApproved = applicationData.status === 'Active' || applicationData.status === 'Approved' || applicationData.status === 'Joined';
+
   const payload = {
-    name: applicationData.name,
-    email: applicationData.email,
-    organization: applicationData.organization || '',
-    role: applicationData.role || '',
+    name: applicationData.name || applicationData.full_name || '',
+    full_name: applicationData.full_name || applicationData.name || '',
+    email: applicationData.email || '',
+    organization: applicationData.organization || applicationData.institution || '',
+    institution: applicationData.institution || applicationData.organization || '',
+    role: applicationData.role || applicationData.specialization || '',
+    specialization: applicationData.specialization || applicationData.role || '',
     country: applicationData.country || '',
-    background: applicationData.background || '',
+    background: applicationData.background || applicationData.professional_background || '',
+    professional_background: applicationData.professional_background || applicationData.background || '',
     areas_of_interest: Array.isArray(applicationData.areas_of_interest) ? applicationData.areas_of_interest : [],
     statement_of_interest: applicationData.statement_of_interest || applicationData.message || '',
     profile_url: applicationData.profile_url || applicationData.linkedin || '',
     message: applicationData.message || '',
-    status: 'Pending',
-    created_at: new Date().toISOString(),
+    status: applicationData.status || 'Pending',
+    created_at: applicationData.created_at || now,
+    submitted_at: applicationData.submitted_at || now,
+    joined_at: isAutoApproved ? (applicationData.joined_at || now) : null,
+    approved_at: isAutoApproved ? (applicationData.approved_at || now) : null,
+    status_updated_at: now,
   };
 
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase.from('bhn_applications').insert([payload]).select().single();
-      if (!error) return { success: true, application: data };
+      if (!error && data) return { success: true, application: data };
     } catch (err) {
       console.warn('Supabase BHN submission error, falling back locally:', err);
     }
@@ -603,32 +614,108 @@ export async function getBhnApplications() {
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase.from('bhn_applications').select('*').order('created_at', { ascending: false });
-      if (!error && data) return data;
+      if (!error && data && data.length > 0) return data;
     } catch (err) {
       console.warn('Supabase getBhnApplications error:', err);
     }
   }
-  return JSON.parse(localStorage.getItem(LOCAL_STORAGE_BHN_KEY) || '[]');
+
+  const raw = localStorage.getItem(LOCAL_STORAGE_BHN_KEY);
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {
+      // fallback to initial seeds below
+    }
+  }
+
+  // Initial seed applications so admin has reference data
+  const initialSeeds = [
+    {
+      id: 'bhn-demo-1',
+      name: 'Dr. Selamawit Tadesse',
+      full_name: 'Dr. Selamawit Tadesse',
+      email: 's.tadesse@blacklion-health.org',
+      organization: 'Black Lion Specialized Hospital',
+      institution: 'Black Lion Specialized Hospital',
+      role: 'Chief of Clinical Technology',
+      specialization: 'ICU Ventilator & Anesthesia Infrastructure',
+      country: 'Ethiopia',
+      background: '12+ years directing biomedical engineering procurement, maintenance, and clinical safety.',
+      professional_background: '12+ years directing biomedical engineering procurement, maintenance, and clinical safety.',
+      areas_of_interest: ['Healthcare Technology Management', 'Equipment Procurement & Specification', 'Clinical Engineering Training'],
+      statement_of_interest: 'Looking forward to standardizing hospital maintenance management and collaborating on equipment evaluation across East Africa.',
+      status: 'Active',
+      created_at: '2026-10-15T09:20:00.000Z',
+      submitted_at: '2026-10-15T09:20:00.000Z',
+      approved_at: '2026-10-16T14:15:00.000Z',
+      joined_at: '2026-10-16T14:15:00.000Z',
+      status_updated_at: '2026-10-16T14:15:00.000Z',
+    },
+    {
+      id: 'bhn-demo-2',
+      name: 'Eng. Kebede Mengistu',
+      full_name: 'Eng. Kebede Mengistu',
+      email: 'kebede.m@gondar-medtech.et',
+      organization: 'University of Gondar Comprehensive Hospital',
+      institution: 'University of Gondar Comprehensive Hospital',
+      role: 'Biomedical Equipment Lead',
+      specialization: 'Medical Imaging (CT/X-Ray) & Calibration',
+      country: 'Ethiopia',
+      background: 'M.Sc. in Biomedical Instrumentation, specialized in diagnostic imaging calibration and QA.',
+      professional_background: 'M.Sc. in Biomedical Instrumentation, specialized in diagnostic imaging calibration and QA.',
+      areas_of_interest: ['Calibration & Quality Assurance', 'Medical Equipment Lifecycle', 'Academic & Research Collaboration'],
+      statement_of_interest: 'Aiming to establish joint training programs for biomedical technicians in regional hospitals.',
+      status: 'Pending',
+      created_at: '2026-11-04T11:45:00.000Z',
+      submitted_at: '2026-11-04T11:45:00.000Z',
+      joined_at: null,
+      approved_at: null,
+      status_updated_at: '2026-11-04T11:45:00.000Z',
+    },
+  ];
+  localStorage.setItem(LOCAL_STORAGE_BHN_KEY, JSON.stringify(initialSeeds));
+  return initialSeeds;
 }
 
 export async function updateBhnApplicationStatus(id, newStatus, adminNotes = null) {
+  const now = new Date().toISOString();
+  const isJoined = newStatus === 'Active' || newStatus === 'Approved' || newStatus === 'Joined';
+
+  const updatePayload = {
+    status: newStatus,
+    status_updated_at: now,
+    updated_at: now,
+  };
+  if (adminNotes !== null) updatePayload.admin_notes = adminNotes;
+  if (isJoined) {
+    updatePayload.approved_at = now;
+    updatePayload.joined_at = now;
+  }
+
   if (isSupabaseConfigured && supabase) {
     try {
-      const updatePayload = { status: newStatus };
-      if (adminNotes !== null) updatePayload.admin_notes = adminNotes;
-      if (newStatus === 'Active' || newStatus === 'Approved') {
-        updatePayload.approved_at = new Date().toISOString();
-      }
       const { data, error } = await supabase.from('bhn_applications').update(updatePayload).eq('id', id).select().single();
       if (!error && data) return { success: true, application: data };
     } catch (err) {
-      console.error(err);
+      console.warn('Supabase updateBhnApplicationStatus error, using local fallback:', err);
     }
   }
 
   const existing = JSON.parse(localStorage.getItem(LOCAL_STORAGE_BHN_KEY) || '[]');
   const updated = existing.map((item) =>
-    item.id === id ? { ...item, status: newStatus, admin_notes: adminNotes !== null ? adminNotes : item.admin_notes } : item
+    item.id === id
+      ? {
+          ...item,
+          ...updatePayload,
+          status: newStatus,
+          admin_notes: adminNotes !== null ? adminNotes : item.admin_notes,
+          joined_at: isJoined ? (item.joined_at || now) : item.joined_at,
+          approved_at: isJoined ? (item.approved_at || now) : item.approved_at,
+          status_updated_at: now,
+        }
+      : item
   );
   localStorage.setItem(LOCAL_STORAGE_BHN_KEY, JSON.stringify(updated));
   return { success: true };
@@ -751,27 +838,43 @@ export async function getWebinarBySlug(slugOrId, options = {}) {
 }
 
 export async function saveWebinar(webinarData) {
+  const now = new Date().toISOString();
+  const isAnnounced = webinarData.status === 'UPCOMING' || webinarData.isPublished;
+  const isRecordedOrUploaded =
+    webinarData.status === 'RECORDED' ||
+    Boolean(webinarData.recordingUrl && String(webinarData.recordingUrl).trim()) ||
+    Boolean(webinarData.videoUrl && String(webinarData.videoUrl).trim());
+
+  const enrichedData = {
+    ...webinarData,
+    createdAt: webinarData.createdAt || now,
+    announcedAt: webinarData.announcedAt || (isAnnounced ? now : null),
+    recordedAt: webinarData.recordedAt || (isRecordedOrUploaded ? now : null),
+    uploadedAt: webinarData.uploadedAt || (isRecordedOrUploaded ? now : null),
+    updatedAt: now,
+  };
+
   if (isSupabaseConfigured && supabase) {
     try {
-      if (webinarData.id && !webinarData.id.startsWith('webinar-')) {
+      if (enrichedData.id && !enrichedData.id.startsWith('webinar-') && !enrichedData.id.startsWith('event-')) {
         const { data, error } = await supabase
           .from('webinars')
-          .update(webinarData)
-          .eq('id', webinarData.id)
+          .update(enrichedData)
+          .eq('id', enrichedData.id)
           .select()
           .single();
         if (!error && data) return { success: true, webinar: data };
       } else {
-        const insertPayload = { ...webinarData };
+        const insertPayload = { ...enrichedData };
         delete insertPayload.id;
         const { data, error } = await supabase.from('webinars').insert([insertPayload]).select().single();
         if (!error && data) return { success: true, webinar: data };
       }
     } catch (err) {
-      console.error('Supabase saveWebinar error:', err);
+      console.warn('Supabase saveWebinar error, persisting to registry:', err);
     }
   }
-  return saveRegistryWebinar(webinarData);
+  return saveRegistryWebinar(enrichedData);
 }
 
 export async function deleteWebinar(id) {
