@@ -1,6 +1,6 @@
 # Marye Agegn - Personal Portfolio & Research Website
 
-A production-ready foundation for a professional biomedical engineering and research portfolio.
+A  professional biomedical engineering and research portfolio.
 
 ## Technology Stack
 
