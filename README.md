@@ -58,6 +58,4 @@ Personal website/
 - The project is configured with a relative base path (`base: './'`) in `vite.config.js`.
 - For GitHub Pages, the production build artifacts generated in `dist/` can be deployed directly to the root of the `marye-agegn.github.io` repository via GitHub Actions or manual branch deployment.
 
-### Vercel Compatibility
-- As a standard Vite + React project, this repository can be imported directly into Vercel without code modifications.
-- Default Vercel build settings (`Build Command: npm run build`, `Output Directory: dist`) work out of the box.
+
